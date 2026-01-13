@@ -1,0 +1,1381 @@
+---
+title: 高级数据库系统复习
+date: 2026-01-13T13:31:14+08:00
+featuredImage: https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113133012452.jpg
+authors:
+  - Xilyfe
+series:
+  - 期末复习
+tags:
+  - 数据库
+  - 复习
+lastmod: 2026-01-13T01:31:55+08:00
+---
+## 第一章 概述
+
+### 基础概念
+
+1.  数据库：**长期储存**在计算机内、**有组织的**、**可共享**的大量数据的集合
+2.  数据库模式：数据库中全体数据的**逻辑结构**和**特征的描述**
+	1. <div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260101231815096.png" width="70%" /> </div>
+3. 数据库管理系统：计算机程序的集合，用于创建和维护数据库。
+	1. 位于OS和APP之间
+    2. 总是基于某种数据类型
+    3. 例子：MySQL, Oracle11g
+4. 数据库系统：一个完整的数据库应用环境，是“系统”的概念。
+
+> DBS 和 DBMS 的区别是什么？DBMS 就是一个数据库软件例如 MySQL, Oracle。DBS 例如一个学校的教务系统，包含(1)数据库：学生表、课程表、成绩表 (2)DBMS：MySQL (3)应用程序：选课系统、成绩查询网页  (4)用户：学生、老师、管理员 (4)规则：权限控制、备份策略
+
+### DBMS 结构
+
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/dbms.png" width="70%" /> </div>
+
+1. 对于用户查询 sql 语句，经过查询编译器编译为查询计划，提供给执行引擎。执行引擎对于索引/ 文件/记录请求交给对应索引/文件/记录管理器进行操作，而索引等底层实现即页面(page)因此通过缓冲区管理器(Manager Buffer)来进行读取,如果miss,则需要调用存储管理器从磁盘中读取。
+2. 对于事务命令交由事务管理器进行处理，通过生成日志和恢复的方式保证一致性。对于生成的日志文件通过与缓冲区交互实现持久化，对于并发事务还通过并发控制和锁表保障数据一致性。
+3. 对于数据库管理员的DDL命令(创建/删除表等)交由DDL编译器并通过类似路线1的方式实现
+
+### 数据库设计问题
+
+1. 数据冗余：比如每个老师只有一个**固定的地址**，但是存课程信息时候，把老师的地址也存进去了。实际上只需要存在老师的那个表里。
+2. 更新异常：比如要修改老师的地址，就需要课程信息里面每一条包含老师都修改地址，否则会不一致。
+3. 插入异常：课程信息表中，课程号是主码。由于没有单独的教师信息表，新增教师时候如果没有代课，课程号为空，无法插入。
+4. 删除异常：如果老师不代课了，需要在课程信息表中删除他的课，但是**附带地址等教师信息一起删除了**（实际上这部分内容应该保存在教师信息表里面的）。
+
+解决方法：**模式分解**。将一个大表分解成若干相对独立的小表，通过共同主键产生关联，但是在查询时会来带额外的 join 开销，并且如何分解也是一个问题。
+
+> 更新异常和插入异常实际上就是**数据不一致问题**。
+
+### 数据库语言
+
+- 数据库定义语言（Data Definition Language，DDL）
+	- 定义表
+	- 视图操作
+	- 索引操作
+- 数据操纵语言（Data Manipulation Language，DML）
+	- Insert，Delete，Selete，Update
+- 数据库控制语言（Data Control Language，DCL）
+	- Grant，Revoke
+
+## 第二章 数据存储
+
+### 磁盘结构
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/disk_structure.png" width="80%" /> </div>
+
+### 磁盘块存取
+
+- 块是**DBMS**或**OS**中数据存取的最小单元，所以块是**逻辑单元**。
+- 扇区是**磁盘**中数据存储的最小单元，所以扇区是**物理单元**。
+
+$$
+\text{读块时间}T_{all} = \text{寻道时间}S+ \text{旋转延迟}R + \text{传输时间}T + \text{其他时间}O
+$$
+
+1. 寻道时间一般在10ms-40ms之间
+2. 旋转延迟是磁盘转动到块的第一个扇区到达磁头所需的时间.
+    1. 磁盘转速单位：RPM (Rotation / Min)
+    2. 平均时间为旋转1/2周所费的时间
+    3. e.g.：一个7200RPM的磁盘，平均旋转延迟 $R=\frac{60 \times 10^3ms}{7200} \times \frac{1}{2} = 4.17ms$
+3. 传输时间是磁头旋转通过块所在扇区及其间隙所需的时间
+    1. e.g., 磁道大约有100,000 Bytes，约10ms转一周，则每秒可从磁盘读取1000/10\*10000010MB. 一个4KB的块传输时间小于0.5ms
+4. 其他延迟：
+    1. CPU请求IO的时间
+    2. 争用磁盘控制器时间
+    3. 征用总线和主存的时间
+    4. 典型情况：0（忽略不计）
+5. 如何读下一块
+    1. 在同一柱面上：$R+T+other$
+    2. 不在同一柱面上：$S+R+T+other$
+
+> 一般来说，寻道时间(10ms-40ms)>旋转延迟(4ms)>传输时间(4kb-0.5ms)
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102113729888.png" width="70%" /> </div>
+
+**写块时间**
+
+1. 如果无需校验；则与读块相同
+2. 如果需要校验，则需要加上1次旋转时间和1次块传输时间
+
+**块修改**
+
+1. 将块读入主存
+2. 在主存完成修改
+3. 将块重新写入磁盘
+
+**如何定位一个块的位置**
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102114111546.png" width="70%" /> </div>
+
+
+块地址 = (设备号，柱面号，盘面号，柱面号)
+
+- 3840 RPM
+- 8 盘面
+- 8192 磁道
+- 256 扇区
+- 512B 字节/扇区
+- 寻道时间(最大)：17.4 ms 
+- 磁头启动停止1 ms，每移动500个柱面需1ms
+- 1 block ＝ 4 KB ＝ 8 sectors
+- 块之间的间隙占块的10%大小
+- 每磁道大小=(256/8)\*4 KB=128 KB=32块
+- 每柱面大小=8\*128KB=1 M
+
+3840 RPM → 3840 转/min → 60\*10\^3/3840 = 15.625ms。所以读取一个磁道（也就是转一圈）需要15.625ms，一个磁道有32块，所以读取一个块要0.4883ms，间隔占10%故读取数据时间占90%，0.439ms。读取一块最大时间 = 寻道时间(最大) + 旋转延迟(旋转一圈) + 传送时间=17.4ms + 15.625ms + 0.439ms。最短时间就是只要传输时间0.439ms。
+
+**读取一块的平均时间怎么算？**
+
+根据参考书结论：磁通平均移动距离是磁盘的 1/3，所以平均寻道数是 8192/3=2730。每移动500个柱面需1ms，需要 2730/500=5.5ms，加上启动停止的 1ms 一共 6.5ms。所以平均时间=6.5ms + 15.625ms/2(旋转半圈) + 0.439ms(传输时间)
+
+### 磁盘存取优化
+
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102133430148.png" width="80%" /> </div>
+
+> 先读同一个磁道的
+
+### 新型存储
+
+#### 闪存（Flash Memory）
+
+1. 读写不对称（写慢读快）
+2. 写前擦除：异位更新、块擦除操作
+3. 寿命有限：块擦除次数有限
+4. 按页读写、按块擦除
+
+#### 相变存储器（PCM) 
+
+1. 读取延迟较NAND Flash高一点(一倍左右)
+2. 写入速度远快于NAND Flash快得多(500倍)
+3. 本身读写并不平衡, 写快读慢 (50倍)
+4. 没有擦除延迟，而NAND Flash需要2ms
+5. 擦除次数也比NAND高几个数量级
+
+## 第三章 数据表示
+
+### 数据项
+
+| 类型             | 长度                | 存储方式                                            |
+| -------------- | ----------------- | ----------------------------------------------- |
+| Integer(short) | 2B=16bit          | 二进制存储                                           |
+| Real,Float     | 4B=32bit          | 符号+小数+指数                                        |
+| Char(n)        | n字节               | n字节的数组，小于n是特殊字符填充                               |
+| VarChar(n)     | 不定长               | 方法1：Null终止符；方法2：带长度 3cat；方法3：n+1字节              |
+| Boolean        | 1B=8bit           | True=11111111                                   |
+| Enum           | 2B=16bit          | 二进制存储，一共可以表示2^16                                |
+| Date           | 10/8/7/Integer    | "YYYY-MM-DD","YYYYMMDD","YYYYDDD",1900-0101以来天数 |
+| Time           | 8/Varchar/Integer | "HH:MM:SS","HH:MM::SS.FF",00:00::00以来秒数         |
+| Bit            | 带长度的二进制串          |                                                 |
+### 记录
+
+#### 固定格式定长记录
+
+例如规定了 (1) E#, 2B integer (2) Ename, 10char (3) Dept, 2B code，那么就按照 "55 smith 02"这样存储
+
+```sql
+CREATE TABLE Student(
+    stid CHAR(30) PRIMARY KEY,
+    stname VARCHAR(255),
+    gender CHAR(1),
+    birthdate DATE
+)
+```
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102141542213.png" width="70%" /> </div>
+
+
+> 考虑寻址特点：记录和字段的开始地址必须**按4的倍数对齐**，具有更快的读写速度，但是浪费空间。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102141637233.png" width="70%" /> </div>
+
+记录首部（Head）会存储描述记录的信息
+
+1. 记录类型（Scheme）
+2. 记录长度
+3. 时间戳（用于并发控制）
+4. 其他信息
+
+#### 可变格式记录
+
+```cpp
+typedef struct {
+	void *data;
+	int size;
+} DBT;
+```
+
+>记录都以“KEY+VALUE”方式表示，KEY与VALUE都以字节流（byte string）存储
+
+1. 优点
+    1. 灵活的记录格式，适合“松散”记录，如病人的检验结果
+    2. 适合处理重复字段
+    3. 适合记录格式演变
+2. 缺点
+    1. 标记存储方式空间代价高
+    2. KV方式难以支持复杂查询
+    3. 应用负担重且事务处理等实现困难
+
+**可变格式的记录必定是变长的，固定格式的记录必定是定长的？**
+
+前半句对，后半句不对。可变格式记录，字段个数或字段类型可能变化，所以一定是变长的。但是固定格式记录，里面的数据项不一定是定长的，例如 Varchar，所以固定格式记录不一定定长。
+
+
+**首部指针法**(变长记录表示法) 定长字段在前,变长字段在后,如下例(name、address变长):
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102143712004.png" width="70%" /> </div>
+
+**混合格式**：定长记录+变长记录
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102143752775.png" width="70%" /> </div>
+
+#### 记录的组织方式
+
+>定长记录通常用<块号，槽号>表示
+
+- 方式一: 使用额外的一个空间记录当前记录数N,对于插入操作插入到第N+1的槽中即可,同时将N->N+1,但是对 于删除不友好 
+- 方式二: 记录当前记录数m的情况下,使用额外N的空间记录槽是否可用(例如0可用,1不可用),支持 删除操作,但是针对插入需要先遍历一遍,有额外时间开销
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102144528997.png" width="80%" /> </div>
+
+>变成记录会有一个**槽目录**来记录每条记录：<记录偏移量，长度>
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260102144936230.png" width="80%" /> </div>
+
+#### 插入
+
+1. 记录无序
+	1. 插入到任意块的空闲空间中
+	2. 或申请一个新块（当所有块都已满时）
+	3. 记录变长时，可使用偏移量表
+2. 记录有序
+	1. 找到记录应该放置的块 
+	2. 如果有空间，放入并调节记录顺序即可，
+	3. 否则有两种方法： 在“邻近块”中找空间、创建溢出块
+#### 删除
+
+>删除时候把空间加入可用空间列表中。
+
+- 若使用偏移表，则可以修改偏移表项指针，将其置空 
+- 若使用逻辑－物理地址映射表，则可以将物理地址置空 
+- 可以在记录首部预留一开始位：0－未删除，1－已删除
+
+### 块
+
+1. 堆文件
+    1. 最基本、最简单的文件结构
+    2. 记录不以任何顺序排序
+    3. 记录可能存放在物理不邻接的块上
+    4. 插入容易，但查找和删除代价高
+2. 链表式堆文件组织
+	1. 首块 <-> 数据块 <-> 数据块 <-> 数据块 -> 含空闲空间的块链表
+3.  目录式堆文件组织
+	1. [邻接数据块阵列（首块）] -> [邻接数据块阵列] -> [邻接数据块阵列] -> …
+
+
+## 第四章 缓冲区管理
+
+### 缓冲区结构
+
+1. Dirty：Frame 中的块是不是已经被修改
+2. Pin-count：Frame 的块中已经被请求但是没有被释放的数量，即用户数
+3. Page：一般是逻辑单位，在逻辑地址空间中
+4. Frame：在内存、缓冲区中的单位
+5. Block：在磁盘上
+
+>如何区分Page、Frame、Block？当上层请求一个 **page** 时，系统先在**内存中的 frames（缓冲区/页框）** 里查找；  若命中，直接返回该 **frame 号**；  若未命中，则从**磁盘上该 page 所在的 block** 读入内存；若内存已满，则根据替换策略选择一个 **frame** 进行替换（必要时先写回其对应的 block）；最后将新 page 装入该 frame，并返回该 **frame 号**。
+
+### 缓冲区替换策略
+
+#### LRU
+
+1. 优点：
+    1. 适用于满足时间局部性的场景（多次重复请求同一页）
+    2. 选取frame的时间复杂度是O(1)
+2. 缺点：
+    1. 缓存污染：LRU + repreated sequential scans
+    2. 维护LRU链表代价昂贵：修改链表耗时
+    3. 如果访问不满足时间局部性，则性能较差
+    4. 只考虑最近一次访问，不考虑访问频率
+#### LRU-K
+
+1. 数据第一次被访问，加入到访问历史列表；
+2. 如果数据在访问历史列表里后没有达到K次访问，则按照一定规则（FIFO，LRU）淘汰；
+3. 当访问历史队列中的数据访问次数达到K次后，将数据索引从历史队列删除，将数据移到缓存队列中，并缓存此数据，缓存队列重新按照时间排序；
+4. 缓存数据队列中被再次访问后，重新排序；
+5. 需要淘汰数据时，淘汰缓存队列中排在末尾的数据，即：淘汰“倒数第K次访问离现在最久”的数据。
+
+假设有访问序列：`A B C A D E A`，那么：
+
+- 第一次访问：
+    - A → 历史列表 (1 次)
+    - B → 历史列表 (1 次)
+    - C → 历史列表 (1 次)
+- 第二次访问:
+    - A → 历史列表访问次数 = 2 → 达到 K → 移入缓存队列
+- 第三次访问：    
+    - A → 缓存队列重新排序
+- D、E 只访问一次 → 仍在历史列表或被淘汰 → 不占缓存
+
+>在 LRU-K 里面，访问历史列表起到的是 **计数** 的作用，达到 K 次的数据加入缓存。
+
+#### 2Q
+
+该算法类似于 LRU-2，不同点在于 2Q 将 LRU-2 算法中的访问历史队列（注意这不是缓存数据的）改为一个 FIFO缓存队列，**2Q算法有两个缓存队列**，一个是FIFO队列，一个是LRU队列。
+
+1. 新访问的数据插入到FIFO队列；
+2. 如果数据在FIFO队列中一直没有被再次访问，则最终按照FIFO规则淘汰；
+3. 如果数据在FIFO队列中被再次访问，则将数据移到LRU队列头部；
+4. 如果数据在LRU队列再次被访问，则将数据移到LRU队列头部；
+5. LRU队列淘汰末尾的数据。
+
+#### Second-Chance FIFO
+
+将所有 Frame 按照 FIFO 的方式连接，并且每个 Frame 都额外附带一个 bit 位默认为 0。 如果一个 Frame 被访问，那么置为 1。如果一个 Frame 要被置换了，如果标志是 0，那么直接置换；如果标志是 1，那么给他一个机会，将这个 Frame 放到 FO（链表尾部）但是标志改成 0。
+
+#### Clock
+
+Second-Chance FIFO 存在的一个问题是：每次更新 Frame 需要调整链表开销很大。Clock 的解决方法是，把全部 Frame 都组织成环形，并且用 current 指向首 Frame。
+
+- 从 current 开始检查，若 pin-count>0（相当于被占用），current 指向下一个 Frame
+- 如果 pin-count=0
+	- 若 referenced=1，则给他一次机会，把它置为0，current 指向下一个 Frame
+	- 若 referenced=0，那么就置换出去，current 指向下一个
+
+>current 指针只在置换时更新，访问命中时不改变 current 指针
+
+
+**为何不使用 OS 缓冲区管理**
+
+DBMS 经常能预测访问模式，可以使用更专门的缓冲区替换策略。DBMS需要强制写回磁盘能力（如WAL），OS的缓冲写 回一般通过记录写请求来实现（来自不同应用），实际的 磁盘修改推迟，因此不能保证写顺序。
+
+
+**各种算法都解决了什么问题**
+
+1. LRU-K 和 2Q 通过**额外队列**解决了 LRU **缓存污染**的问题
+2. Second-Chance FIFO 通过**标记位**解决了 LRU **缓存污染**的问题
+3. Clock 是通过**循环队列**解决了 Second-Chance FIFO **修改链表开销大**的问题
+
+
+
+### 缓冲区管理器
+
+#### frame
+
+```cpp
+#define FRAMESIZE 4096 
+struct bFrame { 
+	char field[FRAMESIZE]; 
+};
+```
+
+#### buffer
+
+```cpp
+#define BUFSIZE 1024
+bFrame buf[BUFSIZE];
+```
+
+#### bcb
+
+为每一个 frame 存储一个控制信息
+
+```cpp
+struct BCB { 
+	BCB(); 
+	int page_id; 
+	int frame_id; 
+	int count; 
+	int time; 
+	int latch; 
+	int dirty; 
+	BCB * next; 
+};
+```
+
+#### hash
+
+为了建立 frame-page 之间的索引，可以采用 Hash 表。已知需要读的 page_id，通过映射得到 hash值当索引，得到 BCB，根据 BCB 的 frame_id 就可以去 buffer 里面找到 frame 了。
+
+```cpp
+BCB hTable[BufferSize] //page 2 frame 
+int hTable[BufferSize] //frame 2 page
+```
+
+#### 基本功能
+
+- `FixPage(int page_id)`：
+	- 在 buffer 里找 page（`FindFrame`）
+	- 如果找到了 → 直接用
+	- 如果没找到：
+	    - buffer 未满 → 分配一个 frame
+	    - buffer 已满 → `SelectVictim()` 选一个 frame 换出
+	- 若被换出的 frame 是 dirty → 写回磁盘
+	- 从磁盘把 page_id 对应的 block 读入这个 frame
+    - 返回 frame_id（或 page 指针）
+- `FixNewPage()`：创建一个新的 page（还不在磁盘上），并放入 buffer
+- `SelectVictim()`：在 buffer 满时，选一个可以被换出的 frame
+- `SetDirty(int frame_id)`：标记 frame 为 dirty
+
+## 第五章 索引结构
+
+### 顺序文件索引
+
+#### 密集索引
+
+- 记录通常比索引项要大 
+- 索引可以常驻内存 
+- 要查找键值为K的记录是否存在，不需要访问磁盘数据
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103101748425.png" width="80%" /> </div>
+
+#### 稀疏索引
+
+- 仅为每个数据块的第一个记录建立索引
+- 节省了索引空间， 对同样的记录，稀疏索引可以使用更少的索引项。
+- 但是没办法直接知道，是否存在 key=K 的记录，需要遍历
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103102027970.png" width="80%" /> </div>
+
+#### 多级索引
+
+- 一级索引可能还太大而不能常驻内存 
+- 二级索引更小，可以常驻内存 
+- 减少磁盘I/O次数
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103103512218.png" width="80%" /> </div>
+
+> 注意，最左边是二级索引，一级索引指向数据。
+
+```
+例：一块＝4KB。一级索引10,000个块，每个块可存100个索 引项，共40MB。二级稀疏索引100个块，共400KB。
+```
+
+1. 二级索引位于内存里面，直接进行二分查找，需要 0 次 I/O，就可以得到一级索引块的地址
+2. 一次 I/O 读入一级索引块进入内存，在内存进行二分查找，得到数据块地址，1 次 I/O，共两次。
+
+>二级索引必须用稀疏索引，不然完全没有意义：因为二级索引存在就是因为一级索引太多了。
+
+#### 辅助索引
+
+假设一张表：`Student(id, name, age, dept)`，数据按 id（主键）顺序存，现在查：`SELECT * FROM Student WHERE dept = 'CS';` ，由于 `dept` 不是主键，只能全表扫描（读所有数据块），这在数据量大时非常慢。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103105805608.png" width="80%" /> </div>
+
+**为什么辅助索引不能用稀疏索引？**
+
+因为数据文件不是按辅助索引字段排序的，而是按照主键排序的。对于主键来说，稀疏索引可以找到块后，**顺序扫块内数据就行**。但是对于辅助索引字段，key=10的块内下一个记录可能key=5。
+
+**重复键值怎么处理？**
+
+1. 多个索引项，每个索引项指向一条记录
+2. 索引项 + 指针链表，指向一个 **记录指针链表**，而不是一个记录
+3. B+树叶子结点
+
+**间接桶**
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103111705406.png" width="80%" /> </div>
+
+>思路类似指针链表，就是在bucket里面存储重复的键值指针
+
+
+#### 倒排索引
+
+应用于文档检索，就是关键词查找位于文档的哪个位置。为每个检索词建立间接桶，桶的指针指向检索词所出现的文档。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103113220381.png" width="80%" /> </div>
+
+### B+树
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103113903533.png" width="80%" /> </div>
+
+
+1. B+树所有节点都是 n 个值，n+1 个指针
+2. 非叶节点，n 个键值划分 n+1 个字数，例如：\[p1(key小于10的节点指针), 10, p2(10<key<20的节点指针)]
+3. 叶节点，前 n 个指针对应 n 个值的指针，最后一个指针指向下一个叶节点。
+
+>B+树和B树区别是，叶节点之后有顺序连接的指针，可以进行遍历。
+
+#### 查找
+
+- 从根结点开始
+- 沿指针向下，直到到达叶结点
+- 在叶结点中顺序查找
+
+#### 插入
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103120622529.png)
+
+
+- 对于叶节点的分裂，从中间(向上取整)的位置断开，然后右侧新节点的第一个 key 上提。
+- 对于非叶节点的分裂，从中间(向上取整)的位置断开，然后右侧新节点的第一个 key 上提，但是**分裂的新节点，不包含第一个key**。如图可以看到，第一次叶节点分裂，分裂的新节点包含 40；但是第二次非叶节点分裂，分裂出来新节点只有40，没有 30。
+
+#### 删除
+
+- 删除后满足要求不管
+- 删除后不满足要求
+	- 兄弟够借就借，注意**改**父节点元素
+	- 兄弟不够借就和兄弟合并，注意**删**父节点元素
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103121806386.png" width="80%" /> </div>
+
+#### 效率
+
+- 访问索引的 I/O 代价＝树高（B＋树不常驻内存）或者0（常驻内存）
+- 树高通常不超过 3 层，因此索引 I/O 代价不超过 3，总代价不超过 4。
+
+**为什么说总代价不超过 4，顺序查找不需要 I/O吗？**
+
+当我们查找到叶节点时候，我们会把这个 key 所在的整个块读进内存，所以接下来的顺序查找在内存里，没有 I/O 开销。
+
+### 散列表
+
+- 根据散列函数，把 key 映射到桶 id。
+- 一个桶一般会对应一个 block，块内包含多条记录。I/O 次数取决于 n blocks/bucket。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103130014714.png" width="80%" /> </div>
+
+- 散列表插入时候，如果桶内没有空间，会创建一个溢出块连接到桶。
+- 散列表删除时候，如果桶内有多余空间了，会把溢出块提到桶内，删除溢出块。
+- 散列表空间利用率问题=实际键值数/ 所有桶可放置的键值数，**所以利用率可能大于 1**。
+
+#### 可扩展散列表
+
+数据文件的增长使桶的溢出块数增多，增加I/O，可拓展散列表就是为了解决这个问题。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103132737004.png" width="80%" /> </div>
+
+- 散列函数会把 key 映射为一个 二进制序列，然后取前 g 位作为桶 id，找到桶指针。
+- 如果桶有空位，直接插入
+- 如果桶没有空位，会进行分裂
+	- 如果 l > g：g++，扩展目录。
+	- 如果 l < g：重新散列该块的数据到其他两块，l++
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103134756689.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103181502256.png" width="80%" /> </div>
+
+- 优点：大部分情况下不存在着溢出块，因此当查找记录时，只需查找一个 存储块。
+- 缺点：桶增长速度快，可能会导致内存放不下整个桶数组，影响其他保存 在主存中的数据，波动较大。
+
+#### 线性散列表
+
+```
+例:
+- 散列位数 (i): 1 (看二进制最后 1 位)
+- 桶数 (n): 2 (目前只有桶 0 和 桶 1)
+- 分裂指针 (next): 0 (因为 n=2 是 2^1 的整数倍，一轮分裂刚开始，指针在开头)
+- 当前数据:
+  - Bucket 0: 0000, 1010 (均以 0 结尾)
+  - Bucket 1: 1111 (以 1 结尾)
+```
+
+- 假设插入 0101，经过散列 $0101 \mod 2^i=1$ ，所以插入 Bucket 1。
+- 判断是否分裂，$\frac{r}{n}=2>1.7$ 所以触发分裂，对 next 指向的 Bucket 0 进行分裂。
+	-  n 变成 3，新增 Bucket 2
+	- 对 Bucket 0 的数据进行重排
+		- $0000 \mod 2^{i+1}=0$ ，还在 Bucket 0
+		- $1010 \mod 2^{i+1} = 2$，在 Bucket 2
+		- 触发了分裂，next 指针都移动
+- n=3 超过 $2^i$ 所以 i++
+
+---
+
+- 假设再插入 0001，经过散列 $0001 \mod 2^i=1$ ，所以插入 Bucket 1。
+- 判断是否分裂，$\frac{r}{n}=\frac{5}{3}<1.7$ 所以不分裂。Bucket 1 元素超过上限，不增加新桶所以使用溢出块。
+
+
+>可扩展散列表没有溢出块，线性散列表有可能有溢出块。
+
+### 多维索引
+
+之前的主键索引或者辅助索引都只能针对单个 key 进行查找，如果要对多维数据匹配就需要多维索引。
+
+#### R-Tree
+
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103185637748.png" width="80%" /> </div>
+
+- 基于磁盘的：数据存储在磁盘,根据需求将其加载到内存中操作 
+- 数据分页：每个节点占用相同大小的磁盘空间 
+- 平衡的:所有叶子节点到跟节点的距离相同 
+- 动态的:支持数据插入删除 
+- 叶子存储数据:中间节点仅提供索引,所有数据存储在叶子节点 
+- 半满的:所有节点至少是半满的
+
+>R-Tree 就是二维版本的 B-Tree。
+
+#### 分段散列函数
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260103190243201.png" width="80%" /> </div>
+
+- 采用将数据划分到桶中的方法——类散列方法
+- 分段散列可以支持高于 2 维的多维数据
+- 分段散列可以将数据较均匀地散列到桶中，空间利用率更高
+- 支持部分匹配查询
+- 不适合NN查询和范围查询，因为用的是散列函数，存储不顺序。
+
+#### 向量索引
+
+- 所有数据 Embedding 成向量，查询也 Embedding 成向量
+- 利用向量之间的相似性进行检索
+- 与传统多维索引的区别 
+	- 全维匹配，一般不考虑部分匹配查询 
+	- 近似最近邻搜索(top-k ANN)，一般不考虑准确匹配
+
+## 第六章 查询优化
+
+**重点**：查询工作流程、中间结果大小估计、
+
+### 查询处理全流程
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260104105455755.png" width="80%" /> </div>
+
+### 语法分析
+
+>把 SQL 语句构造为语法分析树，了解即可
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260104105643050.png" width="80%" /> </div>
+
+### 生成初始逻辑查询计划
+
+例一：
+
+```sql
+SELECT sname, age 
+FROM Student S, Enroll E 
+WHERE S.sid = E.sid AND E.grade > 80;
+```
+
+```text
+π_{sname, age} ( 
+	σ_{S.sid = E.sid ∧ grade > 80} ( 
+		Student × Enroll 
+	) 
+)
+```
+
+例二：
+
+```sql
+SELECT title
+FROM StarsIn
+WHERE starName IN (
+    SELECT name
+    FROM MovieStar
+    WHERE birthdate LIKE '%1960'
+);
+```
+
+```text
+π_title (
+    σ_{starName ∈ (π_name (σ_{birthdate LIKE '%1960'}(MovieStar)))} (StarsIn)
+)
+```
+
+### 查询重写
+
+```text
+R           S         T
+A  B        A  C      C  D
+10 20       10 20     20 20
+20 30       20 30     10 30
+30 40       30 40     10 40
+```
+
+- (R⋈S)⋈T：中间结果 R⋈S 产生3条记录
+- R⋈(S⋈T)：中间结果 S⋈T 产生1条记录
+
+从这个例子可以看出，合适的重写可以减少查询执行时的中间关系大小（元组数）、减少元组的大小，最终减小查询的开销(I/O 次数)。
+
+**×和⋈区别**
+
+假设两个简单表：
+
+| sid | sname |
+| --- | ----- |
+| 1   | Alice |
+
+|sid|grade|
+|---|---|
+|1|90|
+|3|85|
+1. R × S（笛卡尔积）：无条件，全组合，共 2 × 3 = 6 行。
+
+| R.sid                        | sname | S.sid | grade |
+| ---------------------------- | ----- | ----- | ----- |
+| 1                            | Alice | 1     | 90    |
+| 1                            | Alice | 3     | 85    |
+| 2                            | Bob   | 1     | 90    |
+| 2                            | Bob   | 3     | 85    |
+
+2. R ⋈ S：先隐式做笛卡尔积，再过滤 R.sid = S.sid
+
+|sid|sname|grade|
+|---|---|---|
+|1|Alice|90|
+
+>貌似不考，做简单了解，具体如何转换不看了。
+
+
+### 代价估计
+
+#### 中间结果大小估计
+
+- $T(R)$：R 的元组数 
+- $S(R)$：R 中每个元组的大小(bytes) 
+- $V(R, A)$：R 的属性 A 上的不同值数 
+- $B(R)$：容纳 R 所有元组所需的块数
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260104114409177.png" width="80%" /> </div>
+
+计算中间结果的大小，我们需要 元组数 * 每个元祖大小，即 $T(R)$ 和 $S(R)$。
+
+- 对于笛卡尔积 $W= R_1 \times R_2$
+	- $T(W) = T(R_1) * T(R_2)$
+	- $S(W) = S(R_1) + S(R_2)$
+- 对于选择操作 $W=\sigma_p(R)$ 
+	- $S(W) = S(R)$
+	- $T(W)$ 
+		- 对于等值查询操作 $p:\{A=a\}$ 不好估计，假如列 A 上的不同值均匀分布就有 $T(W)=\frac{T(R)}{V(R,A)}$ （换句话说，假如 R 有 10000行， $V(R,A)=100$ ，均匀分布的话每个值出现 100 次。）
+		- 对于区间选择操作 $p:\{A>a\}$，三种方法：$T(W)=\frac{T(R)}{2}$ 或 $T(W)=\frac{T(R)}{3}$ 或 $T(W)=\frac{\text{选择元素}}{\text{区间范围}} \times T(R)$ 
+		- 对于不等值查询操作 $p: \{A \neq a\}$ ，$T(W)=T(R) - \frac{T(R)}{V(R,A)}$
+- 对于连接操作 $W=R_1(A,B,C) \Join R_2(A,D)$
+	- $S(W) = S(R_1) + S(R_2) - S(A)$
+	- $T(W)=\frac{T(R_1) \times T(R_2)}{\max{(V(R_1,A), V(R_2,A))}}$ 
+	- $V(W,*)$
+		- $V(W,B)=V(R_1,B)$
+		- $V(W,C)=V(R_1,C)$
+		- $V(W,D)=V(R_2,D)$
+		- $V(W,A)=\min\{V(R_1,A),V(R_2,A)\}$
+
+上面公式是基于下面的假设：
+
+- $V(R_1,A) \lt V(R_2,A)$ ⇒ R1.A 上的值都在 R2 中
+- $V(R_2,A) \lt V(R_1,A)$ ⇒ R2.A 上的值都在 R1 中
+
+对于 $R_1$ 而言，A 出现在 $R_2$ 的预期行数为 $\frac{T(R_2)}{V(R_2, A)}$ ，对于 $R_2$ 而言同理。假如 $V(R_1,A) \lt V(R_2,A)$，R2.A 很多值不在 R1，如果用 $T(R_2) * \frac{T(R_1)}{V(R_1, A)}$ 不准。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260104130406668.png" width="80%" /> </div>
+
+
+#### I/O 代价估计
+
+- 估计目标：指型查询计划所必须读（写）的磁盘块数目
+- 影响查询计划IO代价的因素：
+    1. 实现查询计划的逻辑操作符
+    2. 中间结果的大小
+    3. 实现逻辑操作符的物理操作. e.g., 连接操作是用索引连接还是散列连接？
+    4. 相似操作的顺序. e.g., 多关系的连接顺序
+    5. 物理操作符之家你的参数传递方式（**流水线**还是**物化**？）
+
+物理操作符的参数传递方式：
+
+1. 流水线：多个操作同时执行，一个操作产生的元组直接通过共享内存传递给其他操作
+    1. 节省 I/O
+    2. 占用主存，若缓冲区出现“颠簸”则 I/O 增加
+2. 物化：操作依次执行，并且每个操作的结果（中间关系）都写到磁盘上供其他操作存取
+    1. 通过磁盘物理进行数据传递
+    2. 节省主存空间
+
+>感觉不考，记一记以防选择判断题考。
+
+#### 物理查询计划生成
+
+> 应该不考
+
+## 第七章 连接算法
+
+**重点**：每个连接算法的 I/O 代价估计和内存开销
+
+### 物理查询计划操作符
+
+>感觉不考，PPT没看懂讲什么
+
+
+### 连接操作的实现算法
+
+- $R_1(A, C) \Join R_2(C, D)$ 
+	- 嵌套循环连接
+	- 归并连接
+	- 索引连接
+	- 散列连接
+
+#### 嵌套循环连接
+
+```python
+for r in R1:
+	for s in R2:
+		if r.c == s.c: output(r, s)
+```
+
+#### 归并连接
+
+```python
+sort(R)
+sort(J)
+i = 0, j = 0
+while i < |R| and j < |S|:
+    if R[i].a < S[j].b:
+        i += 1
+    elif R[i].a > S[j].b:
+        j += 1
+    else:  // 相等
+        // 收集当前值的所有 R 元组（从 i 开始连续相同）
+        // 收集当前值的所有 S 元组（从 j 开始连续相同）
+        // 两两笛卡尔积输出
+        // 前进 i 和 j 到下一不同值
+```
+
+#### 索引连接
+
+```text
+For each r ∈ R1 do {               // 外层循环：遍历外关系 R1 的每一行 r
+    X ← index(R2, C, r.C)         // 用 R2 在属性 C 上的索引，快速查找所有 C 值等于 r.C 的行集合 X
+    For each s ∈ X do             // 内层循环：遍历匹配的行集合 X
+        Output r,s pair           // 输出连接结果 (r, s)
+}
+```
+
+要求在 R2 上有索引，相当于对嵌套循环连接的优化，使用索引结构优化 `for s in R2` 的查找时间。在最坏情况下(当 X 为 R2 全集)，索引连接算法会比嵌套循环连接算法复杂度高(多了一次索引代价)。
+
+#### 散列连接
+
+```python
+# 假设 R 较小，作为 Build Input
+hash_table = {}  # 键: 连接属性值, 值: 元组列表
+
+for r in R:
+    key = r.a
+    hash_table[key].append(r)  # 放入对应桶
+
+for s in S:
+    key = s.b
+    if key in hash_table:
+        for r in hash_table[key]:
+            output (r, s)****
+```
+
+通过空间换时间，把嵌套循环的 $O(R*S)$ 变成 $O(S*hash\_len)$ 。
+
+### 代价分析
+
+#### 嵌套索引连接
+
+**情况一：不连续存放**
+
+```text
+设: 
+T(R1) = 10,000 
+T(R2) = 5,000 
+S(R1) = S(R2) = 1/10 block
+MEM = 101 blocks
+```
+
+- 朴素算法：对于每一个 R1，每次拿出所有 R2 中所有元素进行对比， I/O 总次数是 $10000*(1+5000)=50010000$ 次。
+- 改进算法：
+	- R1 一共占 1000 块，R2 一共占 500 块，内存共 101 块
+	- R1 存 100 块到内存，R2 存一块
+	- R2 不断和内存中的 R1 比较，一块读完换下一块，总 I/O 次数为：$10000(R1) + \frac{1000}{100} * 5000=60000$ 次
+- 改进算法2：运用交换律 $R_2 \Join R_1$
+	- $5000(R_2) + \frac{500}{100}*10000=55000$ 次
+
+>由于不连续，所以读一个块(一次 I/O )只能读一个 record。
+
+**情况二：连续存放**
+
+- 改进算法2：运用交换律 $R_2 \Join R_1$
+	- $500(R_2) + \frac{500}{100}*1000=5500$ 次
+
+#### 归并连接
+
+- 连续且有序：$1000(R_1)+500(R_2)=1500$ 次 I/O
+- 连续且无需：还要加上排序的时间开销，假如用的归并排序
+	- 阶段一：R1 的块全部读进 buffer，在内存排序后写会磁盘，最终得到 n chunk，每个 chunk 内部有序
+	- 阶段二：不同 chunk 中读进 buffer 进行归并排序，最后还要写会磁盘
+	- 读写分别两次：$(2+2)*(1000+500)=6000$，一共 7500 次 I/O
+	- <div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260104201202482.png" width="80%" /> </div>
+
+>和嵌套索引连接对比，关系少的时候嵌套索引连接反而更快，但是关系较大选择归并连接更优。
+
+假设 内存中 buffer 块数为 k，记录一共占 x 块，那么 chunk 数为 x/k。由于 chunk 数要小等于 buffer 块数，所以有 $\frac{x}{k} \leq k$ 即 $\sqrt{x} \leq k$  ，对于上面例子 R1 占 1000 块，R2 占 500 块，需要 buffer 32 块。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260104203544935.png" width="80%" /> </div>
+
+优化方法是在排序二阶段时候连接，需要 $3*(B(R_1) + B(R_2))$ 次 I/O。
+
+#### 索引连接
+
+前面说过，索引连接相较于嵌套索引连接优势就是：把内存循环完整遍历，变成只需要遍历索引节点。所以索引连接的代价就是外层 block 读取 + 内存 block 读取。
+
+- 外层 block 读取是全部读取，开销固定
+- 但是内层索引数量不确定，怎么计算开销？
+
+$$
+Cost = B(R_2) + T(R_2)*p
+$$
+
+- 若 R1.C 是主键, 即 R1.C 唯一, 选择基数 p = 1 
+- 若 R1.C 不唯一，V(R1,C)=5,000, T(R1) = 10,000, 则每个 R2 tuple 在 R1 中的选择基数$p = \frac{T(R_1)}{V(R_1,C)}=2$
+
+**假设 R1.C 的索引不是全部在内存**，一共 200块，102 块在磁盘，98 块在内存，那么平均需要 $0 * (98/200)+ 1*(102/200)=0.5$ 次 I/O。一共需要 $500 + 500*(0.5 + 1/2)$ 次 I/O。
+
+#### 散列连接
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260104213605567.png" width="80%" /> </div>
+
+假设内存缓冲区有 M 个 block
+- 读取整个 R1，将 R1 散列在 M-1 个 block 里面，然后逐个读取 R2 块，和 R1 进行散列查找然后 join，一共 $cost=B(R_1)+B(R_2)$
+- 读取 R1 和 R2，然后散列分别得到 100 个 buckets 存在磁盘。然后读取 M-1 个 block 的 R2 到 buffer，然后再顺序读 R1 的 block 和 R2 进行散列连接。
+	- 有没有可能 R1 散列出来的 R2 的 key 不在内存里？毕竟 R2 没有全部装到内存里。答案是不会，因为它利用“**相同的散列函数，产生相同的散列值**”这一特性。当读 1,2,3 块 R2 到内存，我们就顺序只取 1,2,3 的 R1 到内存。
+	- 散列时候一读一写，最后各读一次：$cost=3*(B(R_1)+B(R_2)))$ 
+
+## 第八章 事务管理
+
+### 日志&恢复
+
+- 一致状态：数据库满足所有完整性约束的状态，例如：所有账户余额总和 = TOT、字段 color 的取值只能是红、蓝、绿。
+- 一致数据库：满足一致状态的数据库
+
+#### 事务
+
+##### 定义
+
+不可分割的操作序列，要么全执行，要么全不执行。
+
+>例如：银行转帐：A帐户转帐到B帐户100元。该处理包括了两个更新步骤：A=A-100 和B=B+100，这两个操作是不可分的：要么都做，要么都不做。
+
+##### ACID 性质
+
+- 原子性(Atomicity)：同一个事务的语句要么都执行，要么都不执行 
+- 一致性(Consistency)：如果事务执行之前为一致状态，则执行后仍然为一致状态 
+- 隔离性(Isolation)：事务之间不受影响 
+- 耐用性(Durability)：将数据持久化
+
+##### 事务状态
+
+- `<Start T>`：事务 T 开始执行
+- `<Commit T>`：事务 T 执行成功，所有修改已写入磁盘
+- `<Abort T>`：事务 T 终止，所有修改已撤销
+
+##### 原语操作
+
+- `Input (x)`：将磁盘中包含 x 的数据块读入内存缓冲区
+- `Output (x)`：将内存缓冲区中包含 x 的数据块写入磁盘
+- `Read (x,t)`：必要时执行 `Input (x)`，将缓冲区中 x 的值赋给变量 t
+- `Write (x,t)`：必要时执行 `Input (x)`，将变量 t 的值更新到缓冲区中的 x
+
+对于刚刚银行转账的例子，可以写为：
+
+```text
+Read(A, t);
+t = t - 100;
+Write(A, t);
+Read(B, t);
+t = t + 100;
+Write(B, t);
+Output(A);
+Output(B);
+```
+
+#### 故障
+
+1. 事务故障：例如转账余额不够、运算移除等等
+2. 介质故障：磁盘损坏
+3. 系统故障：断电，OS 故障等等
+
+- 事务故障比较好解决，在 exception 时候 进行一个 rollback就好。介质故障和系统故障需要通过一定的恢复策略，具体来说就是**存储冗余数据**。
+- 两大实现手段：
+    - 定期转储：制作数据库完整副本（应对介质故障）
+    - 事务日志：WAL 记录所有事务的操作细节（应对事务故障和系统故障）
+- 通用恢复流程：
+    - 介质故障：先重装数据库副本，再通过日志恢复到故障发生点；
+    - 事务 / 系统故障：直接通过日志撤销未提交事务、重做已提交但未写盘的事务。
+
+#### 恢复策略
+
+##### Undo 日志
+
+Undo 顾名思义为 撤销，所以 Undo 日志的作用是撤销操作，那么它只需要记录每一步操作之前的 old value 就好。
+
+- 事务开始时候会在 Undo 日志中记录 `<Start T>` 开始标记
+- 事务中每一次修改操作都会生成 `<T, x, old_value>` ，先记录 LOG 再把数据写磁盘(WAL)。
+- 事务所有操作都写入磁盘，会将 `<Commit T>` 记录到磁盘。
+
+对于之前转账的例子（假设 A 初值为 1000，B 初值为 2000）可以写为：
+
+```text
+<Start T>
+<T, A, 1000>
+<T, B, 2000>
+<Commit T>
+```
+
+ **恢复流程**
+
+1. 从头扫描日志，收集所有无 `<Commit T>` 和 `<Abort T>` 的事务（肯定是未完成就出错的事务），放入列表 L。
+2. 从日志尾部反向扫描，对 L 中每个 `<T, x, v>` ，执行 `Write(x, v)`（恢复旧值）和 `Output(x)`（写入磁盘）
+3. 对每个 T∈L，写入`<Abort T>`到日志，标记事务已撤销。
+
+##### Redo 日志
+
+**恢复流程**
+
+1. 从头扫描日志，收集所有有`<Commit T>`的事务，放入列表 L（已提交但可能未写盘的事务）；
+2. 从日志首部正向扫描，对每个`<T, x, v>`（T 在 L 中），执行`Write(x, v)`（写入新值）和`Output(x)`（写入磁盘）；
+3. 对每个 T∈L，写入`<Abort T>`到日志（标记恢复完成）。
+
+##### 两种更新方式
+
+- 立即更新：核心思想是乐观，假设大多数事务会成功提交，因此允许事务在执行过程中直接修改数据库页面（在缓冲区中，甚至可能提前刷到磁盘）。
+- 延迟更新：核心思想是悲观，假设事务可能失败，因此在事务提交前绝不修改数据库页面，所有修改只记录在日志中。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260107123531225.png" width="80%" /> </div>
+
+延迟更新常和 Redo 日志结合，假设采用延迟更新，在一系列写操作之后才会落盘到磁盘上，这期间如果发生故障，就会导致之前的记录没有写到磁盘上，所以需要 Redo 重写。Undo 日志和记录更新结合也是如此。
+
+>但是并不代表 Undo 日志只能和延迟更新一起用，两两混合都可以。
+
+
+##### Undo/Redo 日志
+
+**恢复流程**
+
+1. 正向扫描日志
+	1. 有`<Commit T>`：放入 Redo 列表（需重做，确保修改写盘）；
+	2. 无`<Commit T>`且无`<Abort T>`：放入 Undo 列表（需撤销，恢复旧值）；
+2. 反向扫描日志，处理 Undo 列表， 对每个`<T, x, v, w>`（T 在 Undo 列表），执行`Write(x, v)`（恢复旧值 v）和`Output(x)`； 
+3. 正向扫描日志，处理 Redo 列表， 对每个`<T, x, v, w>`（T 在 Redo 列表），执行`Write(x, w)`（写入新值 w）和`Output(x)`；
+4. 对 Undo 列表中的每个 T，写入`<Abort T>`到日志。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260105150535049.png" width="80%" /> </div>
+
+>注意，恢复时候需要先 Undo 再处理 Redo
+
+##### Checkpoint
+
+检查点技术就是能保证 checkpoint 之前的全部事务（数据）都已经完成刷入内存，这样在进行恢复日志时候，只需要管 checkpoint 标记之后的 Redo 或者 Undo。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260105151238055.png" width="80%" /> </div>
+
+##### 日志轮转技术
+
+数据库日志产生很快，会占用很多的磁盘存储。但大部分日志随时间推移实际上已经失效了。所以采用 Log Rotation 节省存储。
+
+### 并发控制
+
+#### 存在的问题
+
+1. 丢失更新：两个事务同时读取同一数据，各自修改后提交，后提交的结果覆盖先提交的结果，导致先提交的修改 “丢失”。
+2. 脏读：一个事务读取了另一个事务已修改但未提交的数据（“脏数据”），后因原事务回滚，读取的数据失效。这是“临时无效数据“数据。
+3. 不一致分析
+	1. 不可重复读：同一事务内，再次读取时数据被其他事务更新 / 删除。
+	2. 幻象读：同一事务内，再次查询时，其他事务插入了新数据，导致结果集行数变化。
+
+#### 解决方法
+
+1. 串行：效率低，不考虑
+2. 在保证正确性情况下，支持并发
+
+### 并发调度
+
+由事务的一致性可以推导出，**串行调度一定是正确的**（假如存在事务 A 和 事务 B，那么先执行完 A 再执行 B 肯定没问题）。那么如果一个调度的结果和串行调度相同，那么也是 ok 的，称它为**可串化调度**，否则为**不可串化调度**。
+
+这里给出**冲突操作**的定义：涉及同一个数据库元素，并且至少有一个是写操作。例如：
+
+1. r1(A)<->w2(A)
+2. w2(A)<->r1(A)
+3. w1(A)<->w2(A)
+
+- 冲突等价：如果调度 S1 和 S2，可以通过一系列非冲突的操作交换得到,则称这两个调度冲突等价。
+- 冲突可串性：如果一个调度与串行调度冲突等价,则称这个调度满足冲突可串性。
+- 如果满足冲突可串性，那么就任务它是可串化调度，是 ok 的。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260105194357250.png" width="80%" /> </div>
+
+>如图，调度 Sc 经过一系列非冲突操作变成串行调度。
+
+#### 冲突可串性判断
+
+- 结点：事务
+- 有向边：$T_i \rightarrow T_j$  需要满足：假如存在 操作 A1 位于 Ti，A2 位于 Tj 那么
+	- A1 在 A2 之前
+	- A1 和 A2 是冲突操作
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260105195843497.png" width="80%" /> </div>
+
+1. r2(A) 和 w3(A) 是冲突操作，所以 T2 指向 T3
+2. r1(B) 和 w2(B) 是冲突操作，所以 T1 指向 T2
+3. w2(B) 和 w1(B) 是冲突操作，所以 T2 指向 T1
+
+#### 视图可串性判断
+
+冲突可串性过于严格，部分 “实际等价于串行” 的调度无法通过冲突可串性判断，因此引入更宽松的**视图可串性**。
+
+视图等价定义：两个调度 S1 和 S2 满足 3 个条件：
+
+1. 同一事务对同一数据的读操作，数据源相同（如 T1 在 S1 中读 T2 写的 A，在 S2 中也读 T2 写的 A）
+2. 若事务在 S1 中读数据的初始值，在 S2 中也读初始值；
+3. 对同一数据的最后一次写操作，在 S1 和 S2 中由同一事务执行。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260105201154014.png" width="80%" /> </div>
+
+如图：
+
+- S1 和 S2 两种调度中，T1 都读 A 的初始值，T2 都读 B 的初始值，
+- T3 都读 T1 写的 A
+- A 最后都由 T2 写，B 最后都由 T3 写
+
+>可以看到 S1 不满足冲突可串性，但是 S1 和 S2 都是可串化调度， S1 和 S2 满足视图等价。
+
+1. 新建事务 T1 ... Tn，还有 Tb 和 Tf。
+2. 初始化
+	1. Tb 对所有 DB 元素执行写操作，假如存在元素 A,B,C，那么事务 Tb 可以写为 `Tb: wb(A) -> wb(B) -> wb(C)`。顺序 **应该** 无所谓。
+	2. Tf 读取所有DB 元素，假如存在元素 A,B,C，那么事务 Tb 可以写为 `Tb: rb(A) -> rb(B) -> rb(C)`。
+3. 对于所有 `wi(A) -> rj(A)` (中间可以有其他操作)，添加一条标号为 0 的边由 Ti 指向 Tj，然后
+	1. 如果 wi 为 Tb 则事务 j 向所有 **其他（貌似不包含 Tb,Tf）** 含有写操作的事务连接一条标号为 0 的边 
+	2. 如果 rj 操作为 Tf 则所有 **其他（貌似不包含 Tb,Tf）** 含有写操作的事务向事务 i 连一条标号为 0 的边 
+	3. 如果不满足上述两个条件，则其他所有含有写操作的事务，向 i 连一条标号为 p 的边，并由事务 j 往该事务连接一条标号为 p 的边。
+4. 对于所有 `Ti -> Tj` 和 `Tj -> Ti` 的边，删掉一个如果能使得无环就是视图可串。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260105205149719.png" width="80%" /> </div>
+
+如上图例子：
+
+1. 画出结点 Tb,T1,T2,T3,Tf
+2. Tb:wb(A), Tf:rf(A),得到新的调度 `wb(A) -> r1(A)w2(A) -> r3(A)w1(A)w3(A)->rf(A)`
+3. `wb(A)->r1(A)` 满足第一条，所以 Tb 向 T1 指一条 0，并且 T1 向其他含写操作的事务 T2, T3 指一条 0。
+4. `w2(A)->r3(A)` 满足第三条，所以 T2 向 T3 指一条 0，并且 T1 向 T2 指一条 1，T3 向 T1 指一条 1。
+5. `w3(A)->rf(A)` 满足第二条，所以 T3 向 Tf 指一条 0，并且 T1 和 T2 向 T3 指一条 0。
+6. `T1 -> T3` 有两条 0 边，`T3 -> T1`  一条 1 边，删除 1 边就无环了。
+
+#### 锁
+
+##### 2PL 锁
+
+一个事务的锁操作必须分成**两个阶段**，不能混在一起：
+
+- **阶段1：成长阶段**
+    - 只能**获取锁**，**不能释放任何锁**。
+    - 事务一开始需要什么数据，就去申请锁，锁越来越多（像“成长”一样）。
+    - 这个阶段可以持续很长时间，直到事务拿到了所有它需要的锁。
+- **阶段2：收缩阶段**
+    - 只能**释放锁**，**不能再获取任何新锁**。
+    - 一旦事务开始释放第一个锁，就进入了收缩阶段，之后就只能释放，不能再拿新锁了。
+
+```text
+T1:                            T2:
+lock(A)                        
+read(A)                        
+A = A + 100                    
+lock(B)                        ← 在任何unlock之前拿B的锁（还在成长阶段）
+read(B)                        
+...                            （T1处理B）
+                               lock(A)    ← T2想拿A，但T1持有，必须等
+                               (等待...)
+write(A)                       
+write(B)                       
+unlock(A)                      ← 开始进入收缩阶段
+unlock(B)                      ← 继续释放，不能再拿新锁了
+                               lock(A)    ← 现在T2可以拿到了
+                               ...
+```
+
+>2PL 的缺点是：**并发度低**、并且可能导致 **死锁**。
+
+**2PL 可能导致脏读，但是不会丢失更新**
+
+- 丢失更新的原因是 **两个事务同时写一个数据，一个先提交一个后提交**，但是 2PL 写数据时候要求持有 X 锁，并且 X 锁是互斥的。
+- 但是 2PL 可能脏读，因为事务 A 写了数据，另一个事务 B 读，这时候读的是还没有提交的数据，如果 A 回滚，那么 B 读的就是脏数据了。
+
+##### 其他锁
+
+- Share 锁：读之前上 S 锁，**多个事务可以同时持有 S 锁**
+- Exclusive 锁：写之前上 X 锁，可以**读 + 写** ，但是**其他事务不能再加任何锁（S / X / U）**。假如数据**只被一个事务**持有 S 锁，那么可以升级为 X锁。
+
+仅仅使用 S 锁和 X 锁存在这样的问题：
+
+```text
+T1:                  T2:
+S(A)                 S(A)      // 两者同时拿S锁读A，OK
+read(A)              read(A)
+A = A + 100          A = A * 2
+upgrade to X(A)      upgrade to X(A)  // 两者同时想升级为X锁
+(等待T2释放S)        (等待T1释放S)    // 互相等 → 死锁！
+```
+
+由于 S 锁升级为 X 锁要求只有自己持有，所以请求升级之后会等待另一个事务释放 S 锁，此时就会陷入死锁状态。
+
+Update 锁出现就是为了解决这个问题：
+
+```text
+T1:                  T2:
+U(A)                 request U(A)    // U 锁之间不兼容
+read(A)              (被阻塞)
+A = A + 100
+upgrade to X(A)                      // U → X，OK（没人竞争）
+write(A)
+commit (release X)
+                     U(A)            // T1 完成后才拿到
+                     read(A)
+                     A = A * 2
+                     upgrade to X(A) // OK
+                     write(A)
+                     commit
+```
+
+这么看来 U 锁不是和 X 锁是一样的吗？为什么多此一举？实际上 **U 锁是“只和 S 共存、但彼此互斥的读锁”**  
+**X 锁是“谁都不能共存的写锁”**。
+
+```text
+T1:                  T2:
+U(A)                 S(A)    // S 锁和U 锁之间不互斥
+```
+
+这个例子下，T1 申请了 U 锁， T2 申请了 S 锁。假如后续 U 锁需要升级为 X 锁，**仍然需要等待 T2 释放 S 锁**。但是由于出现了 Update 锁这个概念(我先看，但可能要改)，所以 S 锁后续不可能升级为 X 锁了，T2 在一定时间后肯定会释放 S 锁，不会出现 U 锁和 S 锁都想升级导致死锁的情况。
+
+##### 多粒度锁
+
+>感觉不会考，了解概念
+
+- 对加锁对象大小有区分：粒度越细并发度越高，反之越低。
+- 需要构造一棵多粒度树，深度越深粒度越细。
+- 对某个节点上锁后，对以该节点为根节点的子树均上相同的锁。
+- 显示加锁：就是直接加
+- 隐式加锁：本身没有被显式加锁,但因其上层结点加了锁而使数据对象被加锁
+
+所以给一个结点显式加锁时必须考虑：(1) 该结点是否已有不相容锁存在; (2) 上层结点是否已有不相容的的锁（上层结点导致的隐式锁冲突）；(3) 所有下层结点中是否存在不相容的显式锁。
+
+##### Intension 锁
+
+- 如果对某个结点加 IS(IX) 锁，则说明事务要对该结点的某个下层结点加 S(X)锁；  
+- 对任一结点加 S(X) 锁，必须先对从根结点到P的路径上的所有结点加 IS(IX) 锁
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260106140344629.png" width="80%" /> </div>
+
+#### 事务隔离
+
+- 未提交读：不加锁
+- 提交读：所访问数据上加S锁，数据一旦读出，就 **马上** 释放持有的S锁
+- 可重复度：所访问数据上加S锁，**事务结束** 再释放 S 锁。
+- 可串行读：在上面基础上，事务还必须锁住访问的整个表（前面只锁住数据项）。
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260106143223227.png)
+
+
+#### 死锁
+
+##### 死锁检测
+
+1. 设置一个 timeout，固定时间事务未结束就 abort
+2. 等待图：假如 Ti 需要 Tj 释放资源，那么就画一条 Ti -> Tj 的边，有环说明死锁。
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260106185603909.png" width="80%" /> </div>
+
+##### 死锁预防
+
+1. Priority Order：把要加锁的数据库元素按某种顺序排序，事务只能按照元素顺序申请锁
+
+例如数据库有元素 A,B 那么规定顺序为 A -> B。
+
+```text
+======= 不强制顺序 =======
+T1: lock(B) → lock(A) // 高 → 低 
+T2: lock(A) → lock(B) // 低 → 高
+```
+
+```text
+======= 不强制顺序 =======
+T1: lock(A) → ... → lock(B)  ← T1先拿到A和B
+T2: lock(A)                  ← 等T1释放A
+```
+
+2. Timestamp
+
+- 每个事务 T 开始时，系统赋予一个唯一的**时间戳 TS(T)**
+- 锁冲突时：
+    - Ti 请求一个被 Tj 持有的锁（数据项）。
+    - 系统比较 TS(Ti) 和 TS(Tj)，决定：
+        - 让谁等待（wait）。
+        - 让谁回滚（die/abort/wound）。
+- Wait-Die 方案，假如 T 请求 U 持有的锁：
+	- 如果 T 早于 U，那么 T 等待；反之 T DIES	- 
+	- <div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260106194912340.png" width="80%" /> </div>
+- Wound-Wait 方案：
+	- 如果 T 早于 U，那么 U 回滚，锁给 T；否则 T 等待 U
+	- <div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260106195105972.png" width="80%" /> </div>
+	- 可以看到 T3 回滚了。
+
+#### 乐观并发控制
+
+思想：如果大部分事务都是只读事务，则并发冲突的概率比较低；即使不加锁，也不会破坏数据库的一致性；加锁反而会带来事务延迟 “读不加锁，写时协调”。会通过 **有效性确认(Validation)** 来确定哪些事务发生了冲突。
+
+乐观并发机制 **不阻塞并发**，它完全不使用锁来控制，写操作都在私有域内，提交时候检查。
+
+每个事务 T 分成三个阶段：
+1. **Read Phase（读取阶段）**：
+    - 事务从数据库读数据，但**不直接写数据库**。
+    - 所有读写操作都在事务的**私有工作空间（local workspace/private copy）**进行（像影子副本）。
+    - 记录：
+        - Read Set (RS)：读了哪些数据项。
+        - Write Set (WS)：写了哪些数据项（新值暂存本地）。
+2. **Validation Phase（验证阶段）**：
+    - 事务想提交时，才进入验证。
+    - 检查：在这个事务执行期间，有没有其他已提交事务“干扰”了我的读/写？
+    - 如果验证通过 → 进入Write阶段。
+    - 如果失败 → 回滚事务（abort，重启）。
+3. **Write Phase（写入阶段）**：
+    - 如果验证通过，把本地Write Set的新值写回数据库。
+    - 写完就提交（commit）。
+
+
+>阶段二具体怎么实现验证应该不会考
+
+## 第九章 NoSQL 数据库
+
+### 介绍
+
+NoSQL 数据库特点：
+
+- Non relational：去除关系型特点，数据之间无关系 
+- Scalability：易拓展，主要原因是因为舍弃了关系 
+- No pre-defined schema：无需预先设定数据存储字段，随时存储需要的字段 
+- CAP not ACID：关系型数据库需要满足 ACID，即原子性，一致性，隔离性，耐用性。NoSQL 需要满足 C(Consistency)，A(Availability)和 P(Tolerance of Network Partition)。
+
+NoSQL产生的原因：
+
+1. RDBMS 无法满足 Web 2.0的 需求：数据量提升，并发性要求提升，高可扩展性和高可用性的需求增加 
+2. “One size fits all” 模式很难适用于截然不同的业务场景，一个强调高吞吐，一个强调低延时，无法使用同一套模型来抽象 
+3. 关系数据库的关键特性包括完善的事务机制和高效的查询机制。这些关键特性在Web 2.0时代出现了变化：**不要求严格的数据库事务，不要求严格的读写一致性，不包含大量复杂的SQL 查询**
+
+简言之：
+
+- 优势：数据间无关系，所以 **易拓展**、**规模大**、**高并发**
+- 劣势：**复杂查询性能差**、**不支持事务强一致性**、维护困难
+- RDBMS 应用场景：电信、银行等领域的关键业务系统，需要保证强事务一致性
+- NoSQL 应用场景：互联网企业、传统企业的非关键业务（比如数据分析）
+
+### 类型
+
+1. 键值数据库：就是 Redis，给一个 key 得到 value
+2. 文档数据库：MongoDB，也是一种 KV 数据库，但是 value 是文档
+3. 列存储数据库：包含多个**列族(类似关系型数据库的表)**，列族由多行组成，每一行可以包含与其他行不同数量的列。而且这些列不必与其他行的列匹配(例如第一列是 Bob 存他的姓名年龄，第二行是 Tim 存他的姓名爱好)。
+4. 图数据库：结点是一个个实体，边是他们之间的关系。
+
+### 分布式系统基础
+
+#### CAP
+
+- C(Consistency）：一致性，分布式环境中所有节点在同一时间具有相同的数据
+- A(Availability）：可用性，即快速获取数据，可以在确定的时间内返回操作结果，保证每个请求，**不管成功或者失败都有响应** 
+- P(Tolerance of Network Partition）：分区容忍性，系统中任意信息的丢失或失败不会影响系统的继续运作
+
+**一个分布式系统不可能同时满足一致性、 可用性和分区容忍性这三个需求，最多只能同时满足其中两个**
+
+- CA：也就是强调一致性（C）和可用性（A），放弃分区容忍性（P），最简单的做法是把所有与事务相关的内容都放到同一台机器上。很显然，这种做法会严重影响系统的可扩展性。传统的关系数据库（MySQL、SQL Server和 PostgreSQL），都采用了这种设计原则，因此，扩展性都比较差 
+- CP：也就是强调一致性（C）和分区容忍性（P），放弃可用性（A），当出现网络分区的情况时，受影响的服务需要等待数据一致，因此在等待期间就无法对外提供服务 
+- AP：也就是强调可用性（A）和分区容忍性（P），放弃一致性（C），允许系统返回不一致的数据
+
+#### BASE
+
+- BA(Basic Availability)：基本可用性，一个分布式系统的一部分发生问题变得不可用时，其 他部分仍然可以正常使用。也即允许损失部分可用性。
+- S(Soft-state)：“软状态”是与“硬状态”相对应 的一种提法。数据库保存的数据是“硬状态”时，可以保证数据一致 性，即保证数据一直是正确的。“软状态”是指状态可以有一段时间不同步，具有一定的滞后性。
+- E(Eventual Consistency)：允许后续的访问操作可以暂时读不到更新后的数据，但是经过一段时间之后，必须最终读到更新后的数据。
