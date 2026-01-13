@@ -1,12 +1,16 @@
 ---
-title: "动态规划"
-date: '2026-01-12T11:31:48+08:00'
-featuredImage: "https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/202601122278.png"
-authors: [Xilyfe]
-series: ["算法分析与设计"]
-tags: ["算法", "dp"]
+title: 动态规划
+date: 2026-01-12T11:31:48+08:00
+lastmod: 2026-01-13T12:39:32+08:00
+featuredImage: https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/202601122278.png
+authors:
+  - Xilyfe
+series:
+  - 算法分析与设计
+tags:
+  - 算法
+  - dp
 ---
-
 
 ## 思想&步骤
 
