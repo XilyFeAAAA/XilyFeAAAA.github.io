@@ -1,6 +1,7 @@
 ---
 title: "Loss Function"
 date: '2025-12-27T11:01:11+08:00'
+featuredImage: "https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113120251867.jpg"
 authors: [Xilyfe]
 series: ["DeepLearning"]
 tags: ["深度学习", "Loss"]

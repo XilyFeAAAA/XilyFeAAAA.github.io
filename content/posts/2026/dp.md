@@ -7,9 +7,8 @@ series: ["算法分析与设计"]
 tags: ["算法", "dp"]
 ---
 
-## 动态规划
 
-### 思想&步骤
+## 思想&步骤
 
 - 解决的是寻找问题的**一个最优解**
 - 具备的两个要素：**最优子结构和子问题重叠**
@@ -20,14 +19,14 @@ tags: ["算法", "dp"]
 	- 递归的定义最优解的值（就是状态转移方程）
 	- 自底向上求解
 
-### 和分治法区别
+## 和分治法区别
 
 - 分治法是分解为互不相干的子问题求解之后合并
 - 动态规划是重叠的子问题
 
-### 算法设计
+## 算法设计
 
-#### 攒硬币
+### 攒硬币
 
 ```text
 例：给定不同面额的硬币coins和一个总金额amount。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回-1。你可以认为每种硬币的数量是无限的。
@@ -46,14 +45,14 @@ def MinimumCoins(coins, amount):
 	return dp[amount]
 ```
 
-#### 钢条切割
+### 钢条切割
 
 
 <div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110125444743.png" width="90%" /> </div>
 
 这个题思路和凑硬币完全一样，把最小值变成最大值，就行了。
 
-#### 矩阵链乘法
+### 矩阵链乘法
 
 
 <div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110135416958.png" width="80%" /> </div>
@@ -84,7 +83,7 @@ for l in range(2, n+1):
 				res[i][j] = k
 ```
 
-####最大子串和
+### 最大子串和
 
 ```
 例：给定一个长度为 n 的整数序列 A[1…n]（可正可负），要求找一个**连续子段** A[i…j]，使其元素和最大。
@@ -105,8 +104,7 @@ return ans
 ABCD
 AAAB
 ```
-
-#### 最长公共子序列
+### 最长公共子序列
 
 <div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110144927916.png" width="90%" /> </div>
 
@@ -174,7 +172,7 @@ def LCS_min(a: str, b: str) -> int:
     return dp[m]
 ```
 
-#### 凑数字
+### 凑数字
 
 
 ```

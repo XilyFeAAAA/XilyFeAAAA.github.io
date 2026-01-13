@@ -2,3 +2,4 @@ hugo.exe
 public
 resources
 .hugo_build.lock
+.obsidian

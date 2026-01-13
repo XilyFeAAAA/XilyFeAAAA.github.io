@@ -1,6 +1,7 @@
 ---
 title: "LSTM"
 date: '2025-12-19T16:04:11+08:00'
+featuredImage: "https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113120111595.png"
 authors: [Xilyfe]
 series: ["DeepLearning"]
 tags: ["深度学习"]
@@ -9,10 +10,6 @@ tags: ["深度学习"]
 ## LSTM 基础概念
 
 LSTM 在 RNN 的基础上很好的解决了长距离详细传递的问题，它引入了 Cell State 和三个门 Forget Gate, Input Gate 和 Output Gate 来传输记忆和决定哪些记忆是需要的，哪些不需要。
-
-<div style="text-align: center">
-    <img src="../../../resource/ai/llm/lstm.png"/>
-</div>
 
 - 遗忘门：根据$h^{t-1}$和$x^t$判断 Cell State 哪一些需要遗忘
 - 输入门：根据$h^{t-1}$和$x^t$判断需要向 Cell State 传入哪些当前信息
