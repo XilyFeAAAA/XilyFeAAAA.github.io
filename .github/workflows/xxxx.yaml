@@ -28,7 +28,5 @@ jobs:
           uses: peaceiris/actions-gh-pages@v4
           with:
               PERSONAL_TOKEN: ${{ secrets.TOKEN }}
-              EXTERNAL_REPOSITORY: XilyFeAAAA/XilyFeAAAA.github.io
               PUBLISH_BRANCH: gh-pages
               PUBLISH_DIR: ./public
-              commit_message: auto deploy
