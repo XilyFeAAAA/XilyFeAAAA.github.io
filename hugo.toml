@@ -164,6 +164,15 @@ theme = "Dolt"
     # DoIt 新增 | 0.2.13 是否在文章开头显示系列导航
     seriesNavigation = true
     # DoIt 新增 | 0.2.0 目录配置
+    [params.page.comment]
+      enable = true
+      [params.page.comment.giscus]
+      enable = true
+      dataRepo = "XilyFeAAAA/XilyFeAAAA.github.io"
+      dataRepoId = "R_kgDOQ4B_kA"
+      dataCategory = "Announcements"
+      dataCategoryId = "DIC_kwDOQ4B_kM4C07kK"
+      dataMapping = "pathname"
     [params.page.toc]
       # 是否使用目录
       enable = true
