@@ -9,7 +9,7 @@ series:
 tags:
   - 算法
   - 复习
-lastmod: 2026-01-13T06:34:02+08:00
+lastmod: 2026-01-14T06:38:17+08:00
 ---
 
 ## 第二章 算法初步
@@ -30,8 +30,10 @@ for i in range(1, n):
 >[!Note]
 >假设前面元素已经有序，不断将新元素插入到合适的位置，保证依然有序
 
->[!能不能用二分查找优化最坏情况的时间复杂度？]
->不行。因为查找的时间降下来了，但是还有移动元素的时间。
+{{< admonition type=question title="能不能用二分查找优化最坏情况的时间复杂度？">}} 
+不行。因为查找的时间降下来了，但是还有移动元素的时间。
+{{< /admonition >}}
+
 ### 循环不变式
 
 比如插入排序，每次循环从数组 A 中取出第 j 个元素插入有序区 A\[1 .. j-1]，然后递增 j。这样A\[1 .. j-1] 的有序性始终得到保持，这就是所谓的“循环不变”了。
@@ -110,7 +112,95 @@ $$
 
 ### 课后题
 
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114125934526.png)
 
+
+```text
+31 41 59 26 41 58
+31 41 59 26 41 58
+31 41 58 26 41 58
+26 31 41 58 41 58
+26 31 41 41 58 58
+26 31 41 41 58 58
+```
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114125919472.png)
+
+```text
+def linear_find(A, v):
+	for i, x in enumerate(A):
+		if v == x: return i
+	return -1
+```
+
+循环不变式：每次循环 i 前，数组 `A[0, .. i-1]` 不含元素 v
+1. 初始：第一次循环，循环不变式为空，肯定不含 v
+2. 维护：之后每一次循环，如果新元素等于 v 就返回退出了；如果不等于 v 才加入循环不变式，所以  `A[0, .. k-1]` 肯定不含元素 v
+3. 结束：当 `i=n+1` 时候循环结束，此时循环内 n 个元素都不为 v，满足循环不变式。如果含元素 v 则在结束前退出。
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114125857624.png)
+
+```python
+def SelectSort(arr):
+	n = len(arr)
+	for i in range(0, n):
+		min_val = INF
+		min_idx = -1
+		for i in range(i+1, n):
+			if arr[i] < min_val:
+				min_val = arr[i]
+				min_idx = i
+		swap(arr[i], arr[idx])
+```
+
+- 最坏情况 $O(n^2)$
+- 最好情况 $O(n)$
+
+循环不变式：每次循环 i 前，数组 `A[0, ..., i-1]` 递增
+1. 初始：第一次循环前，循环不变式为空，所以满足条件
+2. 维护：每一次循环 k 之后，会从数组 `A[k-1:n]` 中挑选最小的元素，也就是数组第 k 小的元素插入，保证了依旧是单调递增
+3. 结束：当 `i=n+1` 时候循环结束，数组内元素依次为第一小，第二小，...，依次递增，满足循环不变式
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114130005755.png)
+
+```python
+def Merge(arr, p, q, r): 
+	n1 = q - p + 1 
+	n2 = r - q 
+	l = arr[p:q+1]
+	r = arr[q+1:r+1]
+	i = j = 0
+	k = p
+	while i < n1 and j < n2:
+		if l[i] > r[j]: 
+			arr[k] = r[j] 
+			j += 1 
+		else: 
+			arr[k] = l[i] 
+			i += 1
+		k += 1
+	while i < n1:
+		arr[k] = l[i]
+		k += 1
+		i += 1
+	while j < n2:
+		arr[k] = r[j]
+		k += 1
+		j += 1
+```
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114130019488.png)
+
+
+不行，因为查找的时间降下来了，但是还有移动元素的时间。
 
 ## 第三章 函数增长率
 
@@ -161,6 +251,38 @@ $$
 
 所以紧确界是 $\Theta(n\log n)$ 。
 
+### 课后题
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114134530306.png)
+
+根据多项式展开定理：
+$$
+(n + a)^b = C_0^b n^b a^0 + C_1^b n^{b - 1} a^1 + \cdots + C_b^b n^0 a^b
+$$
+经过放缩：
+$$
+a_0 x^0 + a_1 x^1 + \cdots + a_n x^n \le (a_0 + a_1 + \cdots + a_n) x^n
+$$
+所以：
+$$
+C_0^b n^b \le C_0^b n^b a^0 + C_1^b n^{b - 1} a^1 + \cdots + C_b^b n^0 a^b \le (C_0^b + C_1^b + \cdots + C_b^b) n^b = 2^b n^b
+$$
+
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114134546363.png)
+
+$$
+2^{n+1}  =2*2^n \le c*2^n(c \ge 2)
+$$
+
+对于等式 2，找不到一个 c 可以使 $2^{2n} \le c*2^n$ 所以不成立。
+
+---
+
+>3.2-3 和 3.2-5 太偏数学了肯定不考。
+
 ## 第四章 递归关系式
 
 ### 代入法
@@ -174,7 +296,14 @@ $$
 接下来，数学归纳法需要假设解在 $n/2$ 处成立，即 $T\left( \frac{n}{2} \right) \le c_1 \frac{n}{2} lg\frac{n}{2} = \frac{1}{2}c_1n\left(lgn - 1\right)$ 成立。然后我们来证明 $T\left( n \right) \le c_1nlgn$ 也成立。
 
 $$
-\begin{equation} \begin{aligned} T\left(n\right) & = 2 T\left(\frac{n}{2} \right) + \Theta\left(n\right) \\ & \le 2  \frac{1}{2}c_1n\left(lgn - 1\right) + d_2n\\ & = c_1nlgn + \left(d_2 - c_1\right) n \\ & \le c_1nlgn \end{aligned} \end{equation} \\
+\begin{equation} 
+\begin{aligned} 
+T\left(n\right) & = 2 T\left(\frac{n}{2} \right) + \Theta\left(n\right) \\ 
+& \le 2  \frac{1}{2}c_1n\left(lgn - 1\right) + d_2n \\ 
+& = c_1nlgn + \left(d_2 - c_1\right) n \\ 
+& \le c_1nlgn 
+\end{aligned} 
+\end{equation} 
 $$
 
 
@@ -182,17 +311,13 @@ $$
 
 ### 递归树
 
-以 $T\left( n \right) = 3 T\left( n/4 \right) + \Theta \left( n^2\right)$ 为例：
+步骤：
+1. 把递归式中分成递归部分 $T(\frac{n}{2})$ $2T(\frac{n}{4})$ 和每层的处理时间 $O(n)$
+2. 递归树每一层都按照递归部分的规则，把上一层瓜分；第一层瓜分的是 $O(n)$
+3. 统计每一层的总耗时，最后累加
+4. 通过放缩得到最后时间复杂度
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260108160152527.png" width="80%" /> </div>
-
-接下来，我们只需要把所有结点的代价加起来，就可以得到递归式的解：
-
-$$
-\begin{equation} \begin{aligned} T\left(n\right) &= cn^2 + \frac{3}{16} cn^2 + \left(\frac{3}{16}\right)^2 cn^2 + \cdots + \left( \frac{3}{16} \right)^{log_4 n-1} cn^2 + \Theta \left(n^{log_4 3}\right) \\ &=\sum_{i=0}^{log_4 n-1}{\left(\frac{3}{16}\right)^i cn^2} + \Theta \left(n^{log_4 3}\right)\\ &\lt \sum_{i=0}^{\infty}{\left(\frac{3}{16}\right)^i cn^2} + \Theta \left(n^{log_4 3} \right) \\ &= \frac{1}{1 - 3/16}cn^2 + \Theta \left(n^{log_4 3}\right) \\ &= \frac{16}{13} cn^2 + \Theta \left(n^{log_4 3}\right) \\ &= O\left( n^2 \right) \end{aligned} \end{equation} \\
-$$
-
-> 看不懂，理解一下得了。
+![1901d6398175b71ed698c8f0bed61cae.jpg](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114141442209.jpg)
 
 
 ### 主定理
@@ -203,6 +328,11 @@ $$
 1. 若 f(n) 增长较慢（情况 1），则递归部分占主导。 
 2. 若 f(n) 和递归增长相等（情况 2），需额外乘以 log n。 
 3. 若 f(n) 增长较快且满足平衡条件，则非递归部分占主导。
+
+>[!Warning]
+>主定理在某些情况下不适用：
+>1. 假如 $f(n) = n · (1 + sin(log n))$ 不是渐进平滑的，那么不能用情况 2。情况 2 隐含了：在递归树的每一层，总代价大致是“同一个量级”，然后一层一层累加出一个 log n 因子。而这个 $f(n)$ 根据不同的 n $sin(log n)$ 取值不同，所以不行。
+>2. 对于 $Tn=2T(\frac{n}{2}))+nlgn$ ，由于 $n\lg n$ 不是多项式大于 n（主定理真正比较的是 $f(n)$ 和 $n^{1+ε}$ 的大小关系），所以不能套。
 
 ### 最大子数组
 
@@ -237,7 +367,7 @@ def FindMaxCross(arr, l, mid, r):
 	return max_left, max_right, left_max+right_max
 ```
 
-`FindMaxCross` 时间复杂度是 $O(n)$，每次都分成两个子任务，所以 $T(n)=2T(n/2)+ \Theta(n)$。
+`FindMaxCross` 时间复杂度是 $O(n)$，每次都分成两个子任务，所以递推式微 $T(n)=2T(n/2)+ \Theta(n)$，时间复杂度为 $O(n\lg n)$。
 
 ### Stranssen 矩阵乘法
 
@@ -299,6 +429,54 @@ $$
 
 所以只需要 7 次矩阵乘法加上若干次矩阵加减法，$T(n) = 7T(n/2) + \Theta(n^2)$，根据主定理递推部分时间复杂度比较大，所以为 $\Theta(n^{log_2^7})$。
 
+### 课后题
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144017454.png)
+
+出现 n 不是 2 的幂的情况，只需要填充 0 即可。Strassen 算法会把规模为 n 的矩阵分裂为 4 个 规模为 n/2 的子矩阵，进行 7 次乘法和若干次加法，所以递推式为 $T(n)=7T(\frac{n}{2})+O(n)$，根据主定理，时间复杂度为 $O(n^{\lg7})$。
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144034710.png)
+
+既然 Strassen 算法把规模为 n 的矩阵分裂为 4 个 规模为 n/2 的子矩阵，进行 7 次乘法和若干次加法，递推式写为 $T(n)=7T(\frac{n}{2})+O(n)$，那可以把第一种方法写为 $T(n)=143640T(\frac{n}{70})$，根据主定理得到 $n^{log_{70}^{143640}} \approx n^{2.7951284873613815}$。其他方法同理，和 $\log_2^7$ 对比即可。
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144145418.png)
+
+猜测：T(n) >= c · n · lgn
+
+证明：n = 1 为递归式基本情况，T(1) = 2T(⌊n/2⌋) + n = 1 。当 n >= 2 时，有 T(n) = 2T(⌊n/2⌋) + n >= 2 · c · ( ⌊n/2⌋ · lg⌊n/2⌋ ) + n >= ？，我的思路到这就卡着了，因为向下取整的符号会让左边 <= 右边，让接下去的推导无法成立，。如果这里是向上取整的符号的话，就可以推出 2 · c · ( ⌈n/2⌉ · lg⌈n/2⌉ ) + n >= c · n · (lgn - 1)+ n =  c · n · lgn 。
+
+看来是要换猜想了。加上些常数如何？参考了别人的解法，新猜测：$T(n) \ge c(n+2)\lg(n+2)$
+
+证明：还是一样，n = 1 为递归式的基本情况，T(1) = 2T(⌊n/2⌋) + n = 1 。当 n >= 2 时，T(n) = 2T(⌊n/2⌋) + n >= 2c · ((⌊n/2⌋ + 2) · (lg⌊n/2⌋ + 2) + n >= 2c · ((n/2 - 1 + 2) · (lg(n/2)  - 1 + 2) + n = 2c · ((n/2 + 1) · lgn) + n = c · (n + 2) · lgn + n >= c · n · lgn ，其中存在 c > 0，使得最后一步推导成立，所以 T(n) = Ω( n·lgn )。
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144156639.png)
+
+证法类似 4.3-3，如果发现上界/下界整不出来，可能是猜测太紧了，可以加减常数。 
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144216608.png)
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114152905064.png)
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144229855.png)
+
+![28073924becb514232245d1975669aca.jpg](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153432116.jpg)
+
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144300387.png)
+
+不行，$n^{log_b^a}=n^2$ 但是 $n^2\lg n$ 并不是多项式大于 $n^2$ 。
 ## 第六章 堆排序
 
 ### Heapify
@@ -334,6 +512,7 @@ def BuildHeap(arr):
 
 ### HeapSort
 
+不断把堆顶（最大元素）放到队尾，并且堆大小减一。
 ```python
 def HeapSort(arr):
 	BuildHeap(arr)
@@ -342,9 +521,6 @@ def HeapSort(arr):
 		arr.size -= 1
 		MaxHeapify(arr, 1)
 ```
-
->不断把堆顶（最大元素）放到队尾，并且堆大小减一。
-
 ### 优先队列
 
 假设你有一组数据，每个元素都有一个**优先级**，你需要反复做两件事：
@@ -366,7 +542,6 @@ def Insert(heap, x):
 	heap.size += 1
 	heap[heap.size] = 0
 	Increase(heap, heap.size, x)
-	
 
 def Maximum(heap):
 	return heap[1]
@@ -382,6 +557,61 @@ def Increase(heap, i, x):
 	while i > 1 and heap[i // 2] < heap[i]:
 		swap(heap[i//2], heap[i])
 		i = i // 2
+```
+
+### 课后题
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153606641.png)
+
+非递归的 MaxHeapify 用 **while True** 即可，每次 `i = largest`，如果发现没有交换，那么退出循环。
+
+```python
+def MaxHeapify(heap, i):
+	while True:
+		l = i.left
+		r = i.right
+		if l <= size and heap[l] > heap[i]: largest = l
+		elif r <= size and heap[r] > heap[i]: largest = r
+		else: largest = i
+		
+		if largest == i:
+			return
+		swap(arr[i], arr[largest])
+		i = largest
+```
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153623254.png)
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114182817887.png)
+
+---
+
+> 6.3-3 偏数学不看了
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153704774.png)
+
+最坏情况下，从 $\lfloor \frac{n}{2} \rfloor$ 到 1 的每个非叶子结点进行 Heapify 都需要进行到根节点，也就是 $\sum_{k=1}^{\lfloor \frac{n}{2} \rfloor}{h(k)}=\Omega(n\lg n)$ ，这里 $h(k)$ 是节点 k 的高度。
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153721993.png)
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114183643047.png)
+
+---
+
+![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153737799.png)
+
+假设是最小堆
+```python
+def HeapDelete(heap, i):
+	heap[i] = INF
+	MinHeapify(heap, i)
+	heap.size -= 1
 ```
 
 ## 第七章 快速排序
