@@ -30,4 +30,5 @@ jobs:
               PERSONAL_TOKEN: ${{ secrets.TOKEN }}
               EXTERNAL_REPOSITORY: XilyFeAAAA/XilyFeAAAA.github.io
               PUBLISH_DIR: ./public
+              PUBLISH_BRANCH: main
               commit_message: auto deploy
