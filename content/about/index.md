@@ -3,9 +3,11 @@ title: 关于
 date: 2025-12-17T23:07:31+08:00
 hiddenFromHomePage: true
 hiddenFromSearch: true
-lastmod: 2026-01-14T11:40:04+08:00
-featuredImage: https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114111243410.jpg
+lastmod: 2026-01-14T11:45:05+08:00
 ---
+
+<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114111243410.jpg" width="100%" /> </div>
+
 ## 关于我
 
 - **昵称**：中文昵称「椰果去冰七分甜」「多辣加香菜」，英文 ID「**XilyFe**」

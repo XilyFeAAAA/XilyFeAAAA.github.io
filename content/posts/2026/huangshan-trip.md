@@ -4,6 +4,7 @@ date: 2026-01-01T22:52:11+08:00
 featuredImage: https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/trip_20251225.jpg
 authors:
   - Xilyfe
+categories: ["life"]
 series:
   - 游记
 tags:

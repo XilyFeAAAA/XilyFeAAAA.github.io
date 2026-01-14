@@ -85,19 +85,9 @@ theme = "Dolt"
   # 页面底部信息配置
   [params.footer]
     enable = true
-    # Custom content (HTML format is supported)
-    # 自定义内容 (支持 HTML 格式)
-    custom = """
-      <a href="https://www.foreverblog.cn/" target="_blank" >
-        <img src="https://foreverblog.cn/assets/logo/logo_en_default.png" alt="" style="display: inline-block;width:auto;height:20px;"> 
-      </a>
-    """
     # whether to show Hugo and theme info
     # 是否显示 Hugo 和主题信息
     hugo = true
-    # DoIt 新增 | 0.2.14 托管服务信息 (支持 HTML 格式)
-    # hostedOn = '<a title="Vercel" href="https://vercel.com/" target="_blank" rel="noopener noreffer">Vercel</a>'
-    hostedOn = '<a title="Cloudflare" href="https://www.cloudflare.com/" target="_blank" rel="noopener noreffer">Vercel</a>'
     # whether to show copyright info
     # 是否显示版权信息
     copyright = true
@@ -106,7 +96,7 @@ theme = "Dolt"
     author = true
     # site creation time
     # 网站创立年份
-    since = 2021
+    since = 2025
     # ICP info only in China (HTML format is supported)
     # ICP 备案信息，仅在中国使用 (支持 HTML 格式)
     icp = ""
@@ -274,21 +264,14 @@ theme = "Dolt"
     title = ""
     weight = 2
   [[menu.main]]
-    identifier = "life"
+    identifier = "essays"
     pre = ""
     post = ""
     name = "生活"
-    url = "/life/"
+    url = "/categories/life/"
     title = ""
     weight = 3
   [[menu.main]]
-    identifier = "now"
-    pre = ""
-    post = ""
-    name = "此刻"
-    url = "/now/"
-    title = ""
-    weight = 4
   [[menu.main]]
     identifier = "tags"
     pre = ""
@@ -296,7 +279,7 @@ theme = "Dolt"
     name = "标签"
     url = "/tags/"
     title = ""
-    weight = 5
+    weight = 4
   [[menu.main]]
     identifier = "about"
     pre = ""
@@ -304,7 +287,7 @@ theme = "Dolt"
     name = "关于"
     url = "/about/"
     title = ""
-    weight = 6
+    weight = 5
 
 
 # Hugo 解析文档的配置
