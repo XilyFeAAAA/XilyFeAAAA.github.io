@@ -1,7 +1,7 @@
 ---
 title: 算法分析与设计复习
 date: 2026-01-08T11:27:53+08:00
-featuredImage: https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113133012452.jpg
+featuredImage: http://img.xilyfe.top/img/20260113133012452.jpg
 authors:
   - Xilyfe
 series:
@@ -9,7 +9,7 @@ series:
 tags:
   - 算法
   - 复习
-lastmod: 2026-01-14T08:05:31+08:00
+lastmod: 2026-01-15T12:41:14+08:00
 ---
 
 ## 第二章 算法初步
@@ -52,7 +52,7 @@ for i in range(1, n):
 
 ### 复杂性分析
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260108142513977.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260108142513977.png" width="80%" /> </div>
 
 对于插入排序，我们可以得到每条代码执行次数如上图，所以总运行时间为：
 
@@ -112,7 +112,7 @@ $$
 
 ### 课后题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114125934526.png)
+![image.png](http://img.xilyfe.top/img/20260114125934526.png)
 
 
 ```text
@@ -126,7 +126,7 @@ $$
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114125919472.png)
+![image.png](http://img.xilyfe.top/img/20260114125919472.png)
 
 ```text
 def linear_find(A, v):
@@ -142,7 +142,7 @@ def linear_find(A, v):
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114125857624.png)
+![image.png](http://img.xilyfe.top/img/20260114125857624.png)
 
 ```python
 def SelectSort(arr):
@@ -167,7 +167,7 @@ def SelectSort(arr):
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114130005755.png)
+![image.png](http://img.xilyfe.top/img/20260114130005755.png)
 
 ```python
 def Merge(arr, p, q, r): 
@@ -197,7 +197,7 @@ def Merge(arr, p, q, r):
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114130019488.png)
+![image.png](http://img.xilyfe.top/img/20260114130019488.png)
 
 
 不行，因为查找的时间降下来了，但是还有移动元素的时间。
@@ -220,7 +220,7 @@ $$
 $$
 
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260108151837332.png" width="90%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260108151837332.png" width="90%" /> </div>
 
 ### 和式界的证明方法
 
@@ -253,7 +253,7 @@ $$
 
 ### 课后题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114134530306.png)
+![image.png](http://img.xilyfe.top/img/20260114134530306.png)
 
 根据多项式展开定理：
 $$
@@ -271,7 +271,7 @@ $$
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114134546363.png)
+![image.png](http://img.xilyfe.top/img/20260114134546363.png)
 
 $$
 2^{n+1}  =2*2^n \le c*2^n(c \ge 2)
@@ -317,12 +317,12 @@ $$
 3. 统计每一层的总耗时，最后累加
 4. 通过放缩得到最后时间复杂度
 
-![1901d6398175b71ed698c8f0bed61cae.jpg](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114141442209.jpg)
+![1901d6398175b71ed698c8f0bed61cae.jpg](http://img.xilyfe.top/img/20260114141442209.jpg)
 
 
 ### 主定理
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260108160544005.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260108160544005.png" width="80%" /> </div>
 
 简单的理解： 
 1. 若 f(n) 增长较慢（情况 1），则递归部分占主导。 
@@ -431,19 +431,19 @@ $$
 
 ### 课后题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144017454.png)
+![image.png](http://img.xilyfe.top/img/20260114144017454.png)
 
 出现 n 不是 2 的幂的情况，只需要填充 0 即可。Strassen 算法会把规模为 n 的矩阵分裂为 4 个 规模为 n/2 的子矩阵，进行 7 次乘法和若干次加法，所以递推式为 $T(n)=7T(\frac{n}{2})+O(n)$，根据主定理，时间复杂度为 $O(n^{\lg7})$。
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144034710.png)
+![image.png](http://img.xilyfe.top/img/20260114144034710.png)
 
 既然 Strassen 算法把规模为 n 的矩阵分裂为 4 个 规模为 n/2 的子矩阵，进行 7 次乘法和若干次加法，递推式写为 $T(n)=7T(\frac{n}{2})+O(n)$，那可以把第一种方法写为 $T(n)=143640T(\frac{n}{70})$，根据主定理得到 $n^{log_{70}^{143640}} \approx n^{2.7951284873613815}$。其他方法同理，和 $\log_2^7$ 对比即可。
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144145418.png)
+![image.png](http://img.xilyfe.top/img/20260114144145418.png)
 
 猜测：T(n) >= c · n · lgn
 
@@ -455,26 +455,26 @@ $$
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144156639.png)
+![image.png](http://img.xilyfe.top/img/20260114144156639.png)
 
 证法类似 4.3-3，如果发现上界/下界整不出来，可能是猜测太紧了，可以加减常数。 
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144216608.png)
+![image.png](http://img.xilyfe.top/img/20260114144216608.png)
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114152905064.png)
-
----
-
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144229855.png)
-
-![28073924becb514232245d1975669aca.jpg](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153432116.jpg)
-
+![image.png](http://img.xilyfe.top/img/20260114152905064.png)
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114144300387.png)
+![image.png](http://img.xilyfe.top/img/20260114144229855.png)
+
+![28073924becb514232245d1975669aca.jpg](http://img.xilyfe.top/img/20260114153432116.jpg)
+
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260114144300387.png)
 
 不行，$n^{log_b^a}=n^2$ 但是 $n^2\lg n$ 并不是多项式大于 $n^2$ 。
 ## 第六章 堆排序
@@ -561,7 +561,7 @@ def Increase(heap, i, x):
 
 ### 课后题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153606641.png)
+![image.png](http://img.xilyfe.top/img/20260114153606641.png)
 
 非递归的 MaxHeapify 用 **while True** 即可，每次 `i = largest`，如果发现没有交换，那么退出循环。
 
@@ -582,9 +582,9 @@ def MaxHeapify(heap, i):
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153623254.png)
+![image.png](http://img.xilyfe.top/img/20260114153623254.png)
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114182817887.png)
+![image.png](http://img.xilyfe.top/img/20260114182817887.png)
 
 ---
 
@@ -592,19 +592,19 @@ def MaxHeapify(heap, i):
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153704774.png)
+![image.png](http://img.xilyfe.top/img/20260114153704774.png)
 
 最坏情况下，从 $\lfloor \frac{n}{2} \rfloor$ 到 1 的每个非叶子结点进行 Heapify 都需要进行到根节点，也就是 $\sum_{k=1}^{\lfloor \frac{n}{2} \rfloor}{h(k)}=\Omega(n\lg n)$ ，这里 $h(k)$ 是节点 k 的高度。
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153721993.png)
+![image.png](http://img.xilyfe.top/img/20260114153721993.png)
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114183643047.png)
+![image.png](http://img.xilyfe.top/img/20260114183643047.png)
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114153737799.png)
+![image.png](http://img.xilyfe.top/img/20260114153737799.png)
 
 假设是最小堆
 ```python
@@ -654,13 +654,13 @@ def Partition(arr, l, r):
 
 ### 课后题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114184433172.png)
+![image.png](http://img.xilyfe.top/img/20260114184433172.png)
 
 所有元素都相同时，返回的 q 是选择的 pivot 的下标，所以只有选择中间的元素当 pivot 就行了。
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114184456428.png)
+![image.png](http://img.xilyfe.top/img/20260114184456428.png)
 
 $$
 \begin{aligned}
@@ -685,7 +685,7 @@ $$
 
 最坏情况下，任何比较排序都需要进行 $\Omega(n\lg n)$ 次比较。
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260109144011628.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109144011628.png" width="80%" /> </div>
 
 
 >没看懂，记住结论
@@ -731,20 +731,20 @@ def RadixSort(arr, d):
 
 ### 桶排序
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260109152902759.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109152902759.png" width="80%" /> </div>
 
 每个桶内再用其他的排序算法进行排序（比如快排），这样子时间复杂度不还是 $O(n\log n)$ 吗？
 如果要排序的数据有 n 个，我们把它们分在 m 个桶中，这样每个桶里的数据就是 $k=\frac{n}{m}$。每个桶内排序的时间复杂度就为 $O(k\log k)$。m 个桶就是 $m * O((n / m)*log(n / m))=O(nlog(n / m))$。当桶的个数 m 接近数据个数 n 时，$log(n/m)$就是一个较小的常数，所以时间复杂度接近O(n)。
 
 ### 课后题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114191811512.png)
+![image.png](http://img.xilyfe.top/img/20260114191811512.png)
 
 前缀和，得到累积数组之后，用  `c[b] - c[a]` 就可以了。
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114191829974.png)
+![image.png](http://img.xilyfe.top/img/20260114191829974.png)
 
 当桶排序所有元素都被集中在一个桶的时候，桶排序就会退化为快速排序，如果出现快排的最坏情况：每次选择的 pivot 都是最大最小值，就会出现 $O(n^2)$ 的时间复杂度。可以通过归并排序或者桶排序，使得最坏情况下也是 $O(n\lg n)$。
 
@@ -827,13 +827,13 @@ def bfprt(arr, low, high, k):
 
 ### 课后题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114193806889.png)
+![image.png](http://img.xilyfe.top/img/20260114193806889.png)
 
 采用锦标赛制，对元素进行两两比较，最终经过 $\lceil \log_2 n \rceil$ 轮 n-1 次比较得到最小元素。这时候至少有 $\lceil \log_2 n \rceil$ 个元素直接输给过最小元素，第二小元素只有可能在这里面。这时候比较 $\lceil \log_2 n \rceil - 1$ 次就能得到里面最小元素，也就是第二小元素。
 
 ---
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114193936716.png)
+![image.png](http://img.xilyfe.top/img/20260114193936716.png)
 
 >k分位数是大小为n的集合（比如数组）里面的k-1个数，它们把有序的集合分为k个分组，任何两个个分组之间的大小之差的绝对值不超过1（有点类似于平衡二叉树），比如集合{3， 5， 9， 4， 2， 1， 6， 8， 9， 10， 12， 7， 6}，排序后为{1， 2， 3， 4， 5， 6， 6， 7， 8， 9， 9， 10， 12}，它的4（k = 4）分位数为{4， 6， 9}， 分组后的子集合分别为{1， 2， 3， 4}， {5， 6， 6}， {7， 8， 9}， {9， 10， 12}。要求从集合中找出这k-1个数，并且时间复杂度为O(nlgk)。
 
@@ -860,13 +860,14 @@ def bfprt(arr, low, high, k):
 
 ### 顺序查找树
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260109181752650.png" width="90%" /> </div>
 
-顺序查找树是在红黑树基础上，每个节点维护了一个 size 属性，标志了以自己为根的子树个数。
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109181752650.png" width="90%" /> </div>
 
+前面学的 Order-Statistics 算法可以在 $O(n)$ 的时间内找到第 i 个元素，但是如果需要进行多次查找操作，时间复杂度还是蛮高的。顺序查找树能做到一次预处理之后，每次查找的时间复杂度为 $O(\lg n)$。
 
+它在红黑树基础上，每个节点维护了一个 size 属性，标志了以自己为根的子树个数，它的功能包括：
 - 根据元素 x 获得它的 rank
-- 根据 rank 或者全是 x
+- 根据 rank 获取 x
 
 ```python
 def Rank2Ele(t, r):
@@ -881,12 +882,9 @@ def Ele2Rank(t, x):
 	else: return t.left.size + 1 + Ele2Rank(t.right, x)
 ```
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260109183127292.png" width="100%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109183127292.png" width="100%" /> </div>
 
 简单来说：**如果扩张属性只影响到父节点或只影响到子节点，就可以在红黑树上扩张**。
-
->能否在不影响红黑树任何操作的渐近性能的前提下，将结点的黑高作为树中结点的一个属性来维护？
->可以，因为当一个节点的颜色反转时候，它只会影响父节点的黑高，例如红变黑，那么父节点黑高++，只会在这颗子树向上或者向下影响，最多 $O(\lg n)$。
 
 > 能不能拓展深度属性呢？
 > 不行，假如根节点删除了，那么下面所有子节点都需要修改深度--，影响的是 $O(n)$。
@@ -910,6 +908,47 @@ def IntervalSearch(T, i):
 		IntervalSearch(x.right, i)
 ```
 
+>[!Note]
+>区间树的左节点区间的左端点一定比父节点的左端点小，但是右端点不一定，并不是说左端点整个区间都在父节点区间的左侧。
+
+### 课后题
+
+![image.png](http://img.xilyfe.top/img/20260115113957870.png)
+
+```python
+def i_after_x(T, x, i):
+	idx = Ele2Rank(T, x)
+	return Rank2Ele(T, i + idx)
+```
+
+根据元素查 rank 和你操作的时间复杂度都是 $O(\lg n)$，所以还是 $O(\lg n)$。
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260115114022269.png)
+
+可以，因为当一个节点的颜色反转时候，它只会影响父节点的黑高，例如红变黑，那么父节点黑高++，只会在这颗子树向上或者向下影响，最多 $O(\lg n)$。
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260115114042145.png)
+
+```python
+def min_overlap(T, i):
+	res = T.nil
+	rec = INF
+	x = T.root
+	while x != T.nil:
+		if overlaps(x.int, i) and x.int.left < rec:
+			rec = x.int.left
+			res = x
+		if x.left != T.nil and x.left.max >= i.right:
+			x = x.left
+		else:
+			x = x.right
+	return res
+```
+
 ## 第十五章 动态规划
 
 ### 思想&步骤
@@ -930,11 +969,9 @@ def IntervalSearch(T, i):
 
 ### 算法设计
 
-```text
-例：给定不同面额的硬币coins和一个总金额amount。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回-1。你可以认为每种硬币的数量是无限的。
-```
+**例：给定不同面额的硬币 coins 和一个总金额 amount。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回-1。你可以认为每种硬币的数量是无限的。**
 
-假设我们用 `Func(coins, amount)` 求解所需的最少的硬币个数，并且 硬币为 1 和 2，那么可以把他分解为，求解 amount-1 所需最少硬币和 amount -2 所需最少硬币的最小值 + 1
+假设我们用 `Func(coins, amount)` 求解所需的最少的硬币个数，并且 硬币为 1 和 2，那么可以把他分解为，求解 amount-1 所需最少硬币和 amount -2 所需最少硬币的最小值 + 1。写成递推式即为：$T(n)=min(T(n-1)+T(n-2))+1$
 
 ```python
 def MinimumCoins(coins, amount):
@@ -949,13 +986,13 @@ def MinimumCoins(coins, amount):
 
 ---
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110125444743.png" width="90%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110125444743.png" width="90%" /> </div>
 
 这个题思路和凑硬币完全一样，把最小值变成最大值，就行了。
 
 ---
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110135416958.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110135416958.png" width="80%" /> </div>
 
 m\[i]\[j] 依赖于区间更短的子问题，所以必须按**区间长度递增**计算，常见顺序是：
 
@@ -969,28 +1006,23 @@ for l = 2 to n // 链长度
 这是一个典型的**区间 DP**。
 
 ```python
-MatrixMultiply()
-dp = [[INF for i in range(n+1)] * (n+1)]
-for i in range(n+1):
-	dp[i][i] = 0
-for l in range(2, n+1):
-	for i in range(1, n+1-l):
-		j = i + l - 1
-		for k in range(i, j):
-			cost = dp[i][k]+dp[k+1][j]+m[i].p*m[k].q*m[j].q
-			if cost < dp[i][j]:
-				dp[i][j] = cost
-				res[i][j] = k
+def MatrixMultiply(m):
+	dp = [[INF for i in range(n+1)] * (n+1)]
+	for i in range(n+1):
+		dp[i][i] = 0
+	for l in range(2, n+1):
+		for i in range(1, n+1-l):
+			j = i + l - 1
+			for k in range(i, j):
+				cost = dp[i][k]+dp[k+1][j]+m[i].p*m[k].q*m[j].q
+				if cost < dp[i][j]:
+					dp[i][j] = cost
+					res[i][j] = k
 ```
 
 ---
 
-```
-例：给定一个长度为 n 的整数序列 A[1…n]（可正可负），要求找一个**连续子段** A[i…j]，使其元素和最大。
-1 2 -5 6 2
-```
-
-关键想法： **以位置 i 结尾的最大子段和只和 i−1 有关**。
+**例：给定一个长度为 n 的整数序列 A\[1…n]（可正可负），要求找一个连续子段 A\[i…j]，使其元素和最大。**
 
 ```python
 ans = -INF
@@ -1000,14 +1032,14 @@ for i in range(2, n+1):
 	dp[i] = A[i] if dp[i-1] < 0 else A[i] + dp[i-1]
 	ans = max(ans, dp[i])
 return ans
-
-ABCD
-AAAB
 ```
+
+>[!Note]
+>这里我们不应该纠结于，假如后一个数字是负数，后面会不会有更大的正数来弥补。我们需要注意，子串和这个概念代表了“**以位置 i 结尾的最大子段和只和 i−1 有关**”。如 1 2 -5 6 这个例子，假如我们纠结怎么判断 -5 之后 6 加上去子串和更大就会乱，我们应该在 -5 的视角，对于 -5 来说如果前面的子串大于 0，那么对它就是有利的应该加上去。
 
 ---
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110144927916.png" width="90%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110144927916.png" width="90%" /> </div>
 
 >注意子序列和子串区别
 
@@ -1022,9 +1054,7 @@ for i in range(1, m+1):
 
 ---
 
-```
-例：给你一个整数 `n` ，返回和为 `n` 的完全平方数的最少数量。**完全平方数** 是一个整数，其值等于另一个整数的平方；换句话说，其值等于一个整数自乘的积。例如，`1`、`4`、`9` 和 `16` 都是完全平方数，而 `3` 和 `11` 不是。
-```
+**例：给你一个整数 `n` ，返回和为 `n` 的完全平方数的最少数量。完全平方数 是一个整数，其值等于另一个整数的平方；换句话说，其值等于一个整数自乘的积。例如，`1`、`4`、`9` 和 `16` 都是完全平方数，而 `3` 和 `11` 不是。**
 
 ```python
 import math
@@ -1039,6 +1069,16 @@ class Solution:
                     dp[i] = min(dp[i], dp[i-k] + 1)
         return dp[n]
 ```
+
+### 课后题
+
+![image.png](http://img.xilyfe.top/img/20260115125710532.png)
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260115125830364.png)
+
+
 ## 第十六章 贪心算法
 
 ### 思想&对比
@@ -1240,7 +1280,7 @@ def dfs(dis):
 
 先说二项树：
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260111113243544.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260111113243544.png" width="80%" /> </div>
 
 
 - 假设树高为 k，有 $2^k$ 个节点
@@ -1267,7 +1307,7 @@ class Node:
 	sibling: Node # 右兄弟
 ```
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260111113807004.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260111113807004.png" width="80%" /> </div>
 
 
 ### 合并操作
@@ -1743,7 +1783,7 @@ for i in range(n):
 
 如何画图：
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113144632934.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260113144632934.png" width="80%" /> </div>
 
 
 - 预处理时间：$O(m\vert \sum \vert)$   
@@ -1755,7 +1795,7 @@ KMP 的本质是：在发生失配时，不回退文本指针， 而是根据已
 
 首先来看 next 数组的作用：它告诉我们当主串和模式串失配时候，主串应该退回到什么问题
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113150109425.png)
+![image.png](http://img.xilyfe.top/img/20260113150109425.png)
 
 如图，当主串和子串在 `i=4` 失配时候，我们看前一位的 next数组 `next[3]=2` 就知道，它标志着我们应该跳过几个元素，例如这里告诉我们跳过两个元素，所以模式串回到第三位 `T[2]`，主串和模式串的前 2 位都相同直接跳过。
 
@@ -1778,7 +1818,7 @@ def kmp(string, pattern, next):
 那 next 数组怎么得到呢？
 我们先思考一下为什么可以用 next 数组在失配时回退呢？因为在 `i=4` 失配时候，模式串失配处 C 前两位（也就是主串失配处 A 的前两位）AB 和模式串前两位 AB 相同。换句话说，假如模式串的某个位置失配的时候，失配处前 i 位（也就是主串失配处前 i 位）如果和模式串前 i 位一样就能跳过了。那我们只需要看模式串的最长公共前后缀就好了。
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113152224891.png)
+![image.png](http://img.xilyfe.top/img/20260113152224891.png)
 
 对于 next 数组，我们固定第一位是 0：
 1. 从第二位 B 开始，由于 A、B 没有公共前后缀，所以是 0
@@ -1787,11 +1827,11 @@ def kmp(string, pattern, next):
 
 那代码应该怎么写呢？不可能暴力求公共前后缀吧？
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113154848400.png)
+![image.png](http://img.xilyfe.top/img/20260113154848400.png)
 
 如图当我们需要求 `next[6]` 时候，已经知道前 6 位的最长公共前后缀是 2 了，所以如果 `pattern[6]` 和 `pattern[2]` 相同，那我们就可以继续向后走了。那如果不相同呢？
 
-![image.png](https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113155629769.png)
+![image.png](http://img.xilyfe.top/img/20260113155629769.png)
 
 这里可以看到 `pattern[3]` 和 `pattern[7]` 不同，既然 ABA 没办法和下一个字符组成最长公共前后缀，那我们看看有没有更短的，比如前缀 AB 和后缀 AB 相同。这时候我们又不得不暴力搜索了吗？
 

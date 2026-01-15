@@ -25,7 +25,7 @@ tags: ["大模型"]
 
 ### PreNorm
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/prenorm.png" width="70%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/prenorm.png" width="70%" /> </div>
 
 现代的 Transformer 架构中，Transformer Block 都采用 PreNorm 而不是 PostNorm，具体来说就是把 Norm 放在注意力机制和 FFN 前馈网络层前面，而不是进行残差连接之后再 Norm。优点在于==训练更稳定，可以采用更大的学习率==。
 

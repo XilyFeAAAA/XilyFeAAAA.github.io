@@ -2,7 +2,7 @@
 title: 动态规划
 date: 2026-01-12T11:31:48+08:00
 lastmod: 2026-01-13T12:39:32+08:00
-featuredImage: https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/202601122278.png
+featuredImage: http://img.xilyfe.top/img/202601122278.png
 authors:
   - Xilyfe
 series:
@@ -52,14 +52,14 @@ def MinimumCoins(coins, amount):
 ### 钢条切割
 
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110125444743.png" width="90%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110125444743.png" width="90%" /> </div>
 
 这个题思路和凑硬币完全一样，把最小值变成最大值，就行了。
 
 ### 矩阵链乘法
 
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110135416958.png" width="80%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110135416958.png" width="80%" /> </div>
 
 m\[i]\[j] 依赖于区间更短的子问题，所以必须按**区间长度递增**计算，常见顺序是：
 
@@ -110,7 +110,7 @@ AAAB
 ```
 ### 最长公共子序列
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260110144927916.png" width="90%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110144927916.png" width="90%" /> </div>
 
  **空间复杂度O(mn)**
 

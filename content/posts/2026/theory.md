@@ -1,7 +1,7 @@
 ---
 title: "数论"
 date: '2026-01-12T11:31:48+08:00'
-featuredImage: "https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/2026112.png"
+featuredImage: "http://img.xilyfe.top/img/2026112.png"
 authors: [Xilyfe]
 series: ["算法分析与设计"]
 tags: ["算法", "数论"]

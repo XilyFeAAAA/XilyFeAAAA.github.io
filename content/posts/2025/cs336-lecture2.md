@@ -25,7 +25,7 @@ tags: ["大模型"]
 > stride 指的是：沿着这个方向到达下一行需要经过几个元素
 
 <div style="text-align: center">
-	<img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/pytorch_tensor.png?token=A3JNYA5O3GQ7FWC2Y2NVA23JII6NI" width="70%" /> 
+	<img src="http://img.xilyfe.top/img/pytorch_tensor.png?token=A3JNYA5O3GQ7FWC2Y2NVA23JII6NI" width="70%" /> 
 </div>
 
 在索引 Tensor 中元素(x,y)时，只需要在如图所示的长数组中找到第 N 个元素即可，索引计算方式为：

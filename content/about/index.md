@@ -6,7 +6,7 @@ hiddenFromSearch: true
 lastmod: 2026-01-14T11:45:05+08:00
 ---
 
-<div style="text-align: center">     <img src="https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260114111243410.jpg" width="100%" /> </div>
+<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260114111243410.jpg" width="100%" /> </div>
 
 ## 关于我
 

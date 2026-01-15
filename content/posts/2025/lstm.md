@@ -1,7 +1,7 @@
 ---
 title: "LSTM"
 date: '2025-12-19T16:04:11+08:00'
-featuredImage: "https://raw.githubusercontent.com/XilyFeAAAA/ImgRepository/main/img/20260113120111595.png"
+featuredImage: "http://img.xilyfe.top/img/20260113120111595.png"
 authors: [Xilyfe]
 series: ["DeepLearning"]
 tags: ["深度学习"]
