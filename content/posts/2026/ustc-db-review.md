@@ -9,8 +9,74 @@ series:
 tags:
   - 数据库
   - 复习
-lastmod: 2026-01-13T01:31:55+08:00
+lastmod: 2026-01-16T01:38:23+08:00
 ---
+{{< admonition type=question title="复习提纲">}} 
+**第1章 概述**
+1. DBMS系统结构组成
+2. 数据库、DBMS、数据库系统等基本概念
+
+***第2章** **关系数据库技术回顾 (reading)**
+1. 数据模型和关系数据模型
+2. 关系代数和SQL
+3. 三级模式结构与数据独立性
+
+**第3章 数据存储**
+1. 磁盘块存取时间
+2. 存储器结构
+3. 不同类型存储介质之间的差异
+
+**第4章 数据表示**
+1. 数据项的表示
+2. 记录的表示
+3. 记录在磁盘块中的组织
+4. 链表式堆文件和目录式堆文件
+
+**第5章 缓冲区管理**
+1. 缓冲区结构、frame/dirty/pin-count等概念的含义
+2. 缓冲区置换算法
+3. 缓冲区管理器的实现
+
+**第6章 索引结构**
+1. 一维索引：B+树、散列表 (包括动态散列表)
+2. 多维索引：R-Tree、分段散列函数(Partitioned Hash Func.)
+
+**第7章 查询优化**
+1. 查询处理器的工作过程
+2. 中间结果大小估计
+3. I/O代价的影响因素
+
+**第8章 连接算法**
+1. 嵌套循环连接
+2. 归并连接
+3. 索引连接
+4. 散列连接
+5. 连接算法的I/O代价估计与内存开销
+
+**第9章 事务处理I：故障与恢复**
+1. 数据库的一致性概念
+2. 事务的基本概念、ACID和原子操作
+3. Undo日志、Redo日志、Undo/Redo日志的恢复过程
+4. Checkpoint
+
+**第10章 事务处理II：并发控制**
+1. 可串性、冲突可串性的概念
+2. 冲突可串性的判定
+3. 锁：S、X、U、IS、IX、2PL、MGL
+4. 视图可串性
+5. 死锁
+6. 乐观并发控制技术
+
+**第11章 NoSQL数据库概述**
+1. NoSQL数据库的特点
+2. NoSQL产生的原因
+3. NoSQL与RDBMS的对比
+4. NoSQL数据库主要类型
+5. CAP和BASE理论
+6. LSM-tree
+
+{{< /admonition >}}
+
 ## 第一章 概述
 
 ### 基础概念
@@ -1364,8 +1430,11 @@ NoSQL产生的原因：
 
 #### CAP
 
+![image.png](http://img.xilyfe.top/img/20260116112757010.png)
+
+
 - C(Consistency）：一致性，分布式环境中所有节点在同一时间具有相同的数据
-- A(Availability）：可用性，即快速获取数据，可以在确定的时间内返回操作结果，保证每个请求，**不管成功或者失败都有响应** 
+- A(Availability）：可用性，即快速获取数据，可以在确定的时间内返回操作结果，保证每个请求 **不管成功或者失败都有响应** 
 - P(Tolerance of Network Partition）：分区容忍性，系统中任意信息的丢失或失败不会影响系统的继续运作
 
 **一个分布式系统不可能同时满足一致性、 可用性和分区容忍性这三个需求，最多只能同时满足其中两个**
@@ -1376,6 +1445,135 @@ NoSQL产生的原因：
 
 #### BASE
 
-- BA(Basic Availability)：基本可用性，一个分布式系统的一部分发生问题变得不可用时，其 他部分仍然可以正常使用。也即允许损失部分可用性。
-- S(Soft-state)：“软状态”是与“硬状态”相对应 的一种提法。数据库保存的数据是“硬状态”时，可以保证数据一致 性，即保证数据一直是正确的。“软状态”是指状态可以有一段时间不同步，具有一定的滞后性。
+BASE 理论是 CAP 理论的延展：
+
+- BA(Basic Availability)：基本可用性，一个分布式系统的一部分发生问题变得不可用时，其他部分仍然可以正常使用，即允许损失部分可用性。
+- S(Soft-state)：“软状态”是与“硬状态”相对应 的一种提法。数据库保存的数据是“硬状态”时，可以保证数据一致性，即保证数据一直是正确的。“软状态”是指状态可以有一段时间不同步，具有一定的滞后性。
 - E(Eventual Consistency)：允许后续的访问操作可以暂时读不到更新后的数据，但是经过一段时间之后，必须最终读到更新后的数据。
+
+
+### B+ 树
+
+B+ 树采用 In-Place Update，写代价高性能差：
+
+1. 叶节点的写都是随机写，相对与顺序写性能差
+2. 分裂、合并等 SMO 操作带来大量随机写
+
+>SMO 指的是 Structure Modifying Operation
+
+解决方法可以参考日志记录，通过 Append-Only 避免随机写，但是它与 B+ 树叶节点有序的性质矛盾。第二种方法是，我们可以通过将多个随机写操作合并起来批量写入，实现顺序写。LST-Tree 就是通过这两种方法实现了写块，读也比较快。
+
+### LSM-Tree
+
+#### 设计思路
+
+- 同时结合内存结构和磁盘结构：数据先写到内存结构，然后再写入磁盘 
+- Log-Structured：采用Append方式写磁盘数据 
+- Merge Write：内存数据批量合并写入磁盘，将多个小的随机写转换为顺序写 
+- 数据分层写入磁盘：避免一次批量写的数据量过大，内存压力过大，批量写时 IO 太多 
+- 每一层的数据均有序
+
+>- 在传统 B+ 树等 page-based 存储结构中，数据存放在固定大小的 page 里。插入或更新一条记录时，系统需要找到对应的 page，然后直接修改这个 page。如果该 page 已经在磁盘上，那么这一步通常表现为一次随机写：磁头需要寻址到某个位置，读入 page，修改，再写回原位置。
+>- 而 LSM-Tree 中 MemTable 里面记录数达到阈值后，被冻结为 immutable MemTable 刷盘到磁盘中，将随机写合并为顺序写。
+
+#### 整体架构
+
+![image.png](http://img.xilyfe.top/img/20260116115137273.png)
+
+1. Log
+
+LevelDB 使用 WAL 也就是 Write-Ahead-Logging 来保证数据的一致性。当 LevelDB 进行写入操作的时候，会将操作先写入 LOG 日志文件（二进制存储）中（注意是将**操作**写入日志，而不是**数据**写入日志)。WAL 将操作写入磁盘中的 LOG 日志进行持久化，当系统崩溃时可以重放 LOG 中的操作恢复数据。
+
+2. MemTable & Immutable Memtable
+
+当操作被写入磁盘的日志中之后，数据会被写入内存的 MemTable，当 MemTable 中积累一定数据就会把这部分数据转为 Immutable Memtable 并且 new 一个 MemTable 以供写入，**避免写阻塞**。后台线程会把 Immutable Memtable 的数据持久化到磁盘，目的是为了限制内存占用。MemTable 这个数据结构使得我们在内存中可以进行高效的读写操作，他是基于 Skiplist 实现的。
+
+3. SSTable
+
+Immutable Memtable 的数据持久化到磁盘之后称为 Level-0 SSTable，这个操作称为 mirror compact。SSTable 一共有 7 层，随着上层的 SSTable 数据增加，会被多路归并进入下一层的 SSTable，这个操作称为 major compact。层数越大，数据越多越旧。
+
+多层 SSTable 的好处是什么呢？当 Immutable Memtable 写入磁盘后会形成多个 Level-0 SSTable，这些持久化文件可能是有交集的。我们可以通过多路合并上层 SSTable 文件来减少占用的空间，compact 操作也由后台线程完成。
+
+- 对 level > 0 的 SSTables, 选择其中一个 SSTable 与 下一层 SSTables 做合并.
+- 对 level = 0 的 SSTables, 在选择一个 SSTable 后, 还需要找出所有与这个 SSTable 有 key 范围重叠的 SSTables, 最后统统与level 1 的 SSTables 做合并.
+
+>所以数据的流向是：write -> log(磁盘) -> memTable(内存) -> immutable memtable(内存) -> sstable(磁盘)
+
+### MemTable
+
+MemTable 实际上就是一个 Skiplist，它支持高效的插入和二分查找，相比 B+ 树优势在于避免了插入操作时候的 SMO 操作的开销。但是 Skiplist 它只支持存储一个值，我们是怎么做到通过 key 查找 value 的呢？
+
+![image.png](http://img.xilyfe.top/img/20260116123817493.png)
+
+MemTable 将 key 和 value 组合成一个新的 SkipList Key（key 和 value 都是变长字节流）中，Key/Value 键值对存储格式如上图。这样通过 UserKey 进行查找操作时候，只需要对 InternalKey 的固定部分（SequenceNumber 和 ValueType 的长度固定）进行判断就可以了。
+
+>SkipList Key 里面存的 ValueType 标识这这条记录是 Delete 或者 Update，以此实现了非就地更新。
+
+
+### SSTable
+
+![image.png](http://img.xilyfe.top/img/20260116124224690.png)
+
+SSTable 中的数据按照功能可以分为如下几块区：
+1. Data Block 区：存放 key/value 数据。
+2. Meta Block 区：存放过滤器或当前 SSTable 相关的统计数据。
+3. MetaIndex Block：仅有1个 Block，该 Block 中存放了所有 Meta Block 的索引。
+4. Index Block 区：所有 Data Block 的索引（实际上只有一个 Index Block）。
+5. Footer：大小固定的一个区域（48B）。
+
+由于每个 SSTable 的大小固定，因此当我们需要恢复/读取一个 SSTable 文件时，首先会读取文件的 Footer 得到 MetaIndex Block 和 Index Block 的位置，再通过他们两个知道 Data Blocks 和 Meta Blocks 的位置（偏移量），这时候既可以遍历数据了。
+
+Meta Block 里面存了布隆过滤器，布隆过滤器是一种巧妙的概率型数据结构，特点是高效地插入和查询，可以用来告诉你某个键一定不存在或者可能存在。相比 Map 和 Set 布隆过滤器占用的空间少很多，但是结果具有假阳性，如果返回键不存在，那么键一定不存在，如果返回键存在，那么键有可能不存在、又有可能存在。
+
+那布隆过滤器是如何帮助我们提高查找效率的呢？我们回忆一下在 SSTable 中读取一个 Key 的过程：
+1. 读取 SSTable 的 Footer，根据里面的信息再读取 Index Block 与 Meta Index Block。
+2. 根据 Meta Index Block 读取布隆过滤器到内存。
+3. 在内存中对 Index Block 进行二分查找，得到 Key 所在的 BlockHandle（也就是偏移）。
+4. 根据 BlockHandle 获取布隆过滤器的编号，也就是偏移。
+5. 通过布隆过滤器判断 Key 是否存在，不存在则结束。（这里节省了时间开销）
+6. 如果存在，那么读取对应的 Data Block，进行查找。
+
+### 写操作
+
+1. 当收到一个写请求时，会先把该条数据记录在 WAL Log 里面，用作故障恢复 
+2. 当写完 WAL Log 后，会把该条数据写入 Memtable
+3. 当 Memtable 超过一定的大小后，会在内存里面冻结，变成不可更新的 Immutable Memtable，同时新生成一个 Memtable 继续提供服务 
+4. 当 Immutable Memtable 数量超过阈值时 Flush 到磁盘上的 L0 层，此步骤也称为 Minor Compaction 
+	1. Flush是顺序写 
+	2. L0 层的 SSTable 的 key 可能会出现重叠，在层数大于 L0 层之后的 SSTable 不存在重叠 key 
+5. 当每层的 SSTable 的 score 超过阈值（score基于大小或 者SST文件个数计算），触发 Major Compaction，避免浪费空间 
+
+>注意由于 SSTable 都是有序的，所以采用 merge sort 进行高效合并
+
+### 读操作
+
+1. 当收到一个读请求的时候，会直接先在 Memtable 和 Immutable Memtable 里查询 ，如果查询到就返回 
+2. 如果没有查询到就会依次下沉，直到把所有的 Level 的 SSTable 查询一遍得到最终结果（很显然，越往下层查询 IO 代价越高） 
+3. LevelDB采用的读优化策略：
+	1. 布隆过滤器，如果 Key 不在 SSTable 就可以避免扫描
+	2. SSTable 增加Index Block，避免扫描整个SSTable的所有 Block
+
+### Compaction
+
+#### Minor Compaction
+
+Minor Compaction 就是内存 MemTable 达到阈值转为 Immutable Memtable 然后落盘到磁盘，形成 SSTable 的过程。因为是整个 Immutable Memtable dump到文件，所以 L0 的 SSTable 之间可能会存在重复的key。
+
+#### Major Compaction
+
+Major Compaction 分为 Size Compaction 和 Seek Compaction：
+1. Size Compaction：根据每层总 SSTable 大小触发（ Level-0 根据 SSTable 数量）
+2. Seek Compaction：每个新的 SSTable 文件维护一个 allowed_seek 的初始阈值，表示最多容忍多少次 seek miss。当 allowed_seeks 递减到小于 0 的时候，就会将对应文件标记为需要 Compaction。
+
+---
+
+L0 → L1 Compaction：
+1. 选择 L0 层的第一个文件 
+2. 将 **L0 与 L1** 中所有与选中文件的 key range 重叠的文件都读入内存 
+3. 多路归并排序，并抛弃掉无效的 KV 按照 SSTable 大小重新写入 L1层
+4. 如果 L1 层也触发了compaction条件，则会继续触发 L1 合并
+
+>1. 根据 SequenceNumber 和 ValueType，有些记录会被抛弃
+>2. 更高层的 Compaction 由于 SSTable 里面的 key 不重叠，所以将 Li+1 层中所有与 Li 层选中的 SSTable 文件的 key range 都重叠的文件作为候选合并对象。
+
+### Hbase

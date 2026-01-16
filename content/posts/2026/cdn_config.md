@@ -16,6 +16,7 @@ lastmod: 2026-01-16T11:15:20+08:00
 首先，我们在域名提供商(例如我用的是阿里云的域名)将域名的 Nameserver 指向 Cloudflare：
 - ns1.cloudflare.com
 - ns2.cloudflare.com
+
 这样 Cloudflare 就能接管域名的 DNS服务。当我们访问域名 `xilyfe.top` 时候，浏览器会请求 Cloudflare 的 DNS，得到最近节点 IP，然后访问最近 Cloudflare 边缘节点，而不是直接访问 Github Pages。而 Cloudflare 节点会代替我们访问 GitHub Pages 源站。
 {{< /admonition >}}
 
