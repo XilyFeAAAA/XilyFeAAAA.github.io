@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>LLM on 多辣加香菜</title>
+    <link>http://example.org/series/llm/</link>
+    <description>Recent content in LLM on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Wed, 03 Dec 2025 16:25:11 +0800</lastBuildDate>
+    <atom:link href="http://example.org/series/llm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>KVCache</title>
+      <link>http://example.org/posts/kvcache/</link>
+      <pubDate>Wed, 03 Dec 2025 16:25:11 +0800</pubDate>
+      <guid>http://example.org/posts/kvcache/</guid>
+      <description>&lt;h2 id=&#34;前情提要&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e6%83%85%e6%8f%90%e8%a6%81&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前情提要&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;Teacher-Forcing vs 自回归生成&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;p&gt;Teacher-Forcing 做的时候和自回归生成非常相似，都是一个接一个 token 进行生成。但是我们需要注意，Teacher-Forcing 的计算是并行的，但是自回归生成的串行的，这是为什么？&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>RoPE</title>
+      <link>http://example.org/posts/rope/</link>
+      <pubDate>Fri, 28 Nov 2025 16:23:11 +0800</pubDate>
+      <guid>http://example.org/posts/rope/</guid>
+      <description>&lt;h2 id=&#34;作用&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%bd%9c%e7%94%a8&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;作用&lt;/h2&gt;&lt;p&gt;RoPE 相对于正余弦位置编码和可学习位置编码，更能够表达&lt;strong&gt;相对位置信息&lt;/strong&gt;，便于模型捕捉序列中元素之间的关系，还便于模型泛化到更长的序列，支持超长文本推理。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

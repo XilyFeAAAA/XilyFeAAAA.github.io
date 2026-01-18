@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>几何学 on 多辣加香菜</title>
+    <link>http://example.org/tags/%E5%87%A0%E4%BD%95%E5%AD%A6/</link>
+    <description>Recent content in 几何学 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Tue, 04 Nov 2025 23:30:20 +0800</lastBuildDate>
+    <atom:link href="http://example.org/tags/%E5%87%A0%E4%BD%95%E5%AD%A6/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>计算几何学</title>
+      <link>http://example.org/posts/geometry/</link>
+      <pubDate>Tue, 04 Nov 2025 23:30:20 +0800</pubDate>
+      <guid>http://example.org/posts/geometry/</guid>
+      <description>&lt;h1 id=&#34;计算几何学&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e8%ae%a1%e7%ae%97%e5%87%a0%e4%bd%95%e5%ad%a6&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;计算几何学&lt;/h1&gt;&lt;h2 id=&#34;最近点对问题&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e6%9c%80%e8%bf%91%e7%82%b9%e5%af%b9%e9%97%ae%e9%a2%98&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;最近点对问题&lt;/h2&gt;&lt;h3 id=&#34;算法设计思路&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e7%ae%97%e6%b3%95%e8%ae%be%e8%ae%a1%e6%80%9d%e8%b7%af&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;算法设计思路&lt;/h3&gt;&lt;p&gt;先按 x 坐标排序数组（一次O(nlogn)）。递归把数组对半分成左右两部分，分别求出最小距离 dl 和 dr，取 d=min(dl,dr)。考虑跨分割线 midx 的点对：只需考虑距离分割线小于 d 的点（形成一个带状区域），然后按 y 排序。对带内每个点，最多检查后常数个点即可。合并阶段总开销 O(n)，因此总体 O(nlogn)。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
