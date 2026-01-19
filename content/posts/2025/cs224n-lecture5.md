@@ -51,17 +51,13 @@ $$
 
 对于文本生成来说，这种基于计数的LM则有很大问题了。这里拿CS224N的PPT上的一个例子来说明：
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/n-gram.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260119120456350.png)
 
 
 
 ## 循环神经网络 RNN
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/rnn.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260119120511790.png)
 
 RNN 的设计思路如下：
 
@@ -87,9 +83,7 @@ $$
 
 我们把序列作为输入，输入到RNN网络中，每一步都可以得到一个输出，这个输出即为当前步的下一个词的概率分布。我们使用这个概率分布可以和真实的概率分布计算一个损失。明确了损失函数，我们就很容易去训练了。
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/rnn-train.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260119120523409.png)
 
 以上图为例，首先输入the，得到下一个词的概率分布，与students计算损失。之后输入第二字词students与正确的opened计算损失。最后将损失相加计算平均损失。
 

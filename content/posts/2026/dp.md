@@ -52,14 +52,13 @@ def MinimumCoins(coins, amount):
 ### 钢条切割
 
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110125444743.png" width="90%" /> </div>
+![](http://img.xilyfe.top/img/20260110125444743.png)
 
 这个题思路和凑硬币完全一样，把最小值变成最大值，就行了。
 
 ### 矩阵链乘法
 
-
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110135416958.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260110135416958.png)
 
 m\[i]\[j] 依赖于区间更短的子问题，所以必须按**区间长度递增**计算，常见顺序是：
 
@@ -110,9 +109,9 @@ AAAB
 ```
 ### 最长公共子序列
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110144927916.png" width="90%" /> </div>
+![](http://img.xilyfe.top/img/20260110144927916.png)
 
- **空间复杂度O(mn)**
+**空间复杂度O(mn)**
 
 用 dp 数组，dp\[i]\[j] 代表 A\[:i] 和 B\[:j] 的 LCS，如果 A\[i] 和 B\[j] 相等，那么说明可以向后移动一位；如果不相等，那么要么是 dp\[i-1]\[j] 要么是 dp\[i]\[j-1]。
 

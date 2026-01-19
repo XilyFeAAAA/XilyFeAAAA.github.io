@@ -1463,9 +1463,7 @@ if __name__ == "__main__":
 
 我在 TinyStoriesValid 数据集上训练，将 vocab_size 设为 300 总耗时 5 分钟，通过 scalene 对性能进行分析得到以下信息：
 
-<div style="text-align: center">
-	<img src="http://img.xilyfe.top/img/bpe_scalene.png" width="100%" /> 
-</div>
+![](http://img.xilyfe.top/img/bpe_scalene.png)
 
 对时间进行降序，可以看到链表的操作耗时是最长的：==Python 中指针操作是非常耗时的，它与 C/C++ 不同，属性查找、指针解引用等等操作开销非常大==，所以我们考虑第一个优化方向是将链表变成简单的 list\[list\[int]]。
 
@@ -1612,7 +1610,7 @@ def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str]):
 
 pytest 里面三个测试花费 17s 相较上个版本提高 76%，但是还能不能再优化呢？对 TinyStoriesValid 数据集再次跑了一轮 scalene，数据如下：
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/new_train_bpe_scalene.png" width="100%" /> </div>
+![](http://img.xilyfe.top/img/new_train_bpe_scalene.png)
 
 开销主要在 pair_to_indice 字典还有初始化之后正则化的开销，pair_to_indice 的开销涉及重构算法思路了，但是 re 正则化还能优化：根据 pdf 里面指南，我们可以用多进程进行读取，然后用 re 分割文本。
 
@@ -1671,7 +1669,7 @@ def encode_from_file(
 
 除此之外，Encode 里面也用了链表时间开销非常大：
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/scalene_tokenizer.png" width="100%" /> </div>
+![](http://img.xilyfe.top/img/scalene_tokenizer.png)
 
 ```python
 def encode_non_special(self, subword: str) -> list[int]:

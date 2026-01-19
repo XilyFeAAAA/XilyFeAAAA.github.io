@@ -10,9 +10,7 @@ tags: ["深度学习"]
 
 介绍混合精度训练之前先回顾计算机组成原理的两个知识点：
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/FP.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120906809.png)
 
 浮点数在计算机上面是以 "sign + exp + digits" 的格式存储的，exp 的大小决定了浮点数范围，digits 的大小决定了浮点数的精度。
 
@@ -23,9 +21,7 @@ tags: ["深度学习"]
 1. 参数精度下降导致模型性能下降（实际上精度损失影响很小）
 2. 如果参数小于 FP16 的表示范围就会变成 0，大于就会变成 NAN。
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/scale.jpg" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120918931.jpg)
 
 第二个问题是最严重的，NVIDIA 博客中的一幅图表示在 FP16 中这些梯度接近一半都会直接设为 0。
 
@@ -75,9 +71,7 @@ for epoch in epochs:
 
 还有一种解决方法就是用 BF16，BF16 也是以 2 字节存储，但是它将 digits 的长度减少让位给 exp，也就是说它牺牲了精度提高了表示范围。
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/bf16.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120927981.png)
 
 
 # PEFT

@@ -83,7 +83,7 @@ lastmod: 2026-01-18T01:24:25+08:00
 
 1.  数据库：**长期储存**在计算机内、**有组织的**、**可共享**的大量数据的集合
 2.  数据库模式：数据库中全体数据的**逻辑结构**和**特征的描述**
-	1. <div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260101231815096.png" width="70%" /> </div>
+	1. ![](http://img.xilyfe.top/img/20260101231815096.png)
 3. 数据库管理系统：计算机程序的集合，用于创建和维护数据库。
 	1. 位于OS和APP之间
     2. 总是基于某种数据类型
@@ -95,7 +95,7 @@ lastmod: 2026-01-18T01:24:25+08:00
 ### DBMS 结构
 
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/dbms.png" width="70%" /> </div>
+![](http://img.xilyfe.top/img/dbms.png)
 
 1. 对于用户查询 sql 语句，经过查询编译器编译为查询计划，提供给执行引擎。执行引擎对于索引/ 文件/记录请求交给对应索引/文件/记录管理器进行操作，而索引等底层实现即页面(page)因此通过缓冲区管理器(Manager Buffer)来进行读取,如果 miss，则需要调用存储管理器从磁盘中读取。
 2. 对于事务命令交由事务管理器进行处理，通过生成日志和恢复的方式保证一致性。对于生成的日志文件通过与缓冲区交互实现持久化，对于并发事务还通过并发控制和锁表保障数据一致性。
@@ -127,7 +127,7 @@ lastmod: 2026-01-18T01:24:25+08:00
 
 ### 磁盘结构
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/disk_structure.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/disk_structure.png)
 
 ### 磁盘块存取
 
@@ -163,7 +163,8 @@ $$
 8. 面密度是位密度和道密度的乘积。
 
 > 一般来说，寻道时间(10ms-40ms)>旋转延迟(4ms)>传输时间(4kb-0.5ms)
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102113729888.png" width="70%" /> </div>
+
+![](http://img.xilyfe.top/img/20260102113729888.png)
 
 **写块时间**
 
@@ -178,7 +179,7 @@ $$
 
 **如何定位一个块的位置**
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102114111546.png" width="70%" /> </div>
+![](http://img.xilyfe.top/img/20260102114111546.png)
 
 
 块地址 = (设备号，柱面号，盘面号，扇区号)
@@ -204,7 +205,7 @@ $$
 ### 磁盘存取优化
 
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102133430148.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260102133430148.png)
 
 > 先读同一个磁道的
 
@@ -316,12 +317,12 @@ CREATE TABLE Student(
 )
 ```
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102141542213.png" width="70%" /> </div>
+![](http://img.xilyfe.top/img/20260102141542213.png)
 
 
 > 考虑寻址特点：记录和字段的开始地址必须**按4的倍数对齐**，具有更快的读写速度，但是浪费空间。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102141637233.png" width="70%" /> </div>
+![](http://img.xilyfe.top/img/20260102141637233.png)
 
 记录首部（Head）会存储描述记录的信息
 
@@ -355,11 +356,11 @@ typedef struct {
 
 **首部指针法**(变长记录表示法) 定长字段在前,变长字段在后,如下例(name、address变长):
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102143712004.png" width="70%" /> </div>
+![](http://img.xilyfe.top/img/20260102143712004.png)
 
 **混合格式**：定长记录+变长记录
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102143752775.png" width="70%" /> </div>
+![](http://img.xilyfe.top/img/20260102143752775.png)
 
 #### 记录的组织方式
 
@@ -368,11 +369,11 @@ typedef struct {
 - 方式一: 使用额外的一个空间记录当前记录数N,对于插入操作插入到第N+1的槽中即可,同时将N->N+1,但是对 于删除不友好 
 - 方式二: 记录当前记录数m的情况下,使用额外N的空间记录槽是否可用(例如0可用,1不可用),支持 删除操作,但是针对插入需要先遍历一遍,有额外时间开销
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102144528997.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260102144528997.png)
 
 变长记录会有一个**槽目录**来记录每条记录：<记录偏移量，长度>
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260102144936230.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260102144936230.png)
 
 #### 插入
 
@@ -581,7 +582,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 - 索引可以常驻内存 
 - 要查找键值为K的记录是否存在，不需要访问磁盘数据
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103101748425.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103101748425.png)
 
 #### 稀疏索引
 
@@ -589,7 +590,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 - 节省了索引空间， 对同样的记录，稀疏索引可以使用更少的索引项。
 - 但是没办法直接知道，是否存在 key=K 的记录，需要遍历
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103102027970.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103102027970.png)
 
 #### 多级索引
 
@@ -597,7 +598,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 - 二级索引更小，可以常驻内存 
 - 减少磁盘I/O次数
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103103512218.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103103512218.png)
 
 > 注意，最左边是二级索引，一级索引指向数据。
 
@@ -612,7 +613,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 
 假设一张表：`Student(id, name, age, dept)`，数据按 id（主键）顺序存，现在查：`SELECT * FROM Student WHERE dept = 'CS';` ，由于 `dept` 不是主键，只能全表扫描（读所有数据块），这在数据量大时非常慢。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103105805608.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103105805608.png)
 
 **为什么辅助索引不能用稀疏索引？**
 
@@ -628,7 +629,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 
 间接桶的出现就是为了解决辅助索引重复键值浪费空间的问题。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103111705406.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103111705406.png)
 
 >思路类似指针链表，就是在bucket里面存储重复的键值指针
 
@@ -636,11 +637,11 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 
 应用于文档检索，就是关键词查找位于文档的哪个位置。为每个检索词建立间接桶，桶的指针指向检索词所出现的文档。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103113220381.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103113220381.png)
 
 ### B+树
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103113903533.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103113903533.png)
 
 
 1. B+树所有节点都是 n 个值，n+1 个指针
@@ -670,7 +671,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 	- 兄弟够借就借，注意**改**父节点元素
 	- 兄弟不够借就和兄弟合并，注意**删**父节点元素
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103121806386.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103121806386.png)
 
 #### 效率
 
@@ -686,7 +687,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 - 根据散列函数，把 key 映射到桶 id。
 - 一个桶一般会对应一个 block，块内包含多条记录。I/O 次数取决于 n blocks/bucket。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103130014714.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103130014714.png)
 
 - 散列表插入时候，如果桶内没有空间，会创建一个溢出块连接到桶。
 - 散列表删除时候，如果桶内有多余空间了，会把溢出块提到桶内，删除溢出块。
@@ -698,7 +699,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 
 数据文件的增长使桶的溢出块数增多，增加I/O，可拓展散列表就是为了解决这个问题。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103132737004.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103132737004.png)
 
 - 散列函数会把 key 映射为一个 二进制序列，然后取前 g 位作为桶 id，找到桶指针。
 - 如果桶有空位，直接插入
@@ -706,8 +707,9 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 	- 如果 l > g：g++，扩展目录。
 	- 如果 l < g：重新散列该块的数据到其他两块，l++
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103134756689.png" width="80%" /> </div>
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103181502256.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103134756689.png)
+
+![](http://img.xilyfe.top/img/20260103181502256.png)
 
 - 优点：大部分情况下不存在着溢出块，因此当查找记录时，只需查找一个 存储块。
 - 缺点：桶增长速度快，可能会导致内存放不下整个桶数组，影响其他保存 在主存中的数据，波动较大。
@@ -749,7 +751,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 #### R-Tree
 
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103185637748.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103185637748.png)
 
 - 基于磁盘的：数据存储在磁盘,根据需求将其加载到内存中操作 
 - 数据分页：每个节点占用相同大小的磁盘空间 
@@ -762,7 +764,7 @@ LRU算法只考虑了最近一次访问时间，但在实际DBMS中，如果被�
 
 #### 分段散列函数
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260103190243201.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260103190243201.png)
 
 - 采用将数据划分到桶中的方法——类散列方法
 - 分段散列可以支持高于 2 维的多维数据
@@ -839,13 +841,13 @@ J[01101]   K[10101]   L[11100]   M[01100]   N[11111]
 
 ### 查询处理全流程
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260104105455755.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260104105455755.png)
 
 ### 语法分析
 
 >把 SQL 语句构造为语法分析树，了解即可
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260104105643050.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260104105643050.png)
 
 ### 生成初始逻辑查询计划
 
@@ -939,7 +941,7 @@ A  B        A  C      C  D
 - $V(R, A)$：R 的属性 A 上的不同值数 
 - $B(R)$：容纳 R 所有元组所需的块数
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260104114409177.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260104114409177.png)
 
 计算中间结果的大小，我们需要 元组数 * 每个元祖大小，即 $T(R)$ 和 $S(R)$。
 
@@ -978,8 +980,7 @@ A  B        A  C      C  D
 
 对于 $R_1$ 而言，A 出现在 $R_2$ 的预期行数为 $\frac{T(R_2)}{V(R_2, A)}$ ，对于 $R_2$ 而言同理。假如 $V(R_1,A) \lt V(R_2,A)$，R2.A 很多值不在 R1，如果用 $T(R_2) * \frac{T(R_1)}{V(R_1, A)}$ 不准。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260104130406668.png" width="80%" /> </div>
-
+![](http://img.xilyfe.top/img/20260104130406668.png)
 
 #### I/O 代价估计
 
@@ -1168,13 +1169,13 @@ MEM = 101 blocks
 	- 阶段一：R1 的块全部读进 buffer，在内存排序后写会磁盘，最终得到 n chunk，每个 chunk 内部有序
 	- 阶段二：不同 chunk 中读进 buffer 进行归并排序，最后还要写回磁盘
 	- 读写分别两次：$(2+2)*(1000+500)=6000$，加上之前计算的 1500 次 I/O，一共 7500 次 I/O
-	- <div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260104201202482.png" width="80%" /> </div>
+	- ![](http://img.xilyfe.top/img/20260104201202482.png)
 
 >和嵌套索引连接对比，关系少的时候嵌套索引连接反而更快，但是关系较大选择归并连接更优。
 
 假设 内存中 buffer 块数为 k，记录一共占 x 块，那么 chunk 数为 x/k。由于 chunk 数要小等于 buffer 块数，所以有 $\frac{x}{k} \leq k$ 即 $\sqrt{x} \leq k$  ，对于上面例子 R1 占 1000 块，R2 占 500 块，需要 buffer 32 块。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260104203544935.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260104203544935.png)
 
 优化方法是在排序二阶段时候连接，需要 $3*(B(R_1) + B(R_2))$ 次 I/O。
 
@@ -1196,7 +1197,7 @@ $$
 
 #### 散列连接
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260104213605567.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260104213605567.png)
 
 假设内存缓冲区有 M 个 block
 - 读取整个 R1，将 R1 散列在 M-1 个 block 里面，然后逐个读取 R2 块，和 R1 进行散列查找然后 join，一共 $cost=B(R_1)+B(R_2)$
@@ -1360,7 +1361,7 @@ Undo 顾名思义为 撤销，所以 Undo 日志的作用是撤销操作，那�
 - 立即更新：核心思想是乐观，假设大多数事务会成功提交，因此允许事务在执行过程中直接修改数据库页面（在缓冲区中，甚至可能提前刷到磁盘）。
 - 延迟更新：核心思想是悲观，假设事务可能失败，因此在事务提交前绝不修改数据库页面，所有修改只记录在日志中。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260107123531225.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260107123531225.png)
 
 延迟更新常和 Redo 日志结合，假设采用延迟更新，在一系列写操作之后才会落盘到磁盘上，这期间如果发生故障，就会导致之前的记录没有写到磁盘上，所以需要 Redo 重写。Undo 日志和立即更新结合也是如此。
 
@@ -1378,7 +1379,7 @@ Undo 顾名思义为 撤销，所以 Undo 日志的作用是撤销操作，那�
 3. 正向扫描日志，处理 Redo 列表， 对每个`<T, x, v, w>`（T 在 Redo 列表），执行`Write(x, w)`（写入新值 w）和`Output(x)`；
 4. 对 Undo 列表中的每个 T，写入`<Abort T>`到日志。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260105150535049.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260105150535049.png)
 
 >注意，恢复时候需要先 Undo 再处理 Redo
 
@@ -1386,7 +1387,7 @@ Undo 顾名思义为 撤销，所以 Undo 日志的作用是撤销操作，那�
 
 检查点技术就是能保证 checkpoint 之前的全部事务（数据）都已经完成刷入到磁盘，这样在进行恢复日志时候，只需要管 checkpoint 标记之后的 Redo 或者 Undo。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260105151238055.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260105151238055.png)
 
 >undo/redo 日志中，checkpoint 对 Undo 恢复性能帮助不如 Redo 恢复大
 
@@ -1423,7 +1424,7 @@ Undo 顾名思义为 撤销，所以 Undo 日志的作用是撤销操作，那�
 - 冲突可串性：如果一个调度与串行调度冲突等价,则称这个调度满足冲突可串性。
 - 如果满足冲突可串性，那么就任务它是可串化调度，是 ok 的。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260105194357250.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260105194357250.png)
 
 >如图，调度 Sc 经过一系列非冲突操作变成串行调度。
 
@@ -1436,7 +1437,7 @@ Undo 顾名思义为 撤销，所以 Undo 日志的作用是撤销操作，那�
 	- A1 在 A2 之前
 	- A1 和 A2 是冲突操作
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260105195843497.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260105195843497.png)
 
 1. r2(A) 和 w3(A) 是冲突操作，所以 T2 指向 T3
 2. r1(B) 和 w2(B) 是冲突操作，所以 T1 指向 T2
@@ -1454,7 +1455,7 @@ Undo 顾名思义为 撤销，所以 Undo 日志的作用是撤销操作，那�
 2. 若事务在 S1 中读数据的初始值，在 S2 中也读初始值；
 3. 对同一数据的最后一次写操作，在 S1 和 S2 中由同一事务执行。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260105201154014.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260105201154014.png)
 
 如图：
 
@@ -1587,7 +1588,7 @@ U(A)                 S(A)    // S 锁和U 锁之间不互斥
 - 如果对某个结点加 IS(IX) 锁，则说明事务要对该结点的某个下层结点加 S(X)锁；  
 - 对任一结点加 S(X) 锁，必须先对从根结点到P的路径上的所有结点加 IS(IX) 锁
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260106140344629.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260106140344629.png)
 
 #### 事务隔离
 
@@ -1606,7 +1607,7 @@ U(A)                 S(A)    // S 锁和U 锁之间不互斥
 1. 设置一个 timeout，固定时间事务未结束就 abort
 2. 等待图：假如 Ti 需要 Tj 释放资源，那么就画一条 Ti -> Tj 的边，有环说明死锁。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260106185603909.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260106185603909.png)
 
 ##### 死锁预防
 
@@ -1636,10 +1637,10 @@ T2: lock(A)                  ← 等T1释放A
         - 让谁回滚（die/abort/wound）。
 - Wait-Die 方案，假如 T 请求 U 持有的锁：
 	- 如果 T 早于 U，那么 T 等待；反之 T DIE
-	- <div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260106194912340.png" width="80%" /> </div>
+	- ![](http://img.xilyfe.top/img/20260106194912340.png)
 - Wound-Wait 方案：
 	- 如果 T 早于 U，那么 U 回滚，锁给 T；否则 T 等待 U
-	- <div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260106195105972.png" width="80%" /> </div>
+	- ![](http://img.xilyfe.top/img/20260106195105972.png)
 	- 可以看到 T3 回滚了。
 
 #### 乐观并发控制

@@ -144,15 +144,11 @@ $$
 
 扩展到高维就有：
 
-<div style="text-align: center">
-    <img src="../../../resource/ai/llm/rope.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260119121133066.png)
 
 可以看到矩阵计算时候有非常多的 0，增大了计算量，简便方法就是：
 
-<div style="text-align: center">
-    <img src="../../../resource/ai/llm/rope-cal.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260119121142785.png)
 
 并且有：
 

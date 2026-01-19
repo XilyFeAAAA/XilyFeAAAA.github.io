@@ -11,9 +11,7 @@ tags: ["深度学习"]
 
 ### Key, Query, Value
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/self-attention.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120658386.png)
 
 从单条文本来看，矩阵 $x=Ew_t$ 形状为 [SeqLen, EmbeddingSize]。
 
@@ -209,9 +207,7 @@ $$
 
 ### 残差连接
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/residual.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120709348.png)
 
 梯度回传时候，链式计算可能会乘非常多的偏导。如果之间的偏导都是小于 1 的数，就有可能导致最后梯度接近于 0；反之梯度有可能非常大。梯度爆炸比较好解决，超过一定值的时候就把它裁剪掉。ResNet 的残差连接和 $1*1$ 卷积，可以解决梯度消失这个问题。
 
@@ -312,9 +308,7 @@ target:   [N]
 
 #### 二、Encoder
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/encoder.png" width="60%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120722942.png)
 
 ```python
 class Encoder(nn.Module):
@@ -633,9 +627,7 @@ class FeedForwardNet(nn.Module):
 ```
 #### 三、Decoder
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/decoder.jpg" width="60%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120734691.jpg)
 
 Transformer Decoder 和 Encoder 稍有不同，它也包含 Word Embedding 和 Position Embedding，不过 DecoderLayer 每一层中是 MaskedMultiHeadAttention 和 CrossMultiHeadAttention。
 

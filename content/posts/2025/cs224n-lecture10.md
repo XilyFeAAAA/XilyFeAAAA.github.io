@@ -39,9 +39,7 @@ RLHF 基于人类反馈的强化学习是 post-training 的一种方法，它的
 ### RL 基本概念
 
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/RL.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120746749.png)
 
 强化学习的基本思路：
 
@@ -62,9 +60,7 @@ $$
 
 ### RL in LLM
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/rlinllm.jpg" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120800584.jpg)
 
 - 我们先喂给模型一个 prompt，期望它能产出符合人类喜好的 response
 - 在 t 时刻，模型根据上文，产出一个token，**这个token即对应着强化学习中的动作，我们记为** $A_t$。因此不难理解，在NLP语境下，强化学习任务的动作空间就对应着词表。
@@ -74,9 +70,7 @@ $$
 
 ### RLHF 中的四个模型
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/4model.jpg" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120810773.jpg)
 
 - **Actor Model**：演员模型，这就是我们想要训练的目标语言模型
 - **Critic Model**：评论家模型，它的作用是预估总收益 $V_t$
@@ -93,9 +87,7 @@ Actor Model 一般用SFT阶段产出的SFT模型来对它做初始化。策略�
 
 RLHF 中存在 Reward Hacking 这个概念，指的是模型知道了评分标准而去直接学习投机取巧的方法而不是学习知识。解决方案就是通过 Reference Model 来衡量预训练得到的模型和 RLHF 微调之后模型的差异，约束 policy 不要离正常语言太远。
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/klmetric.jpg" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120824690.jpg)
 
 - **对 Actor 模型**，我们喂给它一个 prompt，它正常输出对应的 response。那么 response 中每一个 token 肯定有它对应的 log_prob 概率分布呀，我们把这样的结果记为 **log_probs**。
 - **对 Ref 模型**，我们把 Actor 生成的"prompt + response"喂给它，那么它同样能给出每个 token 的 log_prob 结果，我们记其为**ref_log_probs**
@@ -149,9 +141,7 @@ $$
 
 #### Critical Model
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/critical.jpg" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120834818.jpg)
 
 Q：训练Actor模型我能理解，但我还是不明白，为什么要单独训练一个 Critic 模型用于预测收益呢？
 A：这是因为，当我们在前文讨论总收益（即时 + 未来）时，我们是站在上帝视角的，也就是这个 $V_t$ 就是客观存在的、真正的总收益。但是我们在训练模型时，就没有这个上帝视角加成了，也就是在 t 时刻，我们给不出客观存在的总收益 $V_t$，我们只能训练一个模型去预测它。
@@ -271,9 +261,7 @@ def compute_rewards(self, prompts, log_probs, ref_log_probs, reward_score, actio
 
 ---
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/ppo.jpg" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120844509.jpg)
 
 - 第一步，我们准备一个 batch 的 prompts
 - 第二步，我们将这个 batch 的 prompts 喂给 Actor 模型，让它生成对应的 responses
@@ -332,9 +320,7 @@ Critical Model 的目的是预测未来收益，所以 Critical Loss 的设计�
 
 与传统 RLHF 相比，DPO 的核心创新在于：**直接利用人类标注的 "哪个回答更好" 的偏好数据来优化模型，而不是先训练一个奖励模型再用强化学习优化**。
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/dpo.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120855728.png)
 
 
 DPO 需要的训练数据格式非常简单：**三元组 (prompt, chosen, rejected)**，即：

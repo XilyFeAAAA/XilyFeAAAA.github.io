@@ -52,7 +52,7 @@ for i in range(1, n):
 
 ### 复杂性分析
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260108142513977.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260108142513977.png)
 
 对于插入排序，我们可以得到每条代码执行次数如上图，所以总运行时间为：
 
@@ -220,7 +220,7 @@ $$
 $$
 
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260108151837332.png" width="90%" /> </div>
+![](http://img.xilyfe.top/img/20260108151837332.png)
 
 ### 和式界的证明方法
 
@@ -322,7 +322,7 @@ $$
 
 ### 主定理
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260108160544005.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260108160544005.png)
 
 简单的理解： 
 1. 若 f(n) 增长较慢（情况 1），则递归部分占主导。 
@@ -685,7 +685,7 @@ $$
 
 最坏情况下，任何比较排序都需要进行 $\Omega(n\lg n)$ 次比较。
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109144011628.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260109144011628.png)
 
 
 >没看懂，记住结论
@@ -731,7 +731,7 @@ def RadixSort(arr, d):
 
 ### 桶排序
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109152902759.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260109152902759.png)
 
 每个桶内再用其他的排序算法进行排序（比如快排），这样子时间复杂度不还是 $O(n\log n)$ 吗？
 如果要排序的数据有 n 个，我们把它们分在 m 个桶中，这样每个桶里的数据就是 $k=\frac{n}{m}$。每个桶内排序的时间复杂度就为 $O(k\log k)$。m 个桶就是 $m * O((n / m)*log(n / m))=O(nlog(n / m))$。当桶的个数 m 接近数据个数 n 时，$log(n/m)$就是一个较小的常数，所以时间复杂度接近O(n)。
@@ -861,7 +861,7 @@ def bfprt(arr, low, high, k):
 ### 顺序查找树
 
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109181752650.png" width="90%" /> </div>
+![](http://img.xilyfe.top/img/20260109181752650.png)
 
 前面学的 Order-Statistics 算法可以在 $O(n)$ 的时间内找到第 i 个元素，但是如果需要进行多次查找操作，时间复杂度还是蛮高的。顺序查找树能做到一次预处理之后，每次查找的时间复杂度为 $O(\lg n)$。
 
@@ -882,7 +882,7 @@ def Ele2Rank(t, x):
 	else: return t.left.size + 1 + Ele2Rank(t.right, x)
 ```
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260109183127292.png" width="100%" /> </div>
+![](http://img.xilyfe.top/img/20260109183127292.png)
 
 简单来说：**如果扩张属性只影响到父节点或只影响到子节点，就可以在红黑树上扩张**。
 
@@ -986,13 +986,13 @@ def MinimumCoins(coins, amount):
 
 ---
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110125444743.png" width="90%" /> </div>
+![](http://img.xilyfe.top/img/20260110125444743.png)
 
 这个题思路和凑硬币完全一样，把最小值变成最大值，就行了。
 
 ---
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110135416958.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260110135416958.png)
 
 m\[i]\[j] 依赖于区间更短的子问题，所以必须按**区间长度递增**计算，常见顺序是：
 
@@ -1039,7 +1039,7 @@ return ans
 
 ---
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260110144927916.png" width="90%" /> </div>
+![](http://img.xilyfe.top/img/20260110144927916.png)
 
 >注意子序列和子串区别
 
@@ -1354,7 +1354,7 @@ def dfs(dis):
 
 先说二项树：
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260111113243544.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260111113243544.png)
 
 
 - 假设树高为 k，有 $2^k$ 个节点
@@ -1891,7 +1891,7 @@ for i in range(n):
 
 如何画图：
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260113144632934.png" width="80%" /> </div>
+![](http://img.xilyfe.top/img/20260113144632934.png)
 
 
 - 预处理时间：$O(m\vert \sum \vert)$   

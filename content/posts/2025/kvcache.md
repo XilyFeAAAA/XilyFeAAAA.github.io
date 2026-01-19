@@ -34,9 +34,7 @@ def generate(model, input_ids, max_new_tokens, temperature=1.0):
 
 ## KVCache 的作用
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/nokvcache.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119121105259.png)
 
 上图为不加 KVCache 时候推理的过程：
 
@@ -45,9 +43,7 @@ def generate(model, input_ids, max_new_tokens, temperature=1.0):
 
 所以 $QK^T$ 中存在重复计算，其次我们第二次循环实际上只想要得到 "人" 对应的 token，但是把 "华" 对应的 token 也重复计算了一遍。
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/kvcache.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119121117689.png)
 
 仔细分析循环的过程我们可以发现，对于第 i 词循环我们要生成 $token_i$，它只需要 $QK^T$ 这个下三角矩阵的最后一行和 $V$ 矩阵。再拆细一点，我们只需要 $Q_i$ 和 $K$ 矩阵相乘得到下三角矩阵最后一行还有 $V$，所以我们只需要缓存 $K$ 和 $V$ 矩阵。
 

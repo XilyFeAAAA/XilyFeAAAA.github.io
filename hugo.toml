@@ -21,6 +21,8 @@ theme = "Dolt"
   # DoIt 新增 | 0.2.11 开启 PWA 支持
   enablePWA = false
   math=true
+  fancybox=true
+  amapKey = "f6dc23404e575ea14061ad60a66afaef"
   # DoIt 新增 | 0.2.0 搜索配置
   [params.search]
     enable = true
@@ -286,6 +288,14 @@ theme = "Dolt"
     post = ""
     name = "关于"
     url = "/about/"
+    title = ""
+    weight = 6
+  [[menu.main]]
+    identifier = "footprint"
+    pre = ""
+    post = ""
+    name = "足迹"
+    url = "/footprint/"
     title = ""
     weight = 5
 

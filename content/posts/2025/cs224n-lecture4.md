@@ -134,9 +134,7 @@ $$
 
 ## 神经网络依存分析
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/dependency_parse.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260119120443008.png)
 
 在用神经网络对依存分析的每一步操作进行预测的时候，需要当前状态的一个输入值，这个输入的向量应该怎么得到呢？
 

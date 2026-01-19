@@ -100,9 +100,7 @@ reference bigram: "the cat", "cat is", ...
 
 ### 经典点积注意力
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/dot-product.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120610905.png)
 
 - $S^T$ 是 Decoder 在当前时间步的隐藏状态 dec_hidden
 - $h_i$ 是 Encoder 的第 i 个 token 对应的隐藏状态 enc_hidden_i
@@ -112,16 +110,12 @@ reference bigram: "the cat", "cat is", ...
 
 ### 乘法注意力
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/multiplicative.png" width="70%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120627811.png)
 
 乘法注意力的解决方法就是：在两个向量之间乘一个矩阵，这个矩阵可以学习隐藏状态哪一部分是有用的
 
 ### 低秩乘法注意力
 
-<div style="text-align: center">
-    <img src="../../../../resource/ai/llm/low-rank.png" width="90%" />
-</div>
+![](http://img.xilyfe.top/img/20260119120641801.png)
 
 乘法注意力的问题在于，当隐藏状态长度很大时，中间矩阵的参数量就会非常大。解决办法是把大方阵拆为两个低秩的矩阵，它们有一样的效果。

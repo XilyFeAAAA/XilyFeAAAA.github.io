@@ -10,9 +10,7 @@ tags: ["Module", "深度学习"]
 
 有些时候预测可能需要由前面若干输入和后面若干输入共同决定，这样会更加准确。因此提出了双向循环神经网络，网络结构如下图。可以看到 Forward 层和 Backward 层共同连接着输出层，其中包含了 6 个共享权值 w1-w6。
 
-<div style="text-align: center">
-    <img src="../../../resource/ai/llm/bilstm.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260119120423868.png)
 
 ### 代码实现
 

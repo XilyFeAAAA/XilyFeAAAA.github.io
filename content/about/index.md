@@ -6,7 +6,7 @@ hiddenFromSearch: true
 lastmod: 2026-01-14T11:45:05+08:00
 ---
 
-<div style="text-align: center">     <img src="http://img.xilyfe.top/img/20260114111243410.jpg" width="100%" /> </div>
+![](http://img.xilyfe.top/img/20260114111243410.jpg)
 
 ## 关于我
 
@@ -32,6 +32,15 @@ lastmod: 2026-01-14T11:45:05+08:00
   - [网易云音乐](https://music.163.com/#/user/home?id=560599765)：网易云 10 级重度用户，没事基本都带着耳机听音乐。
   - [Bilibili](https://space.bilibili.com/37783524):  看的基本都是技术相关以及 LOL 还有动物园的视频
   - [Github Issues](https://github.com/XilyFeAAAA/XilyFeAAAA.github.io/issues): 可以直接在此仓库的 Issue 区联系我。
+
+## 博客发展
+
+{{< admonition type=summary title="时间线">}} 
+- 2025-10-18：博客在 Github Page上线
+- 2025-11-20：申请域名 [https://xilyfe.top](https://xilyfe.top)
+- 2026-01-07：通过 Cloudflare 加速博客和图床
+- 2026-01-19：通过 Fancybox 实现图片放大功能
+{{< /admonition >}}
 
 ## 注意事项
 
