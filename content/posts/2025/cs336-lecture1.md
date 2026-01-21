@@ -1,10 +1,11 @@
 ---
-title: "Lecture 1: Tokenization"
+title: "CS336 Lecture 1: Tokenization"
 date: '2025-12-17T13:05:11+08:00'
 authors: [Xilyfe]
 series: ["CS336"]
 tags: ["大模型"]
---- 
+lastmod: 2026-01-21T12:37:02+08:00
+---
  
 
 !!! abstract 

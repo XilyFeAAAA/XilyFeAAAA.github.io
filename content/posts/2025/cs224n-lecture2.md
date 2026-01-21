@@ -1,9 +1,10 @@
 ---
-title: "Lecture 2: Word Vectors and Language Models"
+title: "CS224N Lecture 2: Word Vectors and Language Models"
 date: '2025-11-19T17:13:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
+lastmod: 2026-01-21T12:35:38+08:00
 --- 
 
 

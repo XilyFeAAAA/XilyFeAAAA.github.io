@@ -1,10 +1,11 @@
 ---
-title: "Lecture 2: Computing"
+title: "CS336 Lecture 2: Computing"
 date: '2025-12-19T11:48:11+08:00'
 authors: [Xilyfe]
 series: ["CS336"]
 tags: ["大模型"]
---- 
+lastmod: 2026-01-21T12:37:14+08:00
+---
 
 !!! abstract 
     本节主要讲解内存计算问题，首先介绍了float32, float 16 等数据类型。随后介绍 PyTorch 中的 tensor 这一重要的数据类型。最后举例介绍了在模型训练中各个部分所需要的计算量，并介绍了浮点运算利用率这一指标以衡量硬件计算效率。重点如下： 

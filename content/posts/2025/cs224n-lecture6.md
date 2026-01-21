@@ -1,10 +1,12 @@
 ---
-title: "Lecture 6: Sequence to Sequence Models"
+title: "CS224N Lecture 6: Sequence to Sequence Models"
 date: '2025-11-22T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
---- 
+lastmod: 2026-01-21T12:36:25+08:00
+---
+
 
 ## 梯度消失&梯度爆炸
 

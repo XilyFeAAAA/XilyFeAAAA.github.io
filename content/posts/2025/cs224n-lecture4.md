@@ -1,9 +1,10 @@
 ---
-title: "Lecture 4: Dependency Parsing"
+title: "CS224N Lecture 4: Dependency Parsing"
 date: '2025-11-21T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
+lastmod: 2026-01-21T12:35:44+08:00
 --- 
 
 ## 依存语法

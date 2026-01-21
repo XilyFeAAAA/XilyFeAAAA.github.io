@@ -1,9 +1,10 @@
 ---
-title: "Lecture 12: Neural Network"
+title: "CS224N Lecture 12: Neural Network"
 date: '2025-12-02T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
+lastmod: 2026-01-21T12:36:45+08:00
 --- 
 
 # Mixed Precision Training

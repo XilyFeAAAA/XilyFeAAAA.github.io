@@ -1,9 +1,10 @@
 ---
-title: "Lecture 9: Pretraining"
+title: "CS224N Lecture 9: Pretraining"
 date: '2025-11-27T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
+lastmod: 2026-01-21T12:36:40+08:00
 --- 
 
 

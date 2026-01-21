@@ -1,10 +1,11 @@
 ---
-title: "Lecture 3: Architectures & Hyperparameters"
+title: "CS336 Lecture 3: Architectures & Hyperparameters"
 date: '2025-12-19T16:00:11+08:00'
 authors: [Xilyfe]
 series: ["CS336"]
 tags: ["大模型"]
---- 
+lastmod: 2026-01-21T12:37:28+08:00
+---
 
 ## Architectures
 

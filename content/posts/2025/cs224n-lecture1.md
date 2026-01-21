@@ -1,9 +1,10 @@
 ---
-title: "Lecture 1: Intro and Word Vectors"
+title: "CS224N Lecture 1: Intro and Word Vectors"
 date: '2025-11-05T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
+lastmod: 2026-01-21T12:35:34+08:00
 --- 
 
 

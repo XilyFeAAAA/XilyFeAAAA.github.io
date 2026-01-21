@@ -1,9 +1,10 @@
 ---
-title: "Assignment 1: Tokenizer & Transformer"
+title: "CS336 Assignment 1: Tokenizer & Transformer"
 date: '2025-12-31T16:51:11+08:00'
 authors: [Xilyfe]
 series: ["CS336"]
 tags: ["大模型"]
+lastmod: 2026-01-21T12:36:52+08:00
 --- 
 
 # BPE Train

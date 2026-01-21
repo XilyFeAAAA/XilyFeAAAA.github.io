@@ -1,9 +1,10 @@
 ---
-title: "Lecture 7: Attention, Final Project and LLM intro"
+title: "CS224N Lecture 7: Attention, Final Project and LLM intro"
 date: '2025-11-23T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
+lastmod: 2026-01-21T12:36:31+08:00
 --- 
 
 ## BLEU 评估指标

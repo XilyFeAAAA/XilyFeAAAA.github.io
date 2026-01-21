@@ -1,9 +1,10 @@
 ---
-title: "Lecture 5: Recurrent Neural Networks"
+title: "CS224N Lecture 5: Recurrent Neural Networks"
 date: '2025-11-22T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
+lastmod: 2026-01-21T12:35:46+08:00
 --- 
 
 ## 语言模型
