@@ -4,6 +4,7 @@ date: '2025-11-28T16:23:11+08:00'
 authors: [Xilyfe]
 series: ["LLM"]
 tags: ["大模型", "Transformer"]
+lastmod: 2026-01-27T04:05:36+08:00
 --- 
  
 
@@ -210,7 +211,7 @@ def llama_RoPE(qk: torch.Tensor):
     
 ```
 
-LLaMA 的实现方式更接近 RoPE 最朴素的想法：**对 Q/K 进行旋转**，它等价于 **对 Q/K 的每对维度进行一个二维旋转**：
+LLaMA 的实现方式更接近 RoPE 最朴素的想法：**对 Q/K 进行旋转**，它等价于对 Q/K 的每对维度进行一个二维旋转：
 
 $$
 \begin{pmatrix}

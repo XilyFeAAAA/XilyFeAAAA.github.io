@@ -4,12 +4,12 @@ date: '2025-12-31T16:51:11+08:00'
 authors: [Xilyfe]
 series: ["CS336"]
 tags: ["大模型"]
-lastmod: 2026-01-21T12:36:52+08:00
+lastmod: 2026-01-21T01:00:54+08:00
 --- 
 
-# BPE Train
+## BPE Train
 
-## Problems
+### Problems
 
 **1. Understanding Unicode**
 
@@ -46,7 +46,7 @@ def decode_utf8_bytes_to_str_wrong(bytestring: bytes):
 
 (c) Give a two byte sequence that does not decode to any Unicode character(s). \xbd\xa0，选择中文三字节编码的后两个字节，就无法解码。
 
-## Codes
+### Codes
 
 BPE 的训练过程如下：
 
@@ -249,7 +249,7 @@ tests/test_train_bpe.py::test_train_bpe_special_tokens PAS
 
 **在 Training Loop 章节有更优化的代码**
 
-# BPE Tokenizer
+## BPE Tokenizer
 
 Tokenizer 的功能就是接受训练得到的 vocab 和 merges，然后把输入文本转为对应的索引 id，或者把索引 id 转回文本，我们需要 implement 的函数包括 encode，decode 等等。但是第二部分作业坑非常多，后面会具体说。
 
@@ -539,9 +539,9 @@ class BPE_Tokenizer:
 =================================== 23 passed, 2 skipped in 3.04s ===================================
 ```
 
-# Torch Infra
+## Torch Infra
 
-## Linear
+### Linear
 
 ```python
 class Linear(nn.Module):
@@ -595,7 +595,7 @@ def run_linear(
     return linear.forward(x=in_features)
 ```
 
-## Embedding
+### Embedding
 
 ```python
 class Embedding(nn.Module):
@@ -638,7 +638,7 @@ def run_embedding(
     return embedding.forward(token_ids)
 ```
 
-## RMSNorm
+### RMSNorm
 
 $$
 \text{RMSNorm}(x) = \frac{x}{\sqrt{\frac{1}{H} \sum_{i=1}^{H} x_i^2 + \epsilon}} * W
@@ -686,7 +686,7 @@ def run_rmsnorm(
     return rms_norm.forward(in_features)
 ```
 
-## SwiGLU
+### SwiGLU
 
 $$
 FFN(x) = SwiGLU(x, W_1, W_2, W_3) = W_2(SiLU(W_1) \odot W_3x)
@@ -750,7 +750,7 @@ def run_swiglu(
     return swiglu.forward(in_features)
 ```
 
-## RoPE
+### RoPE
 
 ```python
 class RoPE(nn.Module):
@@ -786,7 +786,7 @@ class RoPE(nn.Module):
         return rotated_qk
 ```
 
-## Softmax
+### Softmax
 
 $$
 softmax(x_i)=\frac{e^{x_i}}{\sum_j^{dim}{e^{x_j}}}
@@ -801,7 +801,7 @@ def softmax(in_features: torch.Tensor, dim: int):
 > softmax 中有指数运算，如果 $x_i$ 的值非常大可能导致指数爆炸，inf/inf 就会导致 nan 错误。为了解决这个问题，可以减去最大值，变成都是小等于 0 的数字。
 
 
-## Scaled Dot Attention
+### Scaled Dot Attention
 
 ```python
 def scaled_dot_production_attention(
@@ -838,7 +838,7 @@ def scaled_dot_production_attention(
         scores = scores.masked_fill(mask[:t_q, :t_k]==False, float("-inf"))
 ```
 
-## MultiHead Attention
+### MultiHead Attention
 
 ```python
 class Multihead_Self_Attention(nn.Module):
@@ -893,9 +893,9 @@ class Multihead_Self_Attention(nn.Module):
 
 为了加速计算，可以把 q,k,v,o 四个矩阵放在一起计算，用一个 `(d_model, 4*d_model)`。
 
-# Transformer
+## Transformer
 
-## Transformer Block
+### Transformer Block
 
 ```python
 class TransformerBlock(nn.Module):
@@ -963,7 +963,7 @@ def run_transformer_block(
     return block(in_features, mask, token_positions)
 ```
 
-## Transformer LM
+### Transformer LM
 
 最后一步就是组装每一个组件，注意 Ttransformer 最后返回的是未 softmax 的分布：
 
@@ -1014,9 +1014,9 @@ class Transformer(nn.Module):
         return proj
 ```
 
-# Training
+## Training
 
-## Cross Entropy Loss
+### Cross Entropy Loss
 
 交叉熵损失 CrossEntropyLoss 公式为：
 
@@ -1089,7 +1089,7 @@ def cross_entropy_with_logits(
 ```
 
 
-## Optimizer
+### Optimizer
 
 **动量**
 
@@ -1190,7 +1190,7 @@ class AdamW(torch.optim.Optimizer):
         return loss
 ```
 
-## 学习率衰减
+### 学习率衰减
 
 余弦退火算法进行学习率衰减：
 
@@ -1220,7 +1220,7 @@ def lr_cosine_schedule(
 ```
 
 
-## 梯度裁剪
+### 梯度裁剪
 
 ```python
 def gradient_clipping(
@@ -1254,7 +1254,7 @@ def gradient_clipping(
         pointer += numel
 ```
 
-# Training Loop
+## Training Loop
 
 这个部分就要求我们将所有组件拼在一起，写一个训练脚本训练 Transformer了，先看代码：
 
@@ -1457,7 +1457,7 @@ if __name__ == "__main__":
 2. 用训练好的 BPE 对数据集进行 Encode，得到 train_ids 和 valid_ids，这样后面就不需要重复 Encode。
 3. 进行 train loop
 
-## 优化 train_bpe
+### 优化 train_bpe
 
 
 然后第一个问题就出现问题了，虽然我的 train_bpe 通过了 pytest，但是在 TinyStoriesValid 数据集上进行训练时候预估要进行十几个小时，所以我需要对 train_bpe 进行修改\==。
@@ -1623,7 +1623,7 @@ pytest 里面三个测试花费 17s 相较上个版本提高 76%，但是还能�
 | 多线程(num_processes=16) | 2.899s           |                  |
 
 
-## 优化 tokenizer encode
+### 优化 tokenizer encode
 
 
 其次，在用 BPE 对数据集进行 Encode 的过程中出现了 Out of Memory 的错误，于是得找一个新的办法：==首先我们不应该从文件中直接读出全部文本，一行一行读并且 Encode 可以节省内存；其次再 buffer 中已经存了一定 encode_ids 就可以把他直接落盘==
@@ -1704,11 +1704,11 @@ def encode_non_special(self, subword: str) -> list[int]:
 
 TinyStories_sample_5M 数据集上 Encode 耗时缩短了一半。
 
-## 训练 Transformer
+### 训练 Transformer
 
 现在我们可以正式开始训练了。
 
-# Generate Text
+## Generate Text
 
 生成阶段没有太多说的，generate 时候将 token_ids 输入到模型，最后一个字符对应的 logits 就是预测的下一个 token。所以把它经过 softmax 得到概率分布，取出最大概率所在的索引，就能得到预测的 token。然后把预测的 token 加入 token_ids 不断重复的预测，就能得到生成的文本。最后当预测的字符为 EOS 或者生成文本长度达到上限就结束。
 
