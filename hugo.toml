@@ -26,7 +26,6 @@ theme = "Dolt"
   # DoIt 新增 | 0.2.0 搜索配置
   [params.search]
     enable = true
-    # 搜索引擎的类型 ("lunr", "algolia")
     type = "algolia"
     # 文章内容最长索引长度
     contentLength = 4000
@@ -41,9 +40,9 @@ theme = "Dolt"
     # DoIt 新增 | 0.2.4 是否在搜索索引中使用基于 baseURL 的绝对路径
     absoluteURL = false
     [params.search.algolia]
-      index = "ryan-space"
-      appID = "747LJ10EI7"
-      searchKey = "658db5f2bf056f83458cacf5dd58ec80"
+      index = "hugo"
+      appID = "R8PT6S1Y30"
+      searchKey = "e9a0e7e10b9b14827403252ae895ef78"
 
   [params.home.profile]
     enable = true

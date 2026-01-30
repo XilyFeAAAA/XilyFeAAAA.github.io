@@ -4,10 +4,10 @@ date: '2025-12-02T11:24:11+08:00'
 authors: [Xilyfe]
 series: ["CS224N"]
 tags: ["深度学习"]
-lastmod: 2026-01-21T12:36:45+08:00
+lastmod: 2026-01-29T03:51:32+08:00
 --- 
 
-# Mixed Precision Training
+## Mixed Precision Training
 
 介绍混合精度训练之前先回顾计算机组成原理的两个知识点：
 
@@ -75,12 +75,12 @@ for epoch in epochs:
 ![](http://img.xilyfe.top/img/20260119120927981.png)
 
 
-# PEFT
+## PEFT
 
 PEFT 是 Parameters Efficiently Finetune，参数高效微调，指的是只更新参数集的一部分。
 
 
-## LoRA
+### LoRA
 
 LoRA 的实现思路就是用低秩矩阵表示增量矩阵，类似自注意力机制里面的 Q、K、V。
 
