@@ -8,7 +8,7 @@ series: []
 tags:
   - 大模型
   - 深度学习
-lastmod: 2026-02-02T03:38:54+08:00
+lastmod: 2026-02-02T07:44:45+08:00
 ---
 0#图
 
@@ -203,8 +203,8 @@ value = repeat_kv(value, self.n_rep)
 
 # KVCache
 if past_key_value is not None:
-    key = torch.cat([past_key_value[0], key], dim=1)
-    value = torch.cat([past_key_value[1], value], dim=1)
+    key = torch.cat([past_key_value[0], key], dim=2)
+    value = torch.cat([past_key_value[1], value], dim=2)
 past_key_value = (key, value) if use_cache else None
 
 scores = torch.matmul(query, key.transpose(-1, -2)) / math.sqrt(self.head_dim)
@@ -254,7 +254,7 @@ class FeedForwardNet(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x + self.dropout(self.down_proj(self.up_proj(x) * self.act_fn(self.gate_proj(x))))
+        return self.dropout(self.down_proj(self.up_proj(x) * self.act_fn(self.gate_proj(x))))
 ```
 
 >ACT2FN 是 Transformer 库自带的一个激活函数库，就不用我们自己手写了。
@@ -572,6 +572,35 @@ with open(os.path.join(SAVE_PATH, "tokenizer_config.json"), "w", encoding="utf-8
 | `tokenizer_class`               | 指定 tokenizer 类型。Hugging Face 使用 `"PreTrainedTokenizerFast"` 支持 Rust 实现加速。 |
 | `unk_token`                     | 用于标记未知词（out-of-vocabulary）的 token。                                        |
 | `chat_template`                 | Jinja2 模板字符串，用于格式化对话数据为模型输入格式。适用于 Chat 模型（如 LLaMA2-Chat、ChatGPT）。         |
+
+测试 Tokenizer 很简单，我们对 prompt 进行编码之后再解码，将它和原始 prompt 对比，一致则说明成功了：
+
+```python
+def eval_tokenizer():
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(SAVE_PATH)
+    prompt = tokenizer.apply_chat_template(
+        [
+            {
+                "role": "system",
+                "content": "你是一个优秀的聊天机器人，总是给我正确的回应！",
+            },
+            {"role": "user", "content": "你来自哪里？"},
+            {"role": "assistant", "content": "我来自地球"},
+        ],
+        tokenize=False,
+    )
+    print(f"输入文本: \n{prompt}")
+    print(f"词表长度 {len(tokenizer)}")
+    input_ids = tokenizer(prompt)["input_ids"]
+    print(input_ids)
+    print(f"encoded prompt length = {len(input_ids)}")
+    decoded_prompt = tokenizer.decode(input_ids, skip_special_tokens=False)
+    print(f"decoded prompt == raw prompt: {decoded_prompt == prompt}")
+```
+
+>Chat 模型并不是我们发送什么他就输入什么，它会把输入内容改写为一种带特殊标记的结构化格式（就是 tokenizer_config.json 里面 Jinja2 字符串模板）。所以真正的 input 应该写成 `tokenizer.apply_chat_template(prompt)`。
 
 ## 预训练 - 单机
 
@@ -894,3 +923,4 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 scaler.step(optimizer)
 scaler.update()
 ```
+
