@@ -1,11 +1,15 @@
 ---
 title: "CS224N Lecture 4: Dependency Parsing"
-date: '2025-11-21T11:24:11+08:00'
-authors: [Xilyfe]
-series: ["CS224N"]
-tags: ["深度学习"]
-lastmod: 2026-01-21T12:35:44+08:00
---- 
+date: 2025-11-21T11:24:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS224N
+tags:
+  - 深度学习
+lastmod: 2026-01-30T02:51:35+08:00
+featuredImage: http://img.xilyfe.top/img/20260130144509787.png
+---
 
 ## 依存语法
 
@@ -20,7 +24,7 @@ lastmod: 2026-01-21T12:35:44+08:00
 而**依存语法**的出发点不同，它提出了一个非常重要的假设：
 > 句子的结构由词与词之间的依存关系（dependency）决定。
 
-以`I like you`举例:
+以 "I like you" 举例:
 ```
 like -> I    (nsubj)
 like -> you  (obj)

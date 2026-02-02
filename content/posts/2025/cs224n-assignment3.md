@@ -1,10 +1,15 @@
 ---
-title: "CS224N Assignment 3"
-date: '2025-11-20T11:24:11+08:00'
-authors: [Xilyfe]
-series: ["CS224N"]
-tags: ["深度学习"]
---- 
+title: CS224N Assignment 3
+date: 2025-11-20T11:24:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS224N
+tags:
+  - 深度学习
+featuredImage: http://img.xilyfe.top/img/20260130144509787.png
+lastmod: 2026-01-30T02:46:02+08:00
+---
 
 
 ## 前置知识
@@ -26,9 +31,7 @@ Bahdanau 注意力机制的思想就是在 Decoder 的每一个时刻，用当�
 
 ## NMT 分析
 
-<div align="center">
-    <img src="../../../../resource/ai/llm/NMT.png" width="80%"/>
-</div>
+![](http://img.xilyfe.top/img/20260130145159276.png)
 
 ### 一、模型核心框架总览
 

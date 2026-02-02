@@ -1,13 +1,15 @@
 ---
 title: "CS224N Lecture 2: Word Vectors and Language Models"
-date: '2025-11-19T17:13:11+08:00'
-authors: [Xilyfe]
-series: ["CS224N"]
-tags: ["深度学习"]
-lastmod: 2026-01-21T12:35:38+08:00
---- 
-
-
+date: 2025-11-19T17:13:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS224N
+tags:
+  - 深度学习
+lastmod: 2026-01-30T02:50:12+08:00
+featuredImage: http://img.xilyfe.top/img/20260130144509787.png
+---
 ## 梯度下降
 
 $$
@@ -46,9 +48,7 @@ $$
 
 回顾之前提到的构造词向量的方法：one-hot编码和word2vec思想，还有一种更简单的表示思路。让相邻的词的向量表示相似，直接统计哪些词是经常一起出现的。下面图片就是CS224N课程中举的例子，根据三个句子的语料库构造的共现矩阵。
 
-<div align="center">
-    <img src="../../../../resource/ai/llm/co-occurrence_matrix.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260130144952699.png)
 
 这样的表示明显优于one-hot表示，因为它的每一维都有含义——共现次数，因此这样的向量表示可以求词语之间的相似度。  
 但是这样表示还有有一些问题：
@@ -58,9 +58,7 @@ $$
 
 对于第一个问题可以采用SVD奇异值分解的方法，它可以将任意矩阵分解为三个矩阵的乘积。为了减少尺度同时尽量保存有效信息，保留对角矩阵的最大的k个值，并将矩阵U，V 的相应的行列保留。
 
-<div align="center">
-    <img src="../../../../resource/ai/llm/svd.png"/>
-</div>
+![](http://img.xilyfe.top/img/20260130145007040.png)
 
 ## GloVe
 

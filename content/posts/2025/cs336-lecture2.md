@@ -1,10 +1,14 @@
 ---
 title: "CS336 Lecture 2: Computing"
-date: '2025-12-19T11:48:11+08:00'
-authors: [Xilyfe]
-series: ["CS336"]
-tags: ["大模型"]
-lastmod: 2026-01-21T12:37:14+08:00
+date: 2025-12-19T11:48:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS336
+tags:
+  - 大模型
+lastmod: 2026-01-30T02:44:24+08:00
+featuredImage: http://img.xilyfe.top/img/20260130144310138.png
 ---
 
 !!! abstract 

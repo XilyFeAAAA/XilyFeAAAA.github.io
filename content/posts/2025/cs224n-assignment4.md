@@ -1,10 +1,15 @@
 ---
-title: "CS224N Assignment 4"
-date: '2025-11-30T11:24:11+08:00'
-authors: [Xilyfe]
-series: ["CS224N"]
-tags: ["深度学习"]
---- 
+title: CS224N Assignment 4
+date: 2025-11-30T11:24:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS224N
+tags:
+  - 深度学习
+featuredImage: http://img.xilyfe.top/img/20260130144509787.png
+lastmod: 2026-01-30T02:46:08+08:00
+---
 
 ## (a) MinGPT
 

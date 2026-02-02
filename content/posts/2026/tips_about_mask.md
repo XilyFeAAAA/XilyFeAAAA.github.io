@@ -38,7 +38,7 @@ class Attention(nn.Module):
 		# ...
 		scores = torch.matmul(query, key.transpose(-1, -2)) / torch.sqrt(self.head_dim)
 		if padding_mask is not None:
-	        scores = scores.masked_fill(not padding_mask, float("-inf"))
+	        scores = scores.masked_fill(~padding_mask.unsqueeze(1).unsqueeze(2), float("-inf"))
         attn = nn.Softmax(scores, dim=-1)
 ```
 

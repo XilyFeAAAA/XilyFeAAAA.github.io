@@ -1,16 +1,17 @@
 ---
 title: "CS224N Lecture 1: Intro and Word Vectors"
-date: '2025-11-05T11:24:11+08:00'
-authors: [Xilyfe]
-series: ["CS224N"]
-tags: ["深度学习"]
-lastmod: 2026-01-21T12:35:34+08:00
---- 
+date: 2025-11-05T11:24:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS224N
+tags:
+  - 深度学习
+lastmod: 2026-01-30T02:49:23+08:00
+featuredImage: http://img.xilyfe.top/img/20260130144509787.png
+---
 
-
-<div align="center">
-    <img src="../../../../resource/ai/llm/embedding.png" width="70%"/>
-</div>
+![](http://img.xilyfe.top/img/20260130144846647.png)
 
 
 ## 1. 独热编码
@@ -38,9 +39,7 @@ expect = [
 
 重要假设：文本中里的最近的词语相似度越高
 
-<div align="center">
-    <img src="../../../../resource/ai/llm/w2v.png" width="70%"/>
-</div>
+![](http://img.xilyfe.top/img/20260130144914155.png)
 
 - CBOW: 用中心词预测上下文词
 - skip-gram: 用上下文词预测中心词

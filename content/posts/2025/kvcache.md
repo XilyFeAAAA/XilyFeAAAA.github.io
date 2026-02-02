@@ -1,11 +1,21 @@
 ---
-title: "KVCache"
-date: '2025-12-03T16:25:11+08:00'
-authors: [Xilyfe]
-series: ["LLM"]
-tags: ["大模型", "Transformer"]
---- 
- 
+title: KVCache
+date: 2025-12-03T16:25:11+08:00
+authors:
+  - Xilyfe
+series:
+  - LLM
+tags:
+  - 大模型
+  - Transformer
+featuredImage: http://img.xilyfe.top/img/20260201155318521.png
+lastmod: 2026-02-01T03:56:08+08:00
+---
+{{< admonition type=tip title="KVCache 的应用场景">}} 
+KV Cache 的主要目的是 “加速自回归生成”，在生成下一个 token 时，只需要计算当前 token 的 query、key、value。之前的 key/value 被缓存，直接拼接使用，避免重复计算整个历史序列的 attention，这在推理阶段能显著提升速度。
+但是在预训练阶段，例如 LLaMa 或者 GPT 采用的都是 Teacher-Forcing 这种并行训练，我们把 logits 和 labels 错位。这种计算是并行的，不需要“增量”生成，所以使用 KV Cache 反而会增加代码复杂度和内存开销，收益很小甚至为负。
+{{< /admonition >}}
+
 
 ## 前情提要
 

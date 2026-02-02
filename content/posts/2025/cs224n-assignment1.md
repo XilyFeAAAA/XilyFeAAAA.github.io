@@ -1,11 +1,15 @@
 ---
-title: "CS224N Assignment 1"
-date: '2025-11-21T11:24:11+08:00'
-authors: [Xilyfe]
-series: ["CS224N"]
-tags: ["深度学习"]
---- 
-
+title: CS224N Assignment 1
+date: 2025-11-21T11:24:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS224N
+tags:
+  - 深度学习
+featuredImage: http://img.xilyfe.top/img/20260130144509787.png
+lastmod: 2026-01-30T02:53:02+08:00
+---
 ## Part 1
 
 ### Question 1.1: Implement `distinct_words` [code] (2 points)
@@ -163,7 +167,7 @@ Now that we have word vectors, we need a way to quantify the similarity between 
 
 We can think of n-dimensional vectors as points in n-dimensional space. If we take this perspective [L1](http://mathworld.wolfram.com/L1-Norm.html) and [L2](http://mathworld.wolfram.com/L2-Norm.html) Distances help quantify the amount of space "we must travel" to get between these two points. Another approach is to examine the angle between two vectors. From trigonometry we know that:
 
-<img src="../../../../resource/ai/llm/similarity.png" width=20% style="float: center;"></img>
+![](http://img.xilyfe.top/img/20260130145251320.png)
 
 Instead of computing the actual angle, we can leave the similarity in terms of $similarity = cos(\Theta)$. Formally the [Cosine Similarity](https://en.wikipedia.org/wiki/Cosine_similarity) $s$ between two vectors $p$ and $q$ is defined as:
 

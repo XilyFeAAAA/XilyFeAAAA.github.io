@@ -1,11 +1,15 @@
 ---
 title: "CS224N Lecture 3: Backpropagation, Neural Network"
-date: '2025-11-19T11:22:11+08:00'
-authors: [Xilyfe]
-series: ["CS224N"]
-tags: ["深度学习"]
-lastmod: 2026-01-21T12:35:41+08:00
---- 
+date: 2025-11-19T11:22:11+08:00
+authors:
+  - Xilyfe
+series:
+  - CS224N
+tags:
+  - 深度学习
+lastmod: 2026-01-30T02:51:23+08:00
+featuredImage: http://img.xilyfe.top/img/20260130144509787.png
+---
 
 
 ## 矩阵微积分
@@ -49,33 +53,26 @@ $$
 
 ## 反向传播
 
-<div align="center">
-    <img src="../../../../resource/ai/llm/flow.png" width="70%"/>
-</div>
+![](http://img.xilyfe.top/img/20260130145024763.png)
 
 - 前向传播就是单纯的计算
 - 反向传播是根据梯度进行学习
 
 ---
-<div align="center">
-    <img src="../../../../resource/ai/llm/siso.png" width="70%"/>
-</div>
+
+![](http://img.xilyfe.top/img/20260130145045190.png)
 
 单输入单输出的情况下,下游梯度就是局部梯度与上游梯度的乘积。  
 $$
 \frac{\partial{s}}{\partial{z}}=\frac{\partial{h}}{\partial{z}} \times \frac{\partial{s}}{\partial{h}}
 $$
-<div align="center">
-    <img src="../../../../resource/ai/llm/miso.png" width="70%"/>
-</div>
+![](http://img.xilyfe.top/img/20260130145102581.png)
 
 多输入的情况下仍然遵循链式法则。
 
 ---
 
-<div align="center">
-    <img src="../../../../resource/ai/llm/error_back.png" width="78%"/>
-</div>
+![](http://img.xilyfe.top/img/20260130145115516.png)
 
 如图是一种错误的计算反向传播的方式，如果依次计算$\frac{\partial{s}}{\partial{W}}$和$\frac{\partial{s}}{\partial{b}}$，那么会有一部分计算是重复的，就导致反向传播的效率下降。正确的方式应该是先计算公共部分，然后再计算单独的部分，这可以通过拓扑排序来实现。
 
