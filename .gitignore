@@ -1,7 +1,0 @@
-hugo.exe
-public
-resources
-.hugo_build.lock
-.obsidian
-templates
-node_modules
