@@ -8,9 +8,9 @@ series: []
 tags:
   - 大模型
   - 深度学习
-lastmod: 2026-02-02T07:44:45+08:00
+lastmod: 2026-02-06T07:55:25+08:00
 ---
-0#图
+
 
 ![LLM-structure.png](http://img.xilyfe.top/img/20260122135047734.png)
 
