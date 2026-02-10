@@ -1,6 +1,6 @@
 ---
 title: MiniMind 学习指北(三)：预训练
-date: 2026-01-22T13:47:19+08:00
+date: 2026-01-24T13:47:19+08:00
 featuredImage: http://img.xilyfe.top/img/20260122134824760.png
 authors:
   - Xilyfe

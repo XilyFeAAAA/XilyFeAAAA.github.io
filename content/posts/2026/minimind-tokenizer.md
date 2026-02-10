@@ -1,6 +1,6 @@
 ---
 title: MiniMind 学习指北(二)：Tokenizer
-date: 2026-01-22T13:47:19+08:00
+date: 2026-01-23T13:47:19+08:00
 featuredImage: http://img.xilyfe.top/img/20260122134824760.png
 authors:
   - Xilyfe
@@ -9,11 +9,11 @@ series:
 tags:
   - 大模型
   - 深度学习
-lastmod: 2026-02-10T02:24:00+08:00
+lastmod: 2026-02-10T02:57:40+08:00
 ---
 ## Tokenizer
 
->在 CS336 的笔记中我已经完整介绍了一个 Tokenizer 是如何训练并且读取的，详情可见 [[cs336_assignment1]]。
+>在 CS336 的笔记中我已经完整介绍了一个 Tokenizer 是如何训练并且读取的，详情可见 [cs336_assignment1](../cs336_assignment1)。
 
 简单来说，训练一个 tokenizer 经过以下步骤：
 1. 通过正则分词，获得文本中全部 token，将其和 special_tokens 一起记录。

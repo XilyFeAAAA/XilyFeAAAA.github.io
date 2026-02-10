@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 深度学习
-lastmod: 2026-02-10T02:22:22+08:00
+lastmod: 2026-02-10T02:53:26+08:00
 ---
 
 这是 Minimind 学习指北系列的第一节，整个系列我们大致分为：
@@ -338,7 +338,7 @@ class MiniMindModel(nn.Module):
 - PreTrainedModel 是 Huggingface 用来规范预训练模型的，规定了创建和定义预训练模型所需的核心功能和属性
 - GenerationMixin 是 Huggingface 是用来规范生成类模型的基类，提供统一的生成功能和接口
 
->具体细节可见文章 [transformer库的基类](hg_transformer)。
+>具体细节可见文章 [transformer库的基类](../hg_transformer)。
 
 ```python
 class MiniMindForCausalLM(PreTrainedModel, GenerationMixin):
