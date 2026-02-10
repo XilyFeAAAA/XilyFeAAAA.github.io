@@ -174,6 +174,7 @@ class SharedMoE(nn.Module):
 $$
 ce_{b,e} = \sum_{i=1}^{L}\sum_{j=1}^{k}{(\text{topk\_idx}_{b,i,j}=e)}
 $$
+
 2. 归一化为相对负载率
 
 $$
@@ -214,11 +215,11 @@ def compute_seq_aux_loss(
 ```
 
 {{< admonition type=question title="为什么需要把专家选择次数归一化呢？">}} 
-根本目的是让专家被均匀选择时 ce\[i] 固定变成 1。
-举个例子，比如一个 sequence 有：
+根本目的是让专家被均匀选择时 ce\[i] 固定变成 1。举个例子：
 - seq_len = 100
 - top_k = 2
 - n_experts = 8
+
 如果均匀则每个专家被选中 $200 / 8 = 25$ 次 → ce\[i] = 25。进行归一化，即除以 25 那么 ce\[i] = 25 / 25 = 1。那么计算损失 `(ce * P_i).sum(dim=1)` 时 `sum=1`，aux_loss 就是 α。
 {{< /admonition >}}
 
