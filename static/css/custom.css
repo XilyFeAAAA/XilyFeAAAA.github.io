@@ -1,6 +1,6 @@
-body {
+html {
   /* Screen version */
-  font-family: "LXGW WenKai Screen", sans-serif;
+  font-family: "LXGW WenKai Screen", sans-serif !important;
 }
 
 .post-preview{
