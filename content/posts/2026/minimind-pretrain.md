@@ -394,7 +394,7 @@ scaler.update()
 
 继续我们模型、数据和预训练的脚步都准备好了，那肯定得跑一轮看看我们的模型是啥样了，于是我在 AutoDL 租了一张 RTX 5090 跑了两个小时。
 
-![image.png](http://img.xilyfe.top/img/20260210143025198.png)
+![](http://img.xilyfe.top/img/20260210143025198.png)
 
 这里我按照 MiniMind 推荐的参数 `hidden_size=768, num_hidden_layers=16`：104M 的模型，跑了两个 epoch 最终 loss 稳定在 1.6 上下我就不浪费马内了。
 

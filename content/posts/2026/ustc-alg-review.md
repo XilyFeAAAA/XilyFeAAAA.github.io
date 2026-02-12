@@ -112,7 +112,7 @@ $$
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260114125934526.png)
+![](http://img.xilyfe.top/img/20260114125934526.png)
 
 
 ```text
@@ -126,7 +126,7 @@ $$
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114125919472.png)
+![](http://img.xilyfe.top/img/20260114125919472.png)
 
 ```text
 def linear_find(A, v):
@@ -142,7 +142,7 @@ def linear_find(A, v):
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114125857624.png)
+![](http://img.xilyfe.top/img/20260114125857624.png)
 
 ```python
 def SelectSort(arr):
@@ -167,7 +167,7 @@ def SelectSort(arr):
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114130005755.png)
+![](http://img.xilyfe.top/img/20260114130005755.png)
 
 ```python
 def Merge(arr, p, q, r): 
@@ -197,7 +197,7 @@ def Merge(arr, p, q, r):
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114130019488.png)
+![](http://img.xilyfe.top/img/20260114130019488.png)
 
 
 不行，因为查找的时间降下来了，但是还有移动元素的时间。
@@ -253,7 +253,7 @@ $$
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260114134530306.png)
+![](http://img.xilyfe.top/img/20260114134530306.png)
 
 根据多项式展开定理：
 $$
@@ -271,7 +271,7 @@ $$
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114134546363.png)
+![](http://img.xilyfe.top/img/20260114134546363.png)
 
 $$
 2^{n+1}  =2*2^n \le c*2^n(c \ge 2)
@@ -317,7 +317,7 @@ $$
 3. 统计每一层的总耗时，最后累加
 4. 通过放缩得到最后时间复杂度
 
-![1901d6398175b71ed698c8f0bed61cae.jpg](http://img.xilyfe.top/img/20260114141442209.jpg)
+![](http://img.xilyfe.top/img/20260114141442209.jpg)
 
 
 ### 主定理
@@ -431,19 +431,19 @@ $$
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260114144017454.png)
+![](http://img.xilyfe.top/img/20260114144017454.png)
 
 出现 n 不是 2 的幂的情况，只需要填充 0 即可。Strassen 算法会把规模为 n 的矩阵分裂为 4 个 规模为 n/2 的子矩阵，进行 7 次乘法和若干次加法，所以递推式为 $T(n)=7T(\frac{n}{2})+O(n)$，根据主定理，时间复杂度为 $O(n^{\lg7})$。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114144034710.png)
+![](http://img.xilyfe.top/img/20260114144034710.png)
 
 既然 Strassen 算法把规模为 n 的矩阵分裂为 4 个 规模为 n/2 的子矩阵，进行 7 次乘法和若干次加法，递推式写为 $T(n)=7T(\frac{n}{2})+O(n)$，那可以把第一种方法写为 $T(n)=143640T(\frac{n}{70})$，根据主定理得到 $n^{log_{70}^{143640}} \approx n^{2.7951284873613815}$。其他方法同理，和 $\log_2^7$ 对比即可。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114144145418.png)
+![](http://img.xilyfe.top/img/20260114144145418.png)
 
 猜测：T(n) >= c · n · lgn
 
@@ -455,26 +455,26 @@ $$
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114144156639.png)
+![](http://img.xilyfe.top/img/20260114144156639.png)
 
 证法类似 4.3-3，如果发现上界/下界整不出来，可能是猜测太紧了，可以加减常数。 
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114144216608.png)
+![](http://img.xilyfe.top/img/20260114144216608.png)
 
-![image.png](http://img.xilyfe.top/img/20260114152905064.png)
-
----
-
-![image.png](http://img.xilyfe.top/img/20260114144229855.png)
-
-![28073924becb514232245d1975669aca.jpg](http://img.xilyfe.top/img/20260114153432116.jpg)
-
+![](http://img.xilyfe.top/img/20260114152905064.png)
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114144300387.png)
+![](http://img.xilyfe.top/img/20260114144229855.png)
+
+![](http://img.xilyfe.top/img/20260114153432116.jpg)
+
+
+---
+
+![](http://img.xilyfe.top/img/20260114144300387.png)
 
 不行，$n^{log_b^a}=n^2$ 但是 $n^2\lg n$ 并不是多项式大于 $n^2$ 。
 ## 第六章 堆排序
@@ -561,7 +561,7 @@ def Increase(heap, i, x):
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260114153606641.png)
+![](http://img.xilyfe.top/img/20260114153606641.png)
 
 非递归的 MaxHeapify 用 **while True** 即可，每次 `i = largest`，如果发现没有交换，那么退出循环。
 
@@ -582,9 +582,9 @@ def MaxHeapify(heap, i):
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114153623254.png)
+![](http://img.xilyfe.top/img/20260114153623254.png)
 
-![image.png](http://img.xilyfe.top/img/20260114182817887.png)
+![](http://img.xilyfe.top/img/20260114182817887.png)
 
 ---
 
@@ -592,19 +592,19 @@ def MaxHeapify(heap, i):
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114153704774.png)
+![](http://img.xilyfe.top/img/20260114153704774.png)
 
 最坏情况下，从 $\lfloor \frac{n}{2} \rfloor$ 到 1 的每个非叶子结点进行 Heapify 都需要进行到根节点，也就是 $\sum_{k=1}^{\lfloor \frac{n}{2} \rfloor}{h(k)}=\Omega(n\lg n)$ ，这里 $h(k)$ 是节点 k 的高度。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114153721993.png)
+![](http://img.xilyfe.top/img/20260114153721993.png)
 
-![image.png](http://img.xilyfe.top/img/20260114183643047.png)
+![](http://img.xilyfe.top/img/20260114183643047.png)
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114153737799.png)
+![](http://img.xilyfe.top/img/20260114153737799.png)
 
 假设是最小堆
 ```python
@@ -654,13 +654,13 @@ def Partition(arr, l, r):
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260114184433172.png)
+![](http://img.xilyfe.top/img/20260114184433172.png)
 
 所有元素都相同时，返回的 q 是选择的 pivot 的下标，所以只有选择中间的元素当 pivot 就行了。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114184456428.png)
+![](http://img.xilyfe.top/img/20260114184456428.png)
 
 $$
 \begin{aligned}
@@ -738,13 +738,13 @@ def RadixSort(arr, d):
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260114191811512.png)
+![](http://img.xilyfe.top/img/20260114191811512.png)
 
 前缀和，得到累积数组之后，用  `c[b] - c[a]` 就可以了。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114191829974.png)
+![](http://img.xilyfe.top/img/20260114191829974.png)
 
 当桶排序所有元素都被集中在一个桶的时候，桶排序就会退化为快速排序，如果出现快排的最坏情况：每次选择的 pivot 都是最大最小值，就会出现 $O(n^2)$ 的时间复杂度。可以通过归并排序或者桶排序，使得最坏情况下也是 $O(n\lg n)$。
 
@@ -827,13 +827,13 @@ def bfprt(arr, low, high, k):
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260114193806889.png)
+![](http://img.xilyfe.top/img/20260114193806889.png)
 
 采用锦标赛制，对元素进行两两比较，最终经过 $\lceil \log_2 n \rceil$ 轮 n-1 次比较得到最小元素。这时候至少有 $\lceil \log_2 n \rceil$ 个元素直接输给过最小元素，第二小元素只有可能在这里面。这时候比较 $\lceil \log_2 n \rceil - 1$ 次就能得到里面最小元素，也就是第二小元素。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260114193936716.png)
+![](http://img.xilyfe.top/img/20260114193936716.png)
 
 >k分位数是大小为n的集合（比如数组）里面的k-1个数，它们把有序的集合分为k个分组，任何两个个分组之间的大小之差的绝对值不超过1（有点类似于平衡二叉树），比如集合{3， 5， 9， 4， 2， 1， 6， 8， 9， 10， 12， 7， 6}，排序后为{1， 2， 3， 4， 5， 6， 6， 7， 8， 9， 9， 10， 12}，它的4（k = 4）分位数为{4， 6， 9}， 分组后的子集合分别为{1， 2， 3， 4}， {5， 6， 6}， {7， 8， 9}， {9， 10， 12}。要求从集合中找出这k-1个数，并且时间复杂度为O(nlgk)。
 
@@ -913,7 +913,7 @@ def IntervalSearch(T, i):
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260115113957870.png)
+![](http://img.xilyfe.top/img/20260115113957870.png)
 
 ```python
 def i_after_x(T, x, i):
@@ -925,13 +925,13 @@ def i_after_x(T, x, i):
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260115114022269.png)
+![](http://img.xilyfe.top/img/20260115114022269.png)
 
 可以，因为当一个节点的颜色反转时候，它只会影响父节点的黑高，例如红变黑，那么父节点黑高++，只会在这颗子树向上或者向下影响，最多 $O(\lg n)$。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260115114042145.png)
+![](http://img.xilyfe.top/img/20260115114042145.png)
 
 ```python
 def min_overlap(T, i):
@@ -1108,25 +1108,25 @@ class Solution:
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260115125710532.png)
+![](http://img.xilyfe.top/img/20260115125710532.png)
 
-![image.png](http://img.xilyfe.top/img/20260115132239486.png)
+![](http://img.xilyfe.top/img/20260115132239486.png)
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260115125830364.png)
+![](http://img.xilyfe.top/img/20260115125830364.png)
 
 因为归并排序这种分治算法不会出现重叠子问题，所以不需要备忘技术记录重复结果。
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260115131012283.png)
+![](http://img.xilyfe.top/img/20260115131012283.png)
 
 1 0 0 1 1 0
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260115131511100.png)
+![](http://img.xilyfe.top/img/20260115131511100.png)
 
 - 对于 $2 \times \min(m,n)$ 空间复杂度的算法，由于每次遍历只需要用到 dp 数组的当前行和上一行，所以可以只需要保留这两行
 - 对于 $\min(m,n)$ 空间复杂度的算法，我们可以仅仅保留一行 dp 数组，执行到  `dp[i][j] = max(dp[i-1][j], dp[i][j-1])` 时候，由于 `dp[i][j-1]` 还没被 `dp[i][j]` 覆盖可以直接读取；`dp[i][j] = dp[i-1][j-1] + 1` 里面的 `dp[i-1][j-1]` 已经被 `dp[i-1][j]` 覆盖，所以需要单独的变量记录就可以了。
@@ -1172,7 +1172,7 @@ class Solution:
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260115141631359.png)
+![](http://img.xilyfe.top/img/20260115141631359.png)
 
 - 算法思路：按照重量排序，每次选重量最小的
 - 贪心性质证明：
@@ -1183,7 +1183,7 @@ class Solution:
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260115141644607.png)
+![](http://img.xilyfe.top/img/20260115141644607.png)
 
 - 算法思路：对点集进行排序，每次都取剩余点集中最靠左的点当新区间的左端点
 - 贪心性质证明：
@@ -1196,7 +1196,7 @@ class Solution:
 
 ---
 
-![image.png](http://img.xilyfe.top/img/20260115141709861.png)
+![](http://img.xilyfe.top/img/20260115141709861.png)
 
 
 - 斐波那契数列构造的哈夫曼树，所有节点左子树都只有一个节点。
@@ -1381,7 +1381,7 @@ class Node:
 	sibling: Node # 右兄弟
 ```
 
-![image.png](http://img.xilyfe.top/img/20260111113807004.png)
+![](http://img.xilyfe.top/img/20260111113807004.png)
 
 先说一下 Minimum 操作，前面说过“二项堆中的所有二项树的根节点由一个单链表连接”，所以需要用一个线性查找，遍历所有根节点。假设二项堆总节点数为 n，最多 ⌊log₂ n⌋ + 1 棵树，所以时间复杂度为 $O(\lg n)$。
 
@@ -1446,7 +1446,7 @@ class Node:
 
 ### 课后题
 
-![image.png](http://img.xilyfe.top/img/20260115152527918.png)
+![](http://img.xilyfe.top/img/20260115152527918.png)
 
 先找到根，然后自底向上更新全部 parent 为根。
 ```python
@@ -1903,7 +1903,7 @@ KMP 的本质是：在发生失配时，不回退文本指针， 而是根据已
 
 首先来看 next 数组的作用：它告诉我们当主串和模式串失配时候，主串应该退回到什么问题
 
-![image.png](http://img.xilyfe.top/img/20260113150109425.png)
+![](http://img.xilyfe.top/img/20260113150109425.png)
 
 如图，当主串和子串在 `i=4` 失配时候，我们看前一位的 next数组 `next[3]=2` 就知道，它标志着我们应该跳过几个元素，例如这里告诉我们跳过两个元素，所以模式串回到第三位 `T[2]`，主串和模式串的前 2 位都相同直接跳过。
 
@@ -1926,7 +1926,7 @@ def kmp(string, pattern, next):
 那 next 数组怎么得到呢？
 我们先思考一下为什么可以用 next 数组在失配时回退呢？因为在 `i=4` 失配时候，模式串失配处 C 前两位（也就是主串失配处 A 的前两位）AB 和模式串前两位 AB 相同。换句话说，假如模式串的某个位置失配的时候，失配处前 i 位（也就是主串失配处前 i 位）如果和模式串前 i 位一样就能跳过了。那我们只需要看模式串的最长公共前后缀就好了。
 
-![image.png](http://img.xilyfe.top/img/20260113152224891.png)
+![](http://img.xilyfe.top/img/20260113152224891.png)
 
 对于 next 数组，我们固定第一位是 0：
 1. 从第二位 B 开始，由于 A、B 没有公共前后缀，所以是 0
@@ -1935,11 +1935,11 @@ def kmp(string, pattern, next):
 
 那代码应该怎么写呢？不可能暴力求公共前后缀吧？
 
-![image.png](http://img.xilyfe.top/img/20260113154848400.png)
+![](http://img.xilyfe.top/img/20260113154848400.png)
 
 如图当我们需要求 `next[6]` 时候，已经知道前 6 位的最长公共前后缀是 2 了，所以如果 `pattern[6]` 和 `pattern[2]` 相同，那我们就可以继续向后走了。那如果不相同呢？
 
-![image.png](http://img.xilyfe.top/img/20260113155629769.png)
+![](http://img.xilyfe.top/img/20260113155629769.png)
 
 这里可以看到 `pattern[3]` 和 `pattern[7]` 不同，既然 ABA 没办法和下一个字符组成最长公共前后缀，那我们看看有没有更短的，比如前缀 AB 和后缀 AB 相同。这时候我们又不得不暴力搜索了吗？
 
@@ -2133,7 +2133,7 @@ LongestCommonSubstring(X, Y):
 3. 动态规划步骤是：写出递推式，确定遍历顺序，确定初始条件
 4. MR算法的改进包括：通过整数分解定理，将 p-1 分解为 $2^s\times d$ ，然后对 ${a^d, a^{2d}, a^{4d}, …, a^{2^{s−1}d}}$ 都进行检查；除了检查余数是否为 1，还检查是否为 -1。
 5. $T(n)= T( \frac{2}{3} n ) + 1= T( (\frac{2}{3})² n ) + 1 + 1 = T( (\frac{2}{3})³ n ) + 1 + 1 + 1$ ，$(\frac{2}{3})^k · n = 1$ 得到递推深度为 $Θ(log n)$，所以时间复杂度 $Θ(log n)$。
-6. ![image.png](http://img.xilyfe.top/img/20260117120124658.png)
+6. ![](http://img.xilyfe.top/img/20260117120124658.png)
 7. 就是 DAG 最短路径问题：
 
 | dp      |                                     |

@@ -22,7 +22,7 @@ MoE means Mixture of Experts，它是一种神经网络架构，可以把一个�
 在我看来这个 MoE 机制有点像 MHA，MHA 用不同的注意力头负责学习文本中不同维度的信息，而 MoE 用不同的 expert 或者说不同区域的参数来负责处理不同类型的问题，例如某个专家就负责 coding 相关知识，某个增加就负责因果逻辑相关知识。而我们将 prompt 输入后，门控网络就会为我们选择合适的专家。
 
 >在一个 16 层，`n_routed_experts=32` 的模型中一共会有 $16\times32=512$ 个专家，所以一个知识领域的表示并不是某个特定专家独立完成的，而是跨越不同网络深度的多个专家组合路径来完成的。
->![image.png](http://img.xilyfe.top/img/20260206123647136.png)
+>![](http://img.xilyfe.top/img/20260206123647136.png)
 >
 >从上图我们可以直观的看到，当涉及 GitHub 也就是 coding 方面的问题时，在 Layer-0 会调用 expert-18，它可能负责的是语义理解的部分；在中层 Layer-7 会调用 expert-0,3,4 等专家，可能负责思考解决方案等等。
 
@@ -30,7 +30,7 @@ MoE means Mixture of Experts，它是一种神经网络架构，可以把一个�
 
 ## 工作原理
 
-![image.png](http://img.xilyfe.top/img/20260206121522583.png)
+![](http://img.xilyfe.top/img/20260206121522583.png)
 
 
 在 Transformer 中，一个典型的 MoE 层通常替换 Feed-Forward Network 层。一般来说我们把注意力层得到的 hidden_states 传入一个 FFN 层，然后经过升维、降维、激活、残差连接这些操作处理向量，最后再输出。

@@ -12,14 +12,14 @@ lastmod: 2026-02-06T12:12:22+08:00
 我们先回忆一下传统的单机单卡训练模式：
 
 
-![image.png](http://img.xilyfe.top/img/20260202195324965.png)
+![](http://img.xilyfe.top/img/20260202195324965.png)
 
 首先硬盘读取数据，CPU 处理数据，将数据组成一个 batch，再传入 GPU，网络前向传播算出 loss，再反向传播计算梯度，用梯度更新参数完成一次训练。这种传统模式在大参数量或者大数据量的情况下就容易陷入显存的瓶颈，于是就引出了多卡并行训练。
 
 ## DP
 
 
-![image.png](http://img.xilyfe.top/img/20260202195640665.png)
+![](http://img.xilyfe.top/img/20260202195640665.png)
 
 DP(Data Parallel)，也就是数据并行。它的运行模式是：
 1. 硬盘读取数据，由 CPU 处理之后，给每个 GPU 传不同的一部分 mini batch
@@ -33,7 +33,7 @@ Data Parallel 的问题在于数据的传输量太大了，并且都集中在 GP
 
 ### Ring-AllReduce
 
-![image.png](http://img.xilyfe.top/img/20260202231931700.png)
+![](http://img.xilyfe.top/img/20260202231931700.png)
 
 
 
@@ -49,7 +49,7 @@ Data Parallel 的问题在于数据的传输量太大了，并且都集中在 GP
 
 ### 训练过程
 
-![image.png](http://img.xilyfe.top/img/20260202233932894.png)
+![](http://img.xilyfe.top/img/20260202233932894.png)
 
 首先 PyTorch 会把模型内的参数按照倒序排列（因为是反向传播求梯度，顺序和代码是相反的），然后将参数依次放在桶里。每个参数都会挂一个监听器，当参数求得梯度之后监听器被触发，此时检查桶内参数是不是全都计算好梯度了。如果梯度全部计算完成收集满一个桶，那么就用 Ring-AllReduce 对这个桶内参数的梯度进行同步。当全部桶都同步完整，各个 GPU 的模型就应该同步了，此时就可以调用优化器对参数进行更新。
 
@@ -213,7 +213,7 @@ def train():
 ### ZeRO-1
 
 
-![image.png](http://img.xilyfe.top/img/20260204160715456.png)
+![](http://img.xilyfe.top/img/20260204160715456.png)
 
 我们从上图开始了解 DeepSpeed ZeRO-1。首先采样了不同的数据分配给每个 GPU，每个 GPU 保存了相同的 FP16 的参数和梯度（浅蓝色的两层），但是保存了不同分区的优化器状态（深蓝色区域）。假如我们有三个 GPU，模型一共有 9 层，那么 GPU-0 存前三层的优化器状态，GPU-1 存中间三层的优化器状态，GPU-2 存最后三层的优化器状态。训练开始：
 
@@ -229,14 +229,14 @@ def train():
 最终总传入/传出参数量为 $2\Psi$ 和 DDP 通讯量相同。
 
 
-![image.png](http://img.xilyfe.top/img/20260204164540785.png)
+![](http://img.xilyfe.top/img/20260204164540785.png)
 
 >上图可以看到 DeepSpeed ZeRO-1 通过将优化器状态分布在不同 GPU，大幅度降低了显存占用。
 
 
 ### ZeRO-2
 
-![image.png](http://img.xilyfe.top/img/20260204170258315.png)
+![](http://img.xilyfe.top/img/20260204170258315.png)
 
 
 DeepSpeed ZeRO-2 相对于 ZeRO- 1 的核心优化在于进一步分区了梯度从而显著降低显存占用，想法很简单：每个 GPU 只负责更新对应的参数，那么只需要保存这部分参数的梯度就好了。训练过程如下：
@@ -248,7 +248,7 @@ DeepSpeed ZeRO-2 相对于 ZeRO- 1 的核心优化在于进一步分区了梯度
 
 ### ZeRO-3
 
-![image.png](http://img.xilyfe.top/img/20260204173843936.png)
+![](http://img.xilyfe.top/img/20260204173843936.png)
 
 DeepSpeed ZeRO-3 又进一步分区了模型的参数，在前向传播时候通过其他 GPU 来广播自己所缺的那一部分参数。
 
