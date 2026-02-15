@@ -5,7 +5,8 @@ featuredImage: "http://img.xilyfe.top/img/20260113120111595.png"
 authors: [Xilyfe]
 series: ["DeepLearning"]
 tags: ["深度学习"]
---- 
+lastmod: 2026-02-14T04:47:53+08:00
+---
 
 ## LSTM 基础概念
 

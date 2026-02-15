@@ -4,7 +4,8 @@ date: '2025-11-19T18:06:11+08:00'
 authors: [Xilyfe]
 series: ["DeepLearning"]
 tags: ["Module", "深度学习"]
---- 
+lastmod: 2026-02-14T04:47:45+08:00
+---
 
 > 在 CS224N 的课程中学习了 RNN 的基本知识，为了深入了解背后的机制和代码实现，我让 GPT 设计了一个 RNN 相关的深度学习任务，通过 PyTorch 手搓一个 RNN 网络。
 

@@ -4,8 +4,8 @@ date: '2025-11-28T16:23:11+08:00'
 authors: [Xilyfe]
 series: ["LLM"]
 tags: ["大模型", "Transformer"]
-lastmod: 2026-01-27T04:05:36+08:00
---- 
+lastmod: 2026-02-14T04:47:48+08:00
+---
  
 
 ## 作用

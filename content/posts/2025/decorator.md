@@ -4,7 +4,8 @@ date: '2025-10-19T17:59:11+08:00'
 authors: [Xilyfe]
 series: ["Python 技巧"]
 tags: ["Python", "装饰器"]
---- 
+lastmod: 2026-02-14T04:48:02+08:00
+---
 
 
 ## 最基本的装饰器
