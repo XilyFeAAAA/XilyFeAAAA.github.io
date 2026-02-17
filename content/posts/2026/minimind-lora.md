@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 深度学习
-lastmod: 2026-02-16T12:09:07+08:00
+lastmod: 2026-02-17T03:20:15+08:00
 ---
 ## LoRA 是什么
 
@@ -362,4 +362,4 @@ self.bos_id = tokenizer("<|im_start|>assistant\n", add_special_tokens=False).inp
 # self.bos_id = tokenizer(f"{tokenizer.bos_token}assistant\n", add_special_tokens=False).input_ids
 ```
 
-这次训练就好了，这次经验告诉我 `loss=nan` 可能是 **数据集/标签问题**。
+训练就成功了，这次经验告诉我 `loss=nan` 可能是 **数据集/标签问题**。

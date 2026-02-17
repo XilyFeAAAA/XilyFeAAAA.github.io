@@ -8,9 +8,8 @@ series:
   - LLM
 tags:
   - 大模型
-lastmod: 2026-02-09T04:01:48+08:00
+lastmod: 2026-02-16T10:20:16+08:00
 ---
-
 ## MoE 是什么
 
 MoE means Mixture of Experts，它是一种神经网络架构，可以把一个大模型拆分成多个小型的 expert，再用一个门控网络来决定每个输入该路由到哪些专家处理。
