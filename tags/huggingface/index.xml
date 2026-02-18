@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HuggingFace on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/huggingface/</link>
+    <description>Recent content in HuggingFace on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Tue, 27 Jan 2026 07:24:35 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/huggingface/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>transformer库的基类</title>
+      <link>http://xilyfeAAAA.github.io/posts/hg_transformer/</link>
+      <pubDate>Tue, 27 Jan 2026 19:16:19 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/hg_transformer/</guid>
+      <description>&lt;h2 id=&#34;长话短说&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e9%95%bf%e8%af%9d%e7%9f%ad%e8%af%b4&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;长话短说&lt;/h2&gt;&lt;p&gt;今天看了一下源码和官方文档，梳理过后会发现其实也不是很复杂，简单理解就两条：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;code&gt;ModelOutput&lt;/code&gt;(transformers.utils.ModelOutput)是所有模型输出的基类。简单理解它就是一个字典，在模型的 &lt;code&gt;forward&lt;/code&gt;函数里把原本的输出做了一下封装而已，方便用户能直观地知道输出是什么。例如&lt;code&gt;CausalLMOutput&lt;/code&gt;顾名思义就是用于像 GPT 这样自回归模型的输出。&lt;/li&gt;&#xA;&lt;li&gt;&lt;code&gt;PreTrainedModel&lt;/code&gt; (transformers.modeling_utils.PretrainedModel) 是所有模型的基类。所以你如果看到一个模型取名为&lt;code&gt;LlamaForCausalLM&lt;/code&gt;，那你就可以知道这个模型的输出格式大概率就是自回归输出，即前面提到的&lt;code&gt;CausalLMOutput&lt;/code&gt;。为什么说大概率呢，因为自回归输出还有蛮多种的，赶时间的朋友看到这就可以切换到其他文章了，至此你应该也能了解 transformers 最核心的模块了。感兴趣的可以继续往下看，下面做一个简单的总结和介绍。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;短话长说&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e7%9f%ad%e8%af%9d%e9%95%bf%e8%af%b4&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;短话长说&lt;/h2&gt;&lt;h3 id=&#34;modeloutput&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#modeloutput&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;ModelOutput&lt;/h3&gt;&lt;p&gt;前面已经介绍过了，&lt;code&gt;ModelOutput&lt;/code&gt;是所有模型输出的基类。下面是其源码核心部分，一些具体实现代码删除了，不过不影响理解。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
