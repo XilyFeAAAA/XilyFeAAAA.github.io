@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 深度学习
-lastmod: 2026-02-17T03:20:15+08:00
+lastmod: 2026-02-19T12:25:36+08:00
 ---
 ## LoRA 是什么
 
@@ -18,36 +18,7 @@ PEFT 大致包含三类：Prompt-Tuning、Adapter-Tuning 以及 LoRA，而 MiniM
 
 {{< link_ref "cs224n-lecture12" >}}
 
-##  常见问题
-
-### LoRA 插入在哪里
-
-早期 LoRA 模块仅在注意力模块的 $W_q$ 和 $W_v$ 上插入，$W_q$ 决定了要关注的信息，$W_k$ 决定了要提取的信息。但是随着大模型微调经验的基类，发现单单微调 Attention 不能改变模型深层行为。真正存储大模型知识的是每一层的 MLP 模块，所以还在其中的三组投影 $W_{up}$、$W_{gate}$ 和 $W_{down}$ 上加入 LoRA 模块。现在主流的 LoRA 微调策略已经变成了 All-Linear，也就是对所有线性层都插入 LoRA。
-
-### LoRA 初始化
-
-一般是对 $A$ 矩阵应用 kaiming 初始化，对 $B$ 矩阵置为 0。首先矩阵 $A$ 和 $B$ 最少需要一个为 0 矩阵，这样 LoRA 一开始更新时 $\Delta W=BA$ 接近于 0 矩阵，就不会破坏预训练权重。其次矩阵 $A$ 不能为 0 矩阵，我们先看一下 $A$ 和 $B$ 的梯度是如何计算的：
-
-首先 $A$ 的梯度公式为：
-
-$$
-\frac{\partial{L}}{\partial{A}}=\frac{\partial{L}}{\partial{Q}} \cdot Z^T= \frac{\partial{L}}{\partial{Q}}(BX^T)=\frac{\partial{L}}{\partial{Q}}X^TB^T
-$$
-
-$B$ 的梯度公式为：
-
-$$
-\frac{\partial{L}}{\partial{B}}=\frac{\partial{L}}{\partial{Z}} \cdot X^T= (A^T\frac{\partial{L}}{\partial{Q}})X^T
-$$
-
-而在前向传播中，低秩更新实际走的路径是：x → A → (scale) → B，也就是说反向传播时是从矩阵 $B$ 到矩阵 $A$。假如矩阵 $A$ 为 0 矩阵，那么矩阵 $B$ 的梯度为 0，训练就会先更新矩阵 $A$，$A$ 更新的数值尺度就会收到 $B$ 的初始化分布影响，容易放大早期更新的尺度。如果初始化矩阵 $B$ 为 0，那么会先更新矩阵 $B$，把 $B$ 从 0 拉开，再更新 $A$。训练稳定，等价于先学习输出侧组合，再细化输入侧投影。
-
-### 秩 r 如何影响模型表现
-
-从训练行为看。r 小约束强，更新子空间窄，优化更稳定，对小数据集更抗过拟合，但容易欠拟合，loss 降不动或很早平台期。  
-r 大自由度高，loss 更容易下降，任务上限更高，但对数据规模敏感，小数据时容易记忆化和分布漂移。
-
-在注意力层上，较小的 r 往往已足够改变信息路由，收益曲线很快饱和。在 MLP 投影层上，通常需要更大的 r 才能产生同等幅度的行为变化。
+{{< link_ref "lora&qlora" >}}
 
 ## 实现细节
 
@@ -222,7 +193,7 @@ def load_lora(model: nn.Module, path: str):
 
 但是，由于我的基模太拉跨了，所以我下载了 Qwen3-0.6B 模型进行 LoRA 微调。下面代码是手动通过 PyTorch 进行 LoRA 微调，调用 Transformers 库进行 LoRA 微调的方法可以见博文：
 
-{{< link_ref "llm-lora" >}}
+{{< link_ref "lora&qlora" >}}
 
 具体代码如下：
 
