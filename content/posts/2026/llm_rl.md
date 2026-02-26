@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 强化学习
-lastmod: 2026-02-25T12:56:59+08:00
+lastmod: 2026-02-25T01:03:40+08:00
 ---
 
 >在 CS224N 中已经学习了一部分的 RLHF 但是感觉都忘掉了而且学习的一知半解，这次 minimind 正好也需要用到 RL 的知识，涉及到 PPO、DPO 啥的，所以来完整学习一遍。这次学习的目标就是搞懂 LLM 中强化学习的基本概念，学会目前常用的 PPO、DPO、GRPO 这几个算法，然后能调库进行 RLHF。
@@ -221,7 +221,7 @@ $$
 V^\pi(s) = \mathbb{E}_{a \sim \pi(\cdot|s),\ \tau \sim P} \Big[ \sum_{k=0}^\infty \gamma^k r_{t+k} \Big]
 $$
 
-如果 value 估得准，advantage = q - v 就会低方差，actor 就能稳定地知道“哪个动作比平均好多少”。 所以我们必须让 $V(S_t)$ 不断逼近这个“真实平均回报”。但是真实 $V(S_t)$$ 根本拿不到，于是我们想到状态价值 $V(S_t)$ 正好等于所有可能动作的动作价值 $Q(S_t,A_t)$ 在当前策略下的期望：
+如果 value 估得准，advantage = q - v 就会低方差，actor 就能稳定地知道“哪个动作比平均好多少”。 所以我们必须让 $V(S_t)$ 不断逼近这个“真实平均回报”。但是真实 $V(S_t)$ 根本拿不到，于是我们想到状态价值 $V(S_t)$ 正好等于所有可能动作的动作价值 $Q(S_t,A_t)$ 在当前策略下的期望：
 
 $$
 V^\pi(s) \equiv \mathbb{E}_{a \sim \pi(\cdot|s)} \big[ Q^\pi(s,a) \big]
