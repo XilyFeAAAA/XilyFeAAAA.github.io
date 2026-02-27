@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>强化学习 on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/</link>
+    <description>Recent content in 强化学习 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sat, 28 Feb 2026 01:16:25 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LLM 中的强化学习：DPO</title>
+      <link>http://xilyfeAAAA.github.io/posts/rlhf-dpo/</link>
+      <pubDate>Thu, 26 Feb 2026 15:38:09 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rlhf-dpo/</guid>
+      <description>&lt;p&gt;PPO 算法我们之前聊过，它需要同时加载四个模型（Actor、Critic、Reward Model、Ref Model），显存需求极大，还需要单独训练 Reward Model 和 Critic Model。 而 DPO 只需 2 个模型：待优化的 Actor Model ($π_θ$) 和冻结的 Reference Model ($π_{ref}$)。DPO 不对 prompt+response 打分，而是直接让模型学习区分 good answer ($y_w$) 和 bad answer ($y_l$)。DPO 的本质就是把 reward model 隐式地参数化进了 policy 本身，从而一步到位完成对齐。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM 中的强化学习：PPO</title>
+      <link>http://xilyfeAAAA.github.io/posts/rlhf-ppo/</link>
+      <pubDate>Thu, 19 Feb 2026 15:38:09 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rlhf-ppo/</guid>
+      <description>&lt;h2 id=&#34;前置知识&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e7%bd%ae%e7%9f%a5%e8%af%86&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前置知识&lt;/h2&gt;&lt;h3 id=&#34;近端策略优化&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e8%bf%91%e7%ab%af%e7%ad%96%e7%95%a5%e4%bc%98%e5%8c%96&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;近端策略优化&lt;/h3&gt;&lt;p&gt;PPO 算法可以看成 A2C 的优化版。A2C的训练策略是 “采样一次，更新一次，然后扔掉数据”，这就导致效率很低，每批数据只能用一次。PPO 采用 &lt;strong&gt;近端策略优化&lt;/strong&gt;，它会对一批数据先进行采样得到 &lt;code&gt;logprob&lt;/code&gt;，&lt;code&gt;ref_logprob&lt;/code&gt;，&lt;code&gt;rewards&lt;/code&gt;，&lt;code&gt;advantages&lt;/code&gt; 等数据，然后进行 &lt;code&gt;ppo_epochs&lt;/code&gt; 次循环。每次循环内，变化的只有概率分布 &lt;code&gt;logprob&lt;/code&gt; 和 &lt;code&gt;ref_logprob&lt;/code&gt; 和 &lt;code&gt;values&lt;/code&gt;，优势奖励这些都固定采用第一次得到的数据。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM 中的强化学习：基础知识</title>
+      <link>http://xilyfeAAAA.github.io/posts/rlhf-fundamental/</link>
+      <pubDate>Thu, 19 Feb 2026 15:38:09 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rlhf-fundamental/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;在 CS224N 中已经学习了一部分的 RLHF 但是感觉都忘掉了而且学习的一知半解，这次 minimind 正好也需要用到 RL 的知识，涉及到 PPO、DPO 啥的，所以来完整学习一遍。这次学习的目标就是搞懂 LLM 中强化学习的基本概念，学会目前常用的 PPO、DPO、GRPO 这几个算法，然后能调库进行 RLHF。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CS336 on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/series/cs336/</link>
+    <description>Recent content in CS336 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Fri, 30 Jan 2026 02:44:31 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/series/cs336/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CS336 Assignment 1: Tokenizer &amp; Transformer</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336_assignment1/</link>
+      <pubDate>Wed, 31 Dec 2025 16:51:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336_assignment1/</guid>
+      <description>&lt;h2 id=&#34;bpe-train&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#bpe-train&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;BPE Train&lt;/h2&gt;&lt;h3 id=&#34;problems&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#problems&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Problems&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;1. Understanding Unicode&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;p&gt;(a) What Unicode character does chr(0) return?一个空字符。&#xA;(b) How does this character’s string representation (&lt;strong&gt;repr&lt;/strong&gt;()) differ from its printed representa-&lt;br&gt;&#xA;tion? &lt;strong&gt;repr&lt;/strong&gt;() 输出的是它的字节表示，print 输出的是空字符。&#xA;(c) What happens when this character occurs in text? It may be helpful to play around with the&lt;br&gt;&#xA;following in your Python interpreter and see if it matches your expectations:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CS336 Lecture 3: Architectures &amp; Hyperparameters</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336-lecture3/</link>
+      <pubDate>Fri, 19 Dec 2025 16:00:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336-lecture3/</guid>
+      <description>&lt;h2 id=&#34;architectures&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#architectures&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Architectures&lt;/h2&gt;&lt;ul&gt;&#xA;&lt;li&gt;Normorlization&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Pre - Post&lt;/li&gt;&#xA;&lt;li&gt;Layer Norm - RMS Norm&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;Activations&#xA;&lt;ul&gt;&#xA;&lt;li&gt;ReLU, GeLU, GLU&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;HyperParameters&#xA;&lt;ul&gt;&#xA;&lt;li&gt;$d_{ff}$,$d_{model}$&lt;/li&gt;&#xA;&lt;li&gt;num_heads&lt;/li&gt;&#xA;&lt;li&gt;vocabulary&lt;/li&gt;&#xA;&lt;li&gt;dropout &amp;amp; regularization&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;Stability Tricks&lt;/li&gt;&#xA;&lt;li&gt;Other MHA&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;norm&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#norm&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Norm&lt;/h2&gt;&lt;h3 id=&#34;prenorm&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#prenorm&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;PreNorm&lt;/h3&gt;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/prenorm.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/prenorm.png&#34; alt=&#34;&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;现代的 Transformer 架构中，Transformer Block 都采用 PreNorm 而不是 PostNorm，具体来说就是把 Norm 放在注意力机制和 FFN 前馈网络层前面，而不是进行残差连接之后再 Norm。优点在于==训练更稳定，可以采用更大的学习率==。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CS336 Lecture 2: Computing</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336-lecture2/</link>
+      <pubDate>Fri, 19 Dec 2025 11:48:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336-lecture2/</guid>
+      <description>&lt;p&gt;!!! abstract&#xA;本节主要讲解内存计算问题，首先介绍了float32, float 16 等数据类型。随后介绍 PyTorch 中的 tensor 这一重要的数据类型。最后举例介绍了在模型训练中各个部分所需要的计算量，并介绍了浮点运算利用率这一指标以衡量硬件计算效率。重点如下：&#xA;1. 在PyTorch 中 tensor 是对已分配内存的指针，很多操作无需新占用内存&#xA;2. 大型矩阵乘法在深度学习所需计算量最大&#xA;3. 浮点运算利用率 $MFU=\frac{actualFLOP/s}{promised FLOP/s}$&lt;br&gt;&#xA;4. 前向传播所需计算量：2×(#tokens)×(#parameters)&#xA;5. 反向传播所需计算量：4×(#tokens)×(#parameters)&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CS336 Lecture 1: Tokenization</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336-lecture1/</link>
+      <pubDate>Wed, 17 Dec 2025 13:05:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336-lecture1/</guid>
+      <description>&lt;p&gt;!!! abstract&#xA;本节主要讲解常见的几种 Tokenizer 以及它们的优劣，最后介绍了 BPE 的实现思路。&lt;/p&gt;&#xA;&lt;h2 id=&#34;tokenizer-主要类型&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#tokenizer-%e4%b8%bb%e8%a6%81%e7%b1%bb%e5%9e%8b&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Tokenizer 主要类型&lt;/h2&gt;&lt;h3 id=&#34;1-character-based&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#1-character-based&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;1. Character-based&lt;/h3&gt;&lt;ul&gt;&#xA;&lt;li&gt;优点：不会出现 Out of vocabulary 的情况&lt;/li&gt;&#xA;&lt;li&gt;缺点：词表大小爆炸，需要涵盖每一种语言的每一个字符&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;2-byte-based&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#2-byte-based&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;2. Byte-based&lt;/h3&gt;&lt;p&gt;将字符串转码为 UTF-8 bytes，例如：&amp;lsquo;你&amp;rsquo; → &amp;lsquo;E4 BD A0&amp;rsquo;，每个 byte 能表示 0-255 就是一个 token。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

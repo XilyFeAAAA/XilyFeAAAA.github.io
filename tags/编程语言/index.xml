@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>编程语言 on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/</link>
+    <description>Recent content in 编程语言 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Thu, 14 Aug 2025 15:22:11 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Java 基础知识</title>
+      <link>http://xilyfeAAAA.github.io/posts/java/</link>
+      <pubDate>Thu, 14 Aug 2025 15:22:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/java/</guid>
+      <description>&lt;h1 id=&#34;java-se&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#java-se&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Java SE&lt;/h1&gt;&lt;h2 id=&#34;类型转换&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e7%b1%bb%e5%9e%8b%e8%bd%ac%e6%8d%a2&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;类型转换&lt;/h2&gt;&lt;blockquote&gt;&#xA;  &lt;p&gt;表达式结果的类型=最高类型&lt;/p&gt;&#xA;&#xA;&lt;/blockquote&gt;&lt;div class=&#34;code-block highlight is-open show-line-numbers  tw-group tw-my-2&#34;&gt;&#xA;  &lt;div class=&#34;&#xA;    &#xA;    tw-flex &#xA;    tw-flex-row&#xA;    tw-flex-1 &#xA;    tw-justify-between &#xA;    tw-w-full tw-bg-bgColor-secondary&#xA;    &#34;&gt;      &#xA;    &lt;button &#xA;      class=&#34;&#xA;        code-block-button&#xA;        tw-mx-2 &#xA;        tw-flex&#xA;        tw-flex-row&#xA;        tw-flex-1&#34;&#xA;      aria-hidden=&#34;true&#34;&gt;&#xA;          &lt;div class=&#34;group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 320 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z&#34;/&gt;&lt;/svg&gt;&lt;/div&gt;&#xA;          &lt;p class=&#34;tw-select-none !tw-my-1&#34;&gt;text&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

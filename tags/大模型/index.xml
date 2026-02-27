@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>大模型 on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/</link>
+    <description>Recent content in 大模型 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sat, 28 Feb 2026 01:16:25 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LLM 中的强化学习：DPO</title>
+      <link>http://xilyfeAAAA.github.io/posts/rlhf-dpo/</link>
+      <pubDate>Thu, 26 Feb 2026 15:38:09 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rlhf-dpo/</guid>
+      <description>&lt;p&gt;PPO 算法我们之前聊过，它需要同时加载四个模型（Actor、Critic、Reward Model、Ref Model），显存需求极大，还需要单独训练 Reward Model 和 Critic Model。 而 DPO 只需 2 个模型：待优化的 Actor Model ($π_θ$) 和冻结的 Reference Model ($π_{ref}$)。DPO 不对 prompt+response 打分，而是直接让模型学习区分 good answer ($y_w$) 和 bad answer ($y_l$)。DPO 的本质就是把 reward model 隐式地参数化进了 policy 本身，从而一步到位完成对齐。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM 中的强化学习：PPO</title>
+      <link>http://xilyfeAAAA.github.io/posts/rlhf-ppo/</link>
+      <pubDate>Thu, 19 Feb 2026 15:38:09 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rlhf-ppo/</guid>
+      <description>&lt;h2 id=&#34;前置知识&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e7%bd%ae%e7%9f%a5%e8%af%86&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前置知识&lt;/h2&gt;&lt;h3 id=&#34;近端策略优化&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e8%bf%91%e7%ab%af%e7%ad%96%e7%95%a5%e4%bc%98%e5%8c%96&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;近端策略优化&lt;/h3&gt;&lt;p&gt;PPO 算法可以看成 A2C 的优化版。A2C的训练策略是 “采样一次，更新一次，然后扔掉数据”，这就导致效率很低，每批数据只能用一次。PPO 采用 &lt;strong&gt;近端策略优化&lt;/strong&gt;，它会对一批数据先进行采样得到 &lt;code&gt;logprob&lt;/code&gt;，&lt;code&gt;ref_logprob&lt;/code&gt;，&lt;code&gt;rewards&lt;/code&gt;，&lt;code&gt;advantages&lt;/code&gt; 等数据，然后进行 &lt;code&gt;ppo_epochs&lt;/code&gt; 次循环。每次循环内，变化的只有概率分布 &lt;code&gt;logprob&lt;/code&gt; 和 &lt;code&gt;ref_logprob&lt;/code&gt; 和 &lt;code&gt;values&lt;/code&gt;，优势奖励这些都固定采用第一次得到的数据。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM 中的强化学习：基础知识</title>
+      <link>http://xilyfeAAAA.github.io/posts/rlhf-fundamental/</link>
+      <pubDate>Thu, 19 Feb 2026 15:38:09 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rlhf-fundamental/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;在 CS224N 中已经学习了一部分的 RLHF 但是感觉都忘掉了而且学习的一知半解，这次 minimind 正好也需要用到 RL 的知识，涉及到 PPO、DPO 啥的，所以来完整学习一遍。这次学习的目标就是搞懂 LLM 中强化学习的基本概念，学会目前常用的 PPO、DPO、GRPO 这几个算法，然后能调库进行 RLHF。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>transformers 库提供的更方便的 Trainer</title>
+      <link>http://xilyfeAAAA.github.io/posts/trainer/</link>
+      <pubDate>Wed, 18 Feb 2026 21:49:24 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/trainer/</guid>
+      <description>&lt;h2 id=&#34;sfttrainer&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#sfttrainer&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;SFTTrainer&lt;/h2&gt;&lt;h3 id=&#34;函数调用&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%87%bd%e6%95%b0%e8%b0%83%e7%94%a8&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;函数调用&lt;/h3&gt;&lt;p&gt;我们主要依赖 Huggingface 的 transformers 库以及 trl 库来进行自动化微调。&lt;/p&gt;&#xA;&lt;div class=&#34;code-block highlight is-open show-line-numbers  tw-group tw-my-2&#34;&gt;&#xA;  &lt;div class=&#34;&#xA;    &#xA;    tw-flex &#xA;    tw-flex-row&#xA;    tw-flex-1 &#xA;    tw-justify-between &#xA;    tw-w-full tw-bg-bgColor-secondary&#xA;    &#34;&gt;      &#xA;    &lt;button &#xA;      class=&#34;&#xA;        code-block-button&#xA;        tw-mx-2 &#xA;        tw-flex&#xA;        tw-flex-row&#xA;        tw-flex-1&#34;&#xA;      aria-hidden=&#34;true&#34;&gt;&#xA;          &lt;div class=&#34;group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 320 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z&#34;/&gt;&lt;/svg&gt;&lt;/div&gt;&#xA;          &lt;p class=&#34;tw-select-none !tw-my-1&#34;&gt;python&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>NF4 量化大模型</title>
+      <link>http://xilyfeAAAA.github.io/posts/nf4-quantization/</link>
+      <pubDate>Tue, 17 Feb 2026 14:11:42 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/nf4-quantization/</guid>
+      <description>&lt;h2 id=&#34;nf4-量化&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#nf4-%e9%87%8f%e5%8c%96&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;NF4 量化&lt;/h2&gt;&lt;p&gt;介绍 NF4 量化之前我们先说说量化是什么，量化本质是把 &lt;strong&gt;浮点数张量压缩到有限的整数集合里&lt;/strong&gt;。例如 INT4 量化，就是把所有浮点数映射到 $2^4$ 个整数也就是 [-8, 7] 的区间内，这样子就只需要存储这 4个 bit 也就是 0.5B。具体的公式是：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LoRA&amp;QLoRA</title>
+      <link>http://xilyfeAAAA.github.io/posts/loraqlora/</link>
+      <pubDate>Mon, 16 Feb 2026 20:21:20 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/loraqlora/</guid>
+      <description>&lt;h2 id=&#34;lora&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#lora&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;LoRA&lt;/h2&gt;&lt;h3 id=&#34;为什么选择旁路而不是堆叠&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89%e6%8b%a9%e6%97%81%e8%b7%af%e8%80%8c%e4%b8%8d%e6%98%af%e5%a0%86%e5%8f%a0&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;为什么选择旁路而不是堆叠&lt;/h3&gt;&lt;p&gt;LoRA 现在的方案是 $y=Wx+\Delta{W}x$ 这样在旁路加一个矩阵进行微调，那为什么不选择 $y=W_2(W_1x)$ 这样的堆叠方案呢？&lt;/p&gt;&#xA;&lt;p&gt;首先这种旁路设计可以保持原权重函数不变。LoRA 只提供一个低秩修正项。初始化时 A、B 接近零，模型行为≈原模型。训练是“微调偏移量”，不是“重建映射”。如果改成堆叠新层，前向函数直接改变，初始输出就漂移，大模型容易不稳定。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MiniMind 学习指北(六)：LoRA</title>
+      <link>http://xilyfeAAAA.github.io/posts/minimind-lora/</link>
+      <pubDate>Fri, 13 Feb 2026 14:08:48 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/minimind-lora/</guid>
+      <description>&lt;h2 id=&#34;lora-是什么&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#lora-%e6%98%af%e4%bb%80%e4%b9%88&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;LoRA 是什么&lt;/h2&gt;&lt;p&gt;PEFT 大致包含三类：Prompt-Tuning、Adapter-Tuning 以及 LoRA，而 MiniMind 里面采用的就是 LoRA 进行指令微调。在 CS224N 的课程中已经学习了 LoRA 的原理，简单来说我们在经过 Pretrain 和 SFT 的模型基础上，对参数 $y=Wx$ 加上一个增量矩阵 $\Delta{W}$ 来微调模型，并且这个 $\Delta{W}$ 是通过 &lt;strong&gt;低秩近似&lt;/strong&gt; 得到的，所以实际参数量远小于 $W$，计算开销小。具体可以看之前的笔记：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>模型的 generate 方法</title>
+      <link>http://xilyfeAAAA.github.io/posts/llm-generate/</link>
+      <pubDate>Wed, 11 Feb 2026 11:19:33 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/llm-generate/</guid>
+      <description>&lt;p&gt;在 MiniMind 系列的 eval 部分我们已经学习了如何通过 transformers 库里 GenerateMixin 基类来生成文本，这一章学习一下 &lt;code&gt;model.generate()&lt;/code&gt; 方法到底是怎么实现的。&lt;/p&gt;&#xA;&#xA;&#xA;&lt;div class=&#34;post-preview&#34;&gt;&#xA;  &lt;div class=&#34;post-preview--meta&#34; style=&#34;width:100%;&#34;&gt;&#xA;    &lt;div class=&#34;post-preview--middle&#34;&gt;&#xA;      &lt;h4 class=&#34;post-preview--title&#34;&gt;&#xA;        &lt;a target=&#34;_blank&#34; href=&#34;http://xilyfeAAAA.github.io/posts/minimind-eval/&#34;&gt;MiniMind 学习指北(四)：评估&lt;/a&gt;&#xA;      &lt;/h4&gt;&#xA;      &lt;time class=&#34;post-preview--date&#34;&gt;2026-01-25&lt;/time&gt;&#xA;      &#xA;      &lt;small&gt;#大模型&amp;nbsp;#深度学习&amp;nbsp;&lt;/small&gt;&#xA;      &#xA;      &lt;section style=&#34;max-height:105px;overflow:hidden;&#34; class=&#34;post-preview--excerpt&#34;&gt;&#xA;         这一章我们需要设计一个脚本来验证大模型的对话能力&#xA;评估脚本我们预训练是让模型学会说话的能力，或者说词语接龙的能力，给他一个 prompt 它可以接着说下去。因此我们在处理 prompt 时候需要稍加处理：&#xA;python&#xA;&#xA;      &lt;/section&gt;&#xA;    &lt;/div&gt;&#xA;  &lt;/div&gt;&#xA;&lt;/div&gt;&#xA;&#xA;&lt;h2 id=&#34;为什么需要-generate&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81-generate&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;为什么需要 Generate？&lt;/h2&gt;&lt;p&gt;Transformer 模型在训练时有一个 &lt;code&gt;forward&lt;/code&gt; 方法，是用于针对模型的输入来产生输出，从而计算损失 loss，更新模型的参数。既然有这么一个生成的函数了，为什么 Transformer 中还有专门设计 &lt;code&gt;generate&lt;/code&gt; 方法来负责在推理时生成文本呢？&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MiniMind 学习指北(五)：SFT</title>
+      <link>http://xilyfeAAAA.github.io/posts/minimind-sft/</link>
+      <pubDate>Tue, 10 Feb 2026 15:59:28 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/minimind-sft/</guid>
+      <description>&lt;p&gt;前面我们已经进行了预训练，得到了一个只会续写的模型。这是因为我们预训练数据集的文本都是简单的一句话，然后通过加工我们得到了类似 &amp;ldquo;&amp;lt;|im_start|&amp;gt; 秦始皇的功绩包括统一货币、文字&amp;rdquo; 的文本，通过 Teacher-Forcing 它只能做到预测下一个 token，或者说只会机械接龙，不会对话。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MoE 混合专家模型</title>
+      <link>http://xilyfeAAAA.github.io/posts/moe/</link>
+      <pubDate>Fri, 06 Feb 2026 11:53:20 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/moe/</guid>
+      <description>&lt;h2 id=&#34;moe-是什么&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#moe-%e6%98%af%e4%bb%80%e4%b9%88&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;MoE 是什么&lt;/h2&gt;&lt;p&gt;MoE means Mixture of Experts，它是一种神经网络架构，可以把一个大模型拆分成多个小型的 expert，再用一个门控网络来决定每个输入该路由到哪些专家处理。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MiniMind 学习指北(四)：评估</title>
+      <link>http://xilyfeAAAA.github.io/posts/minimind-eval/</link>
+      <pubDate>Sun, 25 Jan 2026 13:47:19 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/minimind-eval/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;这一章我们需要设计一个脚本来验证大模型的对话能力&lt;/p&gt;&#xA;&#xA;&lt;/blockquote&gt;&lt;h2 id=&#34;评估脚本&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e8%af%84%e4%bc%b0%e8%84%9a%e6%9c%ac&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;评估脚本&lt;/h2&gt;&lt;p&gt;我们预训练是让模型学会说话的能力，或者说词语接龙的能力，给他一个 prompt 它可以接着说下去。因此我们在处理 prompt 时候需要稍加处理：&lt;/p&gt;&#xA;&lt;div class=&#34;code-block highlight is-open show-line-numbers  tw-group tw-my-2&#34;&gt;&#xA;  &lt;div class=&#34;&#xA;    &#xA;    tw-flex &#xA;    tw-flex-row&#xA;    tw-flex-1 &#xA;    tw-justify-between &#xA;    tw-w-full tw-bg-bgColor-secondary&#xA;    &#34;&gt;      &#xA;    &lt;button &#xA;      class=&#34;&#xA;        code-block-button&#xA;        tw-mx-2 &#xA;        tw-flex&#xA;        tw-flex-row&#xA;        tw-flex-1&#34;&#xA;      aria-hidden=&#34;true&#34;&gt;&#xA;          &lt;div class=&#34;group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 320 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z&#34;/&gt;&lt;/svg&gt;&lt;/div&gt;&#xA;          &lt;p class=&#34;tw-select-none !tw-my-1&#34;&gt;python&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MiniMind 学习指北(三)：预训练</title>
+      <link>http://xilyfeAAAA.github.io/posts/minimind-pretrain/</link>
+      <pubDate>Sat, 24 Jan 2026 13:47:19 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/minimind-pretrain/</guid>
+      <description>&lt;h2 id=&#34;数据集&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e6%95%b0%e6%8d%ae%e9%9b%86&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;数据集&lt;/h2&gt;&lt;blockquote&gt;&#xA;  &lt;p&gt;预训练我们采用的是 Teacher-Forcing，所以需要的数据格式应该是偏移的 &lt;code&gt;input_ids&lt;/code&gt; 和 &lt;code&gt;labels&lt;/code&gt;。&lt;/p&gt;&#xA;&#xA;&lt;/blockquote&gt;&lt;p&gt;&lt;code&gt;__getitem__&lt;/code&gt; 方法有几个需要注意的地方：&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;在 input_ids 前后加上 bos 和 eos 两个 special token 可以帮助模型理解，句子该从哪里开始，在什么时候结束，不会在长文本胡言乱语。&lt;/li&gt;&#xA;&lt;li&gt;由于我们在模型的 &lt;code&gt;forward&lt;/code&gt; 里面规定了：训练模式下将 logits 和 labels 进行偏移，所以在 Dataset 里面返回的 x 和 y 就不用额外的进行 shift 了。&lt;/li&gt;&#xA;&lt;li&gt;padding 补充的 token 不参与 loss 计算，所以在 labels 里面把这部分 token 的 id 设为 -100，和 &lt;code&gt;F.cross_entropy(...,ignore_index=-100)&lt;/code&gt; 一致。&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;div class=&#34;code-block highlight is-closed show-line-numbers  tw-group tw-my-2&#34;&gt;&#xA;  &lt;div class=&#34;&#xA;    &#xA;    tw-flex &#xA;    tw-flex-row&#xA;    tw-flex-1 &#xA;    tw-justify-between &#xA;    tw-w-full tw-bg-bgColor-secondary&#xA;    &#34;&gt;      &#xA;    &lt;button &#xA;      class=&#34;&#xA;        code-block-button&#xA;        tw-mx-2 &#xA;        tw-flex&#xA;        tw-flex-row&#xA;        tw-flex-1&#34;&#xA;      aria-hidden=&#34;true&#34;&gt;&#xA;          &lt;div class=&#34;group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 320 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z&#34;/&gt;&lt;/svg&gt;&lt;/div&gt;&#xA;          &lt;p class=&#34;tw-select-none !tw-my-1&#34;&gt;python&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MiniMind 学习指北(二)：Tokenizer</title>
+      <link>http://xilyfeAAAA.github.io/posts/minimind-tokenizer/</link>
+      <pubDate>Fri, 23 Jan 2026 13:47:19 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/minimind-tokenizer/</guid>
+      <description>&lt;h2 id=&#34;tokenizer&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#tokenizer&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Tokenizer&lt;/h2&gt;&lt;blockquote&gt;&#xA;  &lt;p&gt;在 CS336 的笔记中我已经完整介绍了一个 Tokenizer 是如何训练并且读取的，详情可见 &lt;a href=&#34;../cs336_assignment1&#34; rel=&#34;&#34;&gt;cs336_assignment1&lt;/a&gt;。&lt;/p&gt;&#xA;&#xA;&lt;/blockquote&gt;&lt;p&gt;简单来说，训练一个 tokenizer 经过以下步骤：&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;通过正则分词，获得文本中全部 token，将其和 special_tokens 一起记录。&lt;/li&gt;&#xA;&lt;li&gt;不断把文本中出现频率最高的 token_pair 合并得到新 token，然后用新 token 替换文本中原先的 pair。&lt;/li&gt;&#xA;&lt;li&gt;重复上一步直到 vocab 达到指定规模。&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;上面的代码我们已经在 CS336 里实现过了，这一次我们通过 Huggingface 的 tokenizers 库直接生成。为了方便阅读，我先从如何得到一个 tokenizer 讲起。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MiniMind 学习指北(一)：Model</title>
+      <link>http://xilyfeAAAA.github.io/posts/minimind-model/</link>
+      <pubDate>Thu, 22 Jan 2026 13:47:19 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/minimind-model/</guid>
+      <description>&lt;p&gt;这是 Minimind 学习指北系列的第一节，整个系列我们大致分为：&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;模型实现&lt;/li&gt;&#xA;&lt;li&gt;Tokenizer&lt;/li&gt;&#xA;&lt;li&gt;预训练&lt;/li&gt;&#xA;&lt;li&gt;评估&lt;/li&gt;&#xA;&lt;li&gt;监督微调&lt;/li&gt;&#xA;&lt;li&gt;LoRA&lt;/li&gt;&#xA;&lt;li&gt;强化学习&lt;/li&gt;&#xA;&lt;li&gt;蒸馏&lt;/li&gt;&#xA;&lt;li&gt;推理&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260122135047734.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260122135047734.png&#34; alt=&#34;&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;h2 id=&#34;rmsnorm&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#rmsnorm&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;RMSNorm&lt;/h2&gt;&lt;h3 id=&#34;前身&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e8%ba%ab&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前身&lt;/h3&gt;&lt;p&gt;RMSNorm 也是归一化 Normalization 的一种，它的提出是为了解决这样一个问题：当数据分布非常不一致的时候，模型无法很好的学习到数据里面的信息。从数学层面来看，我们举个例子：假设我们有一个函数&#xA;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CS336 Assignment 1: Tokenizer &amp; Transformer</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336_assignment1/</link>
+      <pubDate>Wed, 31 Dec 2025 16:51:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336_assignment1/</guid>
+      <description>&lt;h2 id=&#34;bpe-train&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#bpe-train&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;BPE Train&lt;/h2&gt;&lt;h3 id=&#34;problems&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#problems&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Problems&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;1. Understanding Unicode&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;p&gt;(a) What Unicode character does chr(0) return?一个空字符。&#xA;(b) How does this character’s string representation (&lt;strong&gt;repr&lt;/strong&gt;()) differ from its printed representa-&lt;br&gt;&#xA;tion? &lt;strong&gt;repr&lt;/strong&gt;() 输出的是它的字节表示，print 输出的是空字符。&#xA;(c) What happens when this character occurs in text? It may be helpful to play around with the&lt;br&gt;&#xA;following in your Python interpreter and see if it matches your expectations:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CS336 Lecture 3: Architectures &amp; Hyperparameters</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336-lecture3/</link>
+      <pubDate>Fri, 19 Dec 2025 16:00:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336-lecture3/</guid>
+      <description>&lt;h2 id=&#34;architectures&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#architectures&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Architectures&lt;/h2&gt;&lt;ul&gt;&#xA;&lt;li&gt;Normorlization&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Pre - Post&lt;/li&gt;&#xA;&lt;li&gt;Layer Norm - RMS Norm&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;Activations&#xA;&lt;ul&gt;&#xA;&lt;li&gt;ReLU, GeLU, GLU&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;HyperParameters&#xA;&lt;ul&gt;&#xA;&lt;li&gt;$d_{ff}$,$d_{model}$&lt;/li&gt;&#xA;&lt;li&gt;num_heads&lt;/li&gt;&#xA;&lt;li&gt;vocabulary&lt;/li&gt;&#xA;&lt;li&gt;dropout &amp;amp; regularization&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;Stability Tricks&lt;/li&gt;&#xA;&lt;li&gt;Other MHA&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;norm&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#norm&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Norm&lt;/h2&gt;&lt;h3 id=&#34;prenorm&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#prenorm&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;PreNorm&lt;/h3&gt;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/prenorm.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/prenorm.png&#34; alt=&#34;&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;现代的 Transformer 架构中，Transformer Block 都采用 PreNorm 而不是 PostNorm，具体来说就是把 Norm 放在注意力机制和 FFN 前馈网络层前面，而不是进行残差连接之后再 Norm。优点在于==训练更稳定，可以采用更大的学习率==。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CS336 Lecture 2: Computing</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336-lecture2/</link>
+      <pubDate>Fri, 19 Dec 2025 11:48:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336-lecture2/</guid>
+      <description>&lt;p&gt;!!! abstract&#xA;本节主要讲解内存计算问题，首先介绍了float32, float 16 等数据类型。随后介绍 PyTorch 中的 tensor 这一重要的数据类型。最后举例介绍了在模型训练中各个部分所需要的计算量，并介绍了浮点运算利用率这一指标以衡量硬件计算效率。重点如下：&#xA;1. 在PyTorch 中 tensor 是对已分配内存的指针，很多操作无需新占用内存&#xA;2. 大型矩阵乘法在深度学习所需计算量最大&#xA;3. 浮点运算利用率 $MFU=\frac{actualFLOP/s}{promised FLOP/s}$&lt;br&gt;&#xA;4. 前向传播所需计算量：2×(#tokens)×(#parameters)&#xA;5. 反向传播所需计算量：4×(#tokens)×(#parameters)&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CS336 Lecture 1: Tokenization</title>
+      <link>http://xilyfeAAAA.github.io/posts/cs336-lecture1/</link>
+      <pubDate>Wed, 17 Dec 2025 13:05:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/cs336-lecture1/</guid>
+      <description>&lt;p&gt;!!! abstract&#xA;本节主要讲解常见的几种 Tokenizer 以及它们的优劣，最后介绍了 BPE 的实现思路。&lt;/p&gt;&#xA;&lt;h2 id=&#34;tokenizer-主要类型&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#tokenizer-%e4%b8%bb%e8%a6%81%e7%b1%bb%e5%9e%8b&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Tokenizer 主要类型&lt;/h2&gt;&lt;h3 id=&#34;1-character-based&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#1-character-based&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;1. Character-based&lt;/h3&gt;&lt;ul&gt;&#xA;&lt;li&gt;优点：不会出现 Out of vocabulary 的情况&lt;/li&gt;&#xA;&lt;li&gt;缺点：词表大小爆炸，需要涵盖每一种语言的每一个字符&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;2-byte-based&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#2-byte-based&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;2. Byte-based&lt;/h3&gt;&lt;p&gt;将字符串转码为 UTF-8 bytes，例如：&amp;lsquo;你&amp;rsquo; → &amp;lsquo;E4 BD A0&amp;rsquo;，每个 byte 能表示 0-255 就是一个 token。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>KVCache</title>
+      <link>http://xilyfeAAAA.github.io/posts/kvcache/</link>
+      <pubDate>Wed, 03 Dec 2025 16:25:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/kvcache/</guid>
+      <description>&lt;div class=&#34;details admonition tip open&#34;&gt;&#xA;    &lt;div class=&#34;details-summary admonition-title&#34;&gt;&#xA;        &lt;span class=&#34;icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 352 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M96.06 454.35c.01 6.29 1.87 12.45 5.36 17.69l17.09 25.69a31.99 31.99 0 0 0 26.64 14.28h61.71a31.99 31.99 0 0 0 26.64-14.28l17.09-25.69a31.989 31.989 0 0 0 5.36-17.69l.04-38.35H96.01l.05 38.35zM0 176c0 44.37 16.45 84.85 43.56 115.78 16.52 18.85 42.36 58.23 52.21 91.45.04.26.07.52.11.78h160.24c.04-.26.07-.51.11-.78 9.85-33.22 35.69-72.6 52.21-91.45C335.55 260.85 352 220.37 352 176 352 78.61 272.91-.3 175.45 0 73.44.31 0 82.97 0 176zm176-80c-44.11 0-80 35.89-80 80 0 8.84-7.16 16-16 16s-16-7.16-16-16c0-61.76 50.24-112 112-112 8.84 0 16 7.16 16 16s-7.16 16-16 16z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;KVCache 的应用场景&lt;span class=&#34;details-icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 256 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;&#xA;    &lt;/div&gt;&#xA;    &lt;div class=&#34;details-content&#34;&gt;&#xA;        &lt;div class=&#34;admonition-content&#34;&gt;KV Cache 的主要目的是 “加速自回归生成”，在生成下一个 token 时，只需要计算当前 token 的 query、key、value。之前的 key/value 被缓存，直接拼接使用，避免重复计算整个历史序列的 attention，这在推理阶段能显著提升速度。但是在预训练阶段，例如 LLaMa 或者 GPT 采用的都是 Teacher-Forcing 这种并行训练，我们把 logits 和 labels 错位。这种计算是并行的，不需要“增量”生成，所以使用 KV Cache 反而会增加代码复杂度和内存开销，收益很小甚至为负。&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#xA;&lt;h2 id=&#34;前情提要&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e6%83%85%e6%8f%90%e8%a6%81&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前情提要&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;Teacher-Forcing vs 自回归生成&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>RoPE</title>
+      <link>http://xilyfeAAAA.github.io/posts/rope/</link>
+      <pubDate>Fri, 28 Nov 2025 16:23:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rope/</guid>
+      <description>&lt;h2 id=&#34;作用&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%bd%9c%e7%94%a8&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;作用&lt;/h2&gt;&lt;p&gt;RoPE 相对于正余弦位置编码和可学习位置编码，更能够表达&lt;strong&gt;相对位置信息&lt;/strong&gt;，便于模型捕捉序列中元素之间的关系，还便于模型泛化到更长的序列，支持超长文本推理。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
