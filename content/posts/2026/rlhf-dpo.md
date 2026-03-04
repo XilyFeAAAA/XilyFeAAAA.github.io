@@ -9,8 +9,10 @@ series:
 tags:
   - 大模型
   - 强化学习
-lastmod: 2026-02-28T01:16:25+08:00
+lastmod: 2026-03-02T08:04:13+08:00
 ---
+## 公式推导
+
 PPO 算法我们之前聊过，它需要同时加载四个模型（Actor、Critic、Reward Model、Ref Model），显存需求极大，还需要单独训练 Reward Model 和 Critic Model。 而 DPO 只需 2 个模型：待优化的 Actor Model ($π_θ$) 和冻结的 Reference Model ($π_{ref}$)。DPO 不对 prompt+response 打分，而是直接让模型学习区分 good answer ($y_w$) 和 bad answer ($y_l$)。DPO 的本质就是把 reward model 隐式地参数化进了 policy 本身，从而一步到位完成对齐。
 
 DPO 和 PPO 算法的核心优化目标都是：
@@ -118,3 +120,129 @@ $$
 $$
 
 虽然最后把 $r$ 代入 Bradley-Terry 模型的操作很丝滑，但是我有个疑问：在 PPO 里面 Bradley-Terry 模型的最大似然估计是用来当 Reward Model 的损失函数的，那我们把 $r$ 代入 loss 为什么就能变成 DPO 的损失函数呢？它们的目标都不一样吧？是因为论文已经严格证明：**只要 $π_\theta$ 收敛到最优解，它所“隐含”的 reward 就正好是 RLHF 目标里要最大化的那个 $r$**。所以直接优化这个新的 loss，等价于“先训 RM、再用 PPO”整个流程，但省掉了中间所有步骤
+
+
+## 代码实现
+
+```python
+class DPOTrainer:
+    def __init__(
+            self,
+            actor_model: nn.Module,
+            ref_model: nn.Module,
+            tokenizer: TokenizerType,
+            config: DPOConfig,
+            train_dataset: Dataset
+    ):
+        self.actor_model = actor_model.to(config.device)
+        self.ref_model = ref_model.to(config.device)
+        self.tokenizer = tokenizer
+        self.config = config
+        self.optimizer = AdamW(params=actor_model.parameters(), lr=config.lr)
+
+        dataset = self._prepare_dataset(train_dataset)
+        dataset.set_format("torch")
+        self.dataloader = DataLoader(
+            dataset,
+            shuffle=True,
+            batch_size=config.batch_size
+        )
+
+    def compute_loss(
+            self,
+            chosen_logprobs: torch.Tensor,
+            rejected_logprobs: torch.Tensor,
+            ref_chosen_logprobs: torch.Tensor,
+            ref_rejected_logprobs: torch.Tensor,
+    ) -> torch.Tensor:
+        loss = self.config.beta * (chosen_logprobs - ref_chosen_logprobs - rejected_logprobs + ref_rejected_logprobs)
+        return -F.logsigmoid(loss).mean()
+
+    @staticmethod
+    def get_logprobs(model: nn.Module, input_ids: torch.Tensor, attention_mask: torch.Tensor, resp_mask: torch.Tensor):
+        logits, *_ = model(input_ids, attention_mask=attention_mask)
+
+        logits = logits[:, :-1, :].contiguous()
+        labels = input_ids[:, 1:].contiguous()
+        mask = resp_mask[:, 1:].contiguous()
+
+        log_probs = F.log_softmax(logits, dim=-1)
+        log_probs = log_probs.gather(dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
+        return (log_probs * mask).sum(dim=1)
+
+    def _prepare_dataset(self, dataset: Dataset) -> Dataset:
+        assert {"prompt", "chosen", "rejected"} <= set(dataset.column_names)
+        return dataset.map(
+            preprocess,
+            remove_columns=["prompt", "chosen", "rejected"],
+            fn_kwargs={
+                "tokenizer": self.tokenizer,
+                "max_length": self.config.max_length
+            }
+        )
+
+    def train(self):
+        for epoch in range(self.config.epochs):
+            for batch in self.dataloader:
+                chosen_args = [batch["input_ids_chosen"].to(self.config.device),
+                               batch["attention_mask_chosen"].to(self.config.device),
+                               batch["response_mask_chosen"].to(self.config.device)]
+                rejected_args = [batch["input_ids_rejected"].to(self.config.device),
+                                 batch["attention_mask_rejected"].to(self.config.device),
+                                 batch["response_mask_rejected"].to(self.config.device)]
+                chosen_logprobs = self.get_logprobs(self.actor_model, *chosen_args)
+                rejected_logprobs = self.get_logprobs(self.actor_model, *rejected_args)
+
+                with torch.no_grad():
+                    ref_rejected_logprobs = self.get_logprobs(self.ref_model, *rejected_args)
+                    ref_chosen_logprobs = self.get_logprobs(self.ref_model, *chosen_args)
+
+                loss = self.compute_loss(
+                    chosen_logprobs,
+                    rejected_logprobs,
+                    ref_chosen_logprobs,
+                    ref_rejected_logprobs
+                )
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+```
+
+写 DPOTrainer 时候碰到了几个问题记录一下：
+
+首先是 **损失计算**，在 PPO 里面 log_probs 是逐 token 的，$loss = -\frac{p(A_t|S_t)}{p'(A_t|S_t)} \text{Adv}(S_t, A_t)$ 我们对每一个 token 的优势都添加约束。但是在 DPO 里面 log_probs 是逐 sequence 的，$\log \pi_{\theta}(y \mid x)$  指的是整条回复 y 在给定 x 下的对数概率。整条回复的累积 $\log P(y \mid x)$，直接用来比较 chosen 和 rejected 的相对对数概率。
+
+```python
+def get_logprobs(model: nn.Module, input_ids: torch.Tensor, attention_mask: torch.Tensor, resp_mask: torch.Tensor):
+   logits, *_ = model(input_ids, attention_mask=attention_mask
+   logits = logits[:, :-1, :].contiguous()
+   labels = input_ids[:, 1:].contiguous()
+   
+   mask = resp_mask[:, 1:].contiguous()
+   log_probs = F.log_softmax(logits, dim=-1)
+   log_probs = log_probs.gather(dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
+   return (log_probs * mask).sum(dim=1)
+```
+
+这里可以看到我们把 log_probs 求和得到了整个句子的 $\log \pi_{\theta}(y \mid x)$。
+
+第二个问题是 **处理数据**，我们 DPO 的数据格式是：
+
+```json
+{
+	"prompt": "",
+	"chosen": "",
+	"rejected": ""
+}
+```
+
+从上一个问题我们可以注意到，由于 log_probs 是逐 sequence 的，所以我们需要区别 **哪些位置需要计算 log_probs**。对一个 sequence 实际上我们只需要 response 部分，也就是说开头的 prompt 部分和结尾的 PAD 我们都需要忽略。
+
+我的解决方法是通过 `datasets.map` 对数据集进行预处理：首先对 prompt 进行 `apply_chat_template` 知道它的长度，然后计算 prompt+response 的长度，最后拼接掩码：
+
+```python
+chosen_mask = [0] * prompt_len + [1] * (len(chosen_input_ids) - prompt_len)
+rejected_mask = [0] * prompt_len + [1] * (len(rejected_input_ids) - prompt_len)
+```
+
+这个做法的问题就是效率比较低===

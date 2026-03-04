@@ -121,40 +121,107 @@ $$
 在 RLHF 中存在 Reward Hacking 这个概念，训练过程中模型可能会朝着 Reward 倾向的方向走捷径。比如 prompt 是 "今天的天气如何"，那么模型会生成天气情况的分析然后再告诉今天的天气，依次来获取更高的 reward。所以我们需要在 loss 中增加一项，避免模型过度学习，或者说让训练后的模型和原模型差距小一些。RLHF 中引入了一个 Ref Model，这个模型就是经过 SFT 训练后冻结的模型。我们用它和新模型计算 KL 散度，来衡量模型相较于原先的变化。KL 散度的计算公式为：
 
 $$
+\begin{array}{c} \text{KL}[q,p]=\sum_xq(x)\log\frac{q(x)}{p(x)}=\mathbb{E}_{x\sim q}\left[\log\frac{q(x)}{p(x)}\right] \notag \\ \end{array}
+$$
+
+我们对估计的 KL 散度有两个要求，第一最好是无偏的，即估计值的期望与真实值相等，第二方差要尽可能小。最常见的对 KL 散度的估计，是直接按 KL 散度的定义，取 k1 估计：
+
+$$
+\begin{array}{c} k1=\log\frac{q(x)}{p(x)}=-\log r \notag \\ \end{array}
+$$
+
+这里记 $r=\frac{p(x)}{q(x)}$，我们将这个估计记作 k1。k1 的形式就是按定义来的，所以他显然是无偏的。但是，它其中有个 log  函数，当 $\frac{q(x)}{p(x)}<1$ 时，它的值是负的，而我们知道 KL 散度一定是正的，所以说它的方差很大。因此 k1 这个估计不满足低方差的要求。
+
+---
+
+这里我们就引出了 KL 散度的第二种估计 k2 估计：
+
+$$
+\begin{array}{c} k2=\frac{1}{2}\left(\log\frac{p(x)}{q(x)}\right)^2=\frac{1}{2}(\log r)^2 \notag \\ \end{array}
+$$
+
+k2 估计的它对 $\log$ 取了一个平方，这样子 KL 散度就只有正数使得方差显著减小。这个公式是从 KL 散度的更一般的 f 散度近似来的，f 散度是 KL 散度的一种推广：
+
+$$
+\begin{array}{c} D_f(p,q)=\mathbb{E}_{x\sim q}\left[f(\frac{p(x)}{q(x)})\right] \notag \\ \end{array}
+$$
+
+KL 散度的 k1 估计就是取了 $f(x)=-\log(x)$ 的 f 散度，刚刚的 k2 估计是取了 $f(x)=\frac{1}{2}(\log x)^2$ 的 f 散度。
+
+{{< admonition type=question title="为什么不同 f 散度可以近似 KL？或者换句话说，为什么 k2 估计也能当做 KL 散度？">}} 
+当 p 和 q 很接近时候，$r = \frac{p}{q} \approx 1 +\epsilon$。而真实的 KL 散度很小接近于 0，所以我们可以用泰勒展开来近似估计它。我们用任意凸函数做泰勒展开：
+
+$$ 
+f(r) = f(1 + \epsilon) \approx f(1) + f'(1) \epsilon + \frac{1}{2} f''(1) \epsilon^2 + O(\epsilon^3)
+$$
+
+由于所有的 f 散度都要求 $f(1)=0$，并且高阶 $O(\epsilon^3)$ 可以忽略，所以我们可以简化为：
+
+$$
+f(r) \approx f'(1)\epsilon + \frac{1}{2} f''(1) \epsilon^2
+$$
+
+然后我们取期望：
+
+$$
+D_f(p, q) = \mathbb{E}_{x \sim q} [f(r)] \approx \mathbb{E} \left[ f'(1)\epsilon + \frac{1}{2} f''(1) \epsilon^2 \right] = f'(1) \cdot \mathbb{E}[\epsilon] + \frac{1}{2} f''(1) \cdot \mathbb{E}[\epsilon^2]
+$$
+
+由于 $\mathbb{E}[\epsilon]=\mathbb{E}[r - 1]=\mathbb{E}[\frac{p}{q} - 1]=1-1=0$ 所以一阶项就没了，然后 $\mathbb{E}[\epsilon^2]=Var(r)$ 是同一个值，所以最终的期望就 <mark>只依赖于f''(1)</mark>。只要 f''(1) 相同，所有的 f 散度的二阶近似就完全一样，就可以近似当做 KL 散度。
+{{< /admonition >}}
+
+---
+
+k2 估计我们改变了 $f(x)$ 导致这个估计是有偏的，但是平方项降低了 KL 散度的方差， k3 估计就是在无偏的基础上仍然保持了低方差。我们只需要在无偏估计 k1 的基础上，加上一些<mark>期望为 0 且与 k1 负相关的项</mark>，就可以保证无偏的同时，降低方差。而 $r-1=\frac{p(x)}{q(x)}-1$ 就是一个期望为零的项：
+
+$$
+\begin{aligned} \mathbb{E}_q[r-1]&=\mathbb{E}_q\left[\frac{p(x)}{q(x)}-1\right] \\ &=\int\left[\frac{p(x)}{q(x)}-1\right]q(x)dx \\ &=\int p(x)dx-\int q(x)dx \\ &=1-1=0 \end{aligned} \notag \\
+$$
+
+所以，我们有对 KL 散度的第三种估计为：
+
+$$
+\begin{array}{c} k3=(r-1)-\log r \notag \\ \end{array}
+$$
+
+{{< admonition type=question title="为什么加上期望为 0 且与 k1 负相关的项就可以无偏且低方差？">}} 
+我们假设加上的变量为 $Y$，并且满足 $E[Y]=0$ 且 $Y$ 与 $X=-\log r$ 负相关，那么新的估计量可以表示为：
+
+$$
+Z = X+cY
+$$
+
+那么新的估计量的期望就是：
+
+$$
+E[Z]=E[X+cY]=E[X]+cE[Y]=E[X]
+$$
+
+可以看到，$Z$ 依然是 $X$ 的无偏估计。根据方差的性质 $Var(A + B) = Var(A) + Var(B) + 2Cov(A, B)$，我们有：
+
+$$
+Var(Z) = Var(X) + c^2 Var(Y) + 2c Cov(X, Y)
+$$
+
+所以只要 $X$ 和 $Y$ 负相关且相关性的绝对值大于 $c^2Var(Y)$，那么新估计量 $Z$ 的方差就小于旧估计量 $X$ 的方差。
+{{< /admonition >}} 
+
+---
+
+因为在 RLHF 里我们根本不可能真正对所有 x 求和，所以我们需要从 $q$ 分布中采样样本 $x_1,x_2,\dots\sim q$，然后用蒙特卡洛方法对 KL 散度进行估计（也就是我们把一个 batch 里面的平均值近似当做它的期望）：
+
+$$
+\mathbb{E}_{x \sim q}[f(x)] \quad \overset{\text{MC}}{=} \quad \frac{1}{N}\sum_{i=1}^N f(x_i) \quad (x_i \sim q)
+$$
+
+>由于采样过程本身就是按概率抽样，所以蒙特卡洛估计采样求均值不用和求和一样乘一个系数。
+
+$$
 \text{KL} = \frac{1}{n}\sum_{\text{response}}{log{\frac{p(a|s)}{p_{ref}(a|s)}}}
 $$
 
- 首先，我们喂一个 prompt 给 Actor 模型，让它正常输出对应的 response。response 中每一个 token 都有它对应的概率分布，我们把它记为 log_probs。我们把 Actor 生成的"prompt + response" 以 Teacher-Forcing 的方式喂给 Reference 模型，那么它同样能给出 response 中每个 token 的 log_prob 结果，我们记其为 ref_log_probs。把这两个概率分布作差，然后再求对数之和的平均值，就是 KL 散度了。
+在 RLHF 的 PPO 中，我们喂一个 prompt 给 actor model，让它正常 generate 输出对应的 response。response 中每一个 token 都有它对应的概率分布，我们把它记为 log_probs。我们把 actor model 生成的"prompt + response" 以 Teacher-Forcing 的方式喂给 ref model，那么它同样能给出 response 中每个 token 的 log_prob 结果，我们记其为 ref_log_probs。把这两个概率分布作差，然后再求对数之和的平均值，就是 KL 散度了。
 
-KL 散度的标准定义应该是：对于单个 token 的 KL 散度是要对 vocab 上 **每一个 token** 的概率分布作差。但是在 RLHF 的实际实现中，**KL 只针对 Actor 实际生成的 token 计算概率差**，也就是计算 `log p_actor(response[t]) − log p_ref(response[t])`。
-
-Hugging Face 的 trl 库中 KL 惩罚的计算逻辑可以简化如下：
-
-```python
-# 1. 获取当前模型生成 token 的 log_prob
-log_probs = actor_model.get_log_probs(states, actions) 
-
-# 2. 获取参考模型 (Ref) 生成同样 token 的 log_prob
-# 注意：这里不需要 ref_model 输出整个 vocab 的分布，只需要 gather 对应 action 的值
-ref_log_probs = ref_model.get_log_probs(states, actions) 
-
-# 3. 计算 KL 估计
-kl = log_probs - ref_log_probs
-
-# 4. 加入 Loss
-# 通常还会乘一个系数 beta，并且有时会取 abs(kl) 或者根据方向调整
-loss = ppo_loss + beta * kl 
-```
-
-`get_log_probs` 函数内部通常是通过 `gather` 操作，直接从 logits 中取出对应 action 索引的值，而不是遍历整个 vocab。
-
->强化学习中标准的 KL Divergence 公式为：
->
->$$D_{KL}(P \parallel Q) = \sum_{x} P(x) \log \frac{P(x)}{Q(x)}$$
->
->这里的 $x$ 是全部的可能性，而我们在 PPO 里面无法遍历所有可能的状态和动作 $x$ 来计算上面的求和 $\sum$。我们只能通过**采样**来进行蒙特卡洛估计：
->
->$$\sum_{x} P(x) \log \frac{P(x)}{Q(x)} = \sum_{x_i}log\frac{P(x_i)}{Q(x_i)}$$
-
+其次，KL 散度的标准定义应该是：对于单个 token 的 KL 散度是要对 vocab 上 **每一个 token** 的概率分布作差。但是在 RLHF 的实际实现中，**KL 只针对 Actor 实际生成的 token 计算概率差**，也就是计算 `log p_actor(response[t]) − log p_ref(response[t])`。
 
 
