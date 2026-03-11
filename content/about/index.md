@@ -3,7 +3,7 @@ title: 关于
 date: 2025-12-17T23:07:31+08:00
 hiddenFromHomePage: true
 hiddenFromSearch: true
-lastmod: 2026-01-14T11:45:05+08:00
+lastmod: 2026-03-10T12:37:19+08:00
 ---
 
 ![](http://img.xilyfe.top/img/20260114111243410.jpg)
@@ -33,13 +33,41 @@ lastmod: 2026-01-14T11:45:05+08:00
   - [Bilibili](https://space.bilibili.com/37783524):  看的基本都是技术相关以及 LOL 还有动物园的视频
   - [Github Issues](https://github.com/XilyFeAAAA/XilyFeAAAA.github.io/issues): 可以直接在此仓库的 Issue 区联系我。
 
-## 博客发展
+## 2026 目标&计划
 
-{{< admonition type=summary title="时间线">}} 
-- 2025-10-18：博客在 Github Page上线
-- 2025-11-20：申请域名 [https://xilyfe.top](https://xilyfe.top)
-- 2026-01-07：通过 Cloudflare 加速博客和图床
-- 2026-01-19：通过 Fancybox 实现图片放大功能
+{{< admonition type=summary title="ToBeDone">}} 
+- 找到大模型实习
+	- 算法刷题：
+		- LeetCode ⏳
+		- 代码随想录
+		- Hot100
+	- LLM Inference：
+		- vLLM 原理（PagedAttention、Flash Attention）+ 使用
+		- vLLM 实际部署一个模型
+	- Rag：
+		- LangChain，LangGraph，LlamaIndex
+		- 向量数据库
+		- chunking、rerank、embedding召回
+	- Agent：
+		- ReAct、Function Call、Skill、Memory、planing
+	- LLM Reasoning：
+		- Cot、Tot、Self-Consistency ✅
+		- deepseek r1 实现：reasoning RL ⏳
+	- LLM Evaluation
+		- 工具
+		- 评估基准 GSM8K 等
+	- 数据处理：清洗、去重、质量筛选、合成数据生成。
+	- LLM 框架：
+		- VeRL
+		- LlamaFactory
+		- Unsloth
+	- 预计项目：
+		- Reasoning：Search R1、
+		- Rag+Agent+vLLM：垂直领域客服
+- 依旧锻体
+	- 卧推 80KG
+	- 推肩 25KG
+	- 划船 25KG
 {{< /admonition >}}
 
 ## 注意事项
