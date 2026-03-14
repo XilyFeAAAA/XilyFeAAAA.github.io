@@ -8,7 +8,7 @@ series:
   - LLM
 tags:
   - 大模型
-lastmod: 2026-03-11T12:29:00+08:00
+lastmod: 2026-03-12T11:11:13+08:00
 ---
 >本文系统介绍了当前大语言模型推理（Reasoning）能力的核心技术路线，包括推理范式、推理蒸馏以及基于强化学习的推理训练方法，并实现了一套完整的 Reasoning Pipeline。在推理蒸馏阶段，利用 open-thoughts 数据集（由 DeepSeek-R1 生成的高质量推理轨迹）对 Qwen3.5 模型进行监督微调，使模型能够学习显式的 Chain-of-Thought 推理过程，从而获得基础推理能力。在此基础上，通过设计多种奖励函数对模型进行强化学习训练，进一步提升模型的推理能力与输出质量。本文通过完整的工程实践展示了从推理数据构建、蒸馏训练到强化学习优化的全过程，为构建具备推理能力的中小规模语言模型提供了一套可复现的实现方案。
 
@@ -203,7 +203,7 @@ flash_attn: fa2
 ```
 
 然后，实验失败了。训练 500 steps 的模型能够输出思考过程，但是不能完全按照制定的格式输出，其次输出的内容非常冗长，模型会反复推翻自己的决策。我们认为主要存在两个原因：
-1. 模型没有经过冷启动，如果像 Deepseek 一样在 SFT 阶段，就给他训练带有 `<think>` 标签的数据，那么输出的格式应该会规范很多，或者说一个用 Instruct 版本而不是 Base 版本。
+1. 模型没有经过冷启动，如果像 Deepseek 一样在 SFT 阶段，就给他训练带有 `<think>` 标签的数据，那么输出的格式应该会规范很多，或者说应该用 Instruct 版本而不是 Base 版本。
 2. 配置里面 `cutoff_len` 设置太小了，数据集不考虑 System Prompt 和 prompt，单单 response 长度就在 8000 token 上下了，但是由于设备限制，训练时候截取了 2048 的最大长度，有可能思考部分都没结束。
 
 ## Reasoning RL
@@ -219,8 +219,9 @@ flash_attn: fa2
 
 传统方法通过大量人类偏好数据训练一个奖励模型，奖励模型预测的 rewards 是定义在连续实数域 $\mathbb{R}$ 上的一个数。虽然由于训练时候 sigmoid 函数使得实际中大部分 rewards 都分布在 $[-4,+4]$ 之间，**但还是连续且平滑的**。而 Deepseek-R1 使用的 Rule-Based Reward 其分布是<mark>离散的</mark>，比如我们规定答案正确就 +1，答案错误 -1，或者格式正确就基于对应分数。但是由于我们无法定义大量的规则来穷举 -reward 到+reward 之间所有的情况，所以奖励的分布是 **不连续不平滑的**，在梯度下降里，我们需要的信号是"这个回答比上一个**好多少**"，但离散 reward 只能告诉你"好"或者"不好"，没有**程度**的概念。比如两个答案都得了 -0.5，但一个其实差一点点就答对了，另一个推理完全错误——梯度信号看不出区别，全是 -0.5。这种离散的 reward 作为监督信号可能导致模型快速收敛到某些鞍点，最终导致模型训练的失效。
 
->**为什么不用 Reward Model？**
-> 规则奖励是客观的，对就是对，错就是错，没有噪声。而 Reward Model 容易让模型找到捷径，比如反复输出关键词或者输出长串无意义文本，出现 Reward Hacking。
+{{< admonition type=question title="为什么不用 Reward Model？">}} 
+规则奖励是客观的，对就是对，错就是错，没有噪声。而 Reward Model 容易让模型找到捷径，比如反复输出关键词或者输出长串无意义文本，出现 Reward Hacking。
+{{< /admonition >}}
 
 OpenAI 的解决方法是：训练一个模型来得到平滑的 reward。OpenAI 的《Rule Based Rewards for Language Model Safety》这个文章中，他们首先针对每条 rule 都构造了正负样本数据集，然后用这个标注数据集去训练一个分类模型。他们是通过训练一个连续的模型来拟合离散的 reward 分布以产生平滑的reward。但这是个 supervised learning 的方法，需要我们对于每个 rule 都有标注数据，限制了该方法的应用场景。比如采集 math/coding 这种任务带 reasoning 过程的负样本其成本是极高的。
 
@@ -526,5 +527,55 @@ $$
 
 #### entropy 一直降低怎么解决？
 
+![image.png](http://img.xilyfe.top/img/20260311111448653.png)
+
+强化学习中的策略更新机制天然会强化**高概率、优势大的 token**，导致策略输出越来越确定，熵迅速下降。我们回忆一下上面的 GRPO 损失函数的梯度公式：
+
+$$
+\nabla_{\theta} \mathcal{J}_{G R P O} \left(\right. \theta \left.\right) = \frac{1}{G} \sum_{i = 1}^{G} \frac{1}{\left|\right. o_{i} \left|\right.} \sum_{t = 1}^{\left|\right. o_{i} \left|\right.} \hat{A}_{i , t} \nabla_{\theta} log ⁡ \pi_{\theta} \left(\right. o_{i , t} \left|\right. q , o_{i , < t} \left.\right)
+$$
+
+我们可以发现，若一个 token 出现的概率高并且它的 advantage 高，那么它的梯度很大就会被进一步鼓励。这会让这个 token 的 logit 更大概率更高，那么其他 token 的概率就会下降了，导致策略越来越自信，模型输出越来越固定，最后 entropy 就会快速下降了。熵崩塌的解决方法可以见另一篇文章：
+
+{{< link_ref "rlhf-dapo" >}}
 
 #### format_reward 为什么一直为 0？
+
+tensorboard 的截图里面 soft format reward 和 hard format reward 全都是 0，说明从头到尾输出格式都不满足奖励函数的要求。检查奖励函数发现是正则表达式的 pattern 设计的有问题：
+
+```python
+def soft_format_reward(completions, **kwargs):
+    pattern = r"<think>.*?</think>\s*<answer>.*?</answer>"
+    responses = [completion[0]["content"] for completion in completions]
+    matches = [re.match(pattern, response) for response in responses]
+    return [SOFT_FORMAT_REWARD if match else 0.0 for match in matches]
+```
+
+模型训练了 1000 step 后，我随便问了个简单的问题 "1+1等于几？" 看看输出是什么：
+
+```
+<think>
+好的，用户问的是“1+1等于几？”首先我需要确认基本的数学运算。加法是相加的结果，所以1加1确实是2。但要注意是否要考虑其他因素或隐藏的信息。比如有没有可能用到符号或者其他的计算方式，不过通常这种问题都是简单的加法。所以直接回答2即可。
+</think>
+
+<answer>
+2
+</answer>
+```
+
+把这个completion 送入 `soft_format_reward` 发现 reward 确实是 0，原因在于 re 里面的 `.*?` 默认不匹配换行符，所以我改用 `[\s\S]*?` 来代替：
+
+```python
+def soft_format_reward(completions, **kwargs):
+    pattern = r"^<think>[\s\S]*?</think>\n*<answer>[\s\S]*?</answer>"
+    responses = [completion[0]["content"] for completion in completions]
+    matches = [re.match(pattern, response) for response in responses]
+    return [SOFT_FORMAT_REWARD if match else 0.0 for match in matches]
+```
+
+>这里还有一个很奇怪的现象，虽然 Format Tag 在训练期间一直为 0，但是模型在 1000 step 之后还是学习到了按照规则输出。我猜测是 Tag Reward 的设计已经可以引导模型学到正确格式了。
+
+![image.png](http://img.xilyfe.top/img/20260312110955035.png)
+
+
+如图，新代码训练后的模型 soft target reward 已经处于上升的状态了，但是 hard target reward 还是 0，大概率和没有 SFT 冷启动有关系，或者我们的 reward 设计的还是太严格了。
