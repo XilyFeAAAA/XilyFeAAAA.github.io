@@ -3,7 +3,7 @@ title: 关于
 date: 2025-12-17T23:07:31+08:00
 hiddenFromHomePage: true
 hiddenFromSearch: true
-lastmod: 2026-03-14T01:13:39+08:00
+lastmod: 2026-03-15T10:43:26+08:00
 ---
 
 ![](http://img.xilyfe.top/img/20260114111243410.jpg)
@@ -60,6 +60,8 @@ lastmod: 2026-03-14T01:13:39+08:00
 		- 评估基准 GSM8K 等
 	- LLM RLHF
 		- DAPO
+	- LLM 微调
+		- 阅读 Peft 框架
 	- 数据处理：
 		- pipeline
 		- dedup
@@ -77,6 +79,10 @@ lastmod: 2026-03-14T01:13:39+08:00
 		- Qwen3.5
 		- Deepseek-V3/R1
 		- YaRN 等
+	- 零碎：
+		- 长上下文优化：RoPE / YaRN / NTK / KVCache管理
+		- 量化部署：AWQ / GPTQ / NF4 + vLLM 集成
+		- MoE 手写
 	- 依旧锻体
 		- 卧推 80KG
 		- 推肩 25KG

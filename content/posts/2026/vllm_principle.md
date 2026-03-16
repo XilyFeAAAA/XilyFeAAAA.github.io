@@ -1,15 +1,15 @@
 ---
-title: vLLM&Nano-vLLM
+title: vLLM原理&Nano-vLLM
 date: 2026-03-12T11:29:34+08:00
 featuredImage: http://img.xilyfe.top/img/20260312113005524.png
 authors:
   - Xilyfe
 series:
-  - LLM
+  - 推理框架
 tags:
   - Inference
   - 大模型
-lastmod: 2026-03-14T10:25:46+08:00
+lastmod: 2026-03-15T11:11:57+08:00
 ---
 >vLLM 是目前最受欢迎的开源 LLM 推理与服务引擎之一，它以 PagedAttention 为核心创新，彻底解决了传统 LLM Inference 中 KV Cache 内存碎片化的问题，让 throughput 提升 2~24×，同时内存利用率接近 100%。
 
@@ -397,127 +397,7 @@ def allocate_kv_cache(self):
 
 Block 中的 `token_ids` 是**元数据**，用于 Prefix Caching 的哈希计算和缓存验证；真正的 KV Cache 数据存储在 GPU 上的一个巨大张量中，也就是 `self.kv_cache`。这个张量的形状是 `[2, layers, num_blocks, block_size, heads, dim]`，也就代表了模型的每一层都有 `num_kvcache_blocks` 个物理块，每个物理块内存了 `block_size` 个 token 对应的 K 和 V Cache。
 
-
-
-
-
-### 模型
-
-在之前的 inference 中，我们调用的是 transformers 库的 `AutoModelForCausal` 来获得 huggingface 已经预留的模型。比如我们通过 `AutoModelForCausal.from_pretrained` 来调用一个预训练的Qwen3 模型，这时候 transformers 库会根据我们传入的路径中的模型信息，例如 `num_layers` 等，实例化它已经存储过的 Qwen3 Model，在把权重载入模型。
-
-但是 vLLM 中没有像 Huggingface 这样预定义大量开源模型，让我们像 ，这就需要我们手动定义好模型。
-
-```python
-class Qwen3Attention(nn.Module)
-
-class Qwen3MLP(nn.Module)
-
-class Qwen3DecoderLayer(nn.Module)
-
-class Qwen3Model(nn.Module)
-
-class Qwen3ForCausalLM(nn.Module)
-```
-
-Qwen3 就是对 Llama 模型进行了一些修改，后面我也会开一个文章学习一下 Qwen3 的技术报告。这里我们需要关注两个东西，首先模型内部用的不是 torch 自带的 `nn.Linear` 或者 `nn.Embedding`，而是在此基础上封装的了一个张量并行（Tensor Parallelism）版，这个我后面也会开一个文章学习，暂且不谈。其次就是它的 Attention Module。
-
-```python
-@triton.jit
-def store_kvcache_kernel(
-    key_ptr,
-    key_stride,
-    value_ptr,
-    value_stride,
-    k_cache_ptr,
-    v_cache_ptr,
-    slot_mapping_ptr,
-    D: tl.constexpr,
-):
-    idx = tl.program_id(0)
-    slot = tl.load(slot_mapping_ptr + idx)
-    if slot == -1:
-        return
-    key_offsets = idx * key_stride + tl.arange(0, D)
-    value_offsets = idx * value_stride + tl.arange(0, D)
-    key = tl.load(key_ptr + key_offsets)
-    value = tl.load(value_ptr + value_offsets)
-    cache_offsets = slot * D + tl.arange(0, D)
-    tl.store(k_cache_ptr + cache_offsets, key)
-    tl.store(v_cache_ptr + cache_offsets, value)
-
-def store_kvcache(
-    key: torch.Tensor,
-    value: torch.Tensor,
-    k_cache: torch.Tensor,
-    v_cache: torch.Tensor,
-    slot_mapping: torch.Tensor,
-):
-    N, num_heads, head_dim = key.shape
-    D = num_heads * head_dim
-    assert key.stride(-1) == 1 and value.stride(-1) == 1
-    assert key.stride(1) == head_dim and value.stride(1) == head_dim
-    assert k_cache.stride(1) == D and v_cache.stride(1) == D
-    assert slot_mapping.numel() == N
-    store_kvcache_kernel[(N,)](
-        key, key.stride(0), value, value.stride(0), k_cache, v_cache, slot_mapping, D
-    )
-
-class Attention(nn.Module):
-    def __init__(
-        self,
-        num_heads,
-        head_dim,
-        scale,
-        num_kv_heads,
-    ):
-        super().__init__()
-        self.num_heads = num_heads
-        self.head_dim = head_dim
-        self.scale = scale
-        self.num_kv_heads = num_kv_heads
-        self.k_cache = self.v_cache = torch.tensor([])
-
-    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor):
-        context = get_context()
-        k_cache, v_cache = self.k_cache, self.v_cache
-        if k_cache.numel() and v_cache.numel():
-            store_kvcache(k, v, k_cache, v_cache, context.slot_mapping)
-        if context.is_prefill:
-            if context.block_tables is not None:  # prefix cache
-                k, v = k_cache, v_cache
-            o = flash_attn_varlen_func(
-                q, k, v,
-                max_seqlen_q=context.max_seqlen_q,
-                cu_seqlens_q=context.cu_seqlens_q,
-                max_seqlen_k=context.max_seqlen_k,
-                cu_seqlens_k=context.cu_seqlens_k,
-                softmax_scale=self.scale,
-                causal=True,
-                block_table=context.block_tables,
-            )
-        else:  # decode
-            o = flash_attn_with_kvcache(
-                q.unsqueeze(1), k_cache, v_cache,
-                cache_seqlens=context.context_lens,
-                block_table=context.block_tables,
-                softmax_scale=self.scale,
-                causal=True,
-            )
-        return o
-```
-
-在 ModelRunner 部分我们讲过，Nano vLLM 采用**逻辑管理与物理存储分离**，物理块存的是元数据，所有 KVCache 存在一个巨大的张量里面通过索引来更新和读取。
-
-传统 Transformer（HuggingFace 风格） 中， KVCache 是每个序列、每个 Layer 独立存储的连续张量，形状随序列长度增长而动态变化。但是 nano-vllm 采用 PagedAttention 设计，所有 KVCache 存在一个巨大的张量里面通过索引来更新和读取，这块大张量被按 Layer 拆分，直接挂载到每个模块的属性上：
-
-![image.png](http://img.xilyfe.top/img/20260313225413405.png)
-
-在每次推理之前，ModelRunner 会根据 Prefill or Decode 设置好 Context，里面存储了 KV Cache 中定位数据的元数据。
-
-### 模块
-
-
-#### ModelRunner
+### ModelRunner
 
 ![image.png](http://img.xilyfe.top/img/20260313224125577.png)
 
@@ -609,13 +489,113 @@ def run(self, seqs: list[Sequence], is_prefill: bool) -> list[int]:
     return token_ids
 ```
 
-当 LLMEngine 调用 `generate()` 方法每个 step 进行 forward 的时候，ModelRunner 就会调用 `run()` 方法。
+当 LLMEngine 调用 `generate()` 方法每个 step 进行 forward 的时候，ModelRunner 就会调用 `run()` 方法。`run()` 方法首先会根据 Prefill or Decode 预处理 sequence，这里我们插入一个知识点：FlashAttention 中要求传入的 Q/K/V 格式为 \[tokens, head, dim]，也就是说我们<mark>把所有 batch 的 sequence 都压成了一个长序列</mark>，通过一个张量记录每个 sequence 的结束位置，这样就不用对变长序列插入 PAD 浪费算力。
 
+>把 batch 压成一个长序列会不会浪费 GPU 的并行能力？
+>
+>其实并不会，我们用 Prefill 阶段举例：假设有的请求 prefill 2000 token，有的 50 token，我们把他压成一条总长 5000 的序列 + cu_seqlens。这时候 GPU kernel 会自动把长序列切成多个 tile，短序列切成少量 tile。所有 tile 同时并行，不会因为某条序列短就让 GPU 空闲。而传统的 Pad 方法必须把每一序列 pad 到最长序列，大量 pad token 占用线程，并行度被 pad 拖累。
+
+![image.png](http://img.xilyfe.top/img/20260315110203038.png)
+		  
+`input_ids` 和 `positions` 就摊平后的 token 和位置信息，需要注意由于 sequence 可能存在缓存过的公共前缀（KV Cache 缓存过了），所以需要记录的是这个 sequence 未缓存的 token（`seq[seq.num_cached_tokens:]`），由于 KVCache 增量计算是增加的 Q 乘以全部的 KV，所以 `seqlen_k` 是整个 sequence 长度。`cu_seqlens_q` 和 `cu_seqlens_k` 记录的是 Q 和 KV 在压平序列里的累计长度，比如 \[apple, banana] 记录的就是 \[0, 5, 11]。如果发现这个这个 sequence 存在缓存，那么就需要记录 slot_mapping。
+
+![image.png](http://img.xilyfe.top/img/20260315120506639.png)
+
+调试一下就能大概看出每一个变量的作用，这里着重说一下 `slot_mapping`。
+
+`slot_mapping` 是<mark>序列中的 token 位置到 KV cache 的物理位置的映射</mark>，我们从头再梳理一遍：
+1. 首先我们再 Block Manager 中初始化了 `num_blocks` 个空 Block，每个 Block 大小是 `block_size`。也就是说我们总共有 `num_blocks*block_size` 个槽位，每个槽位可以存储一个 token 的 KVCache。
+
+```python
+class BlockManager:
+
+    def __init__(self, num_blocks: int, block_size: int):
+        self.block_size = block_size
+        self.blocks: list[Block] = [Block(i) for i in range(num_blocks)]
+        self.hash_to_block_id: dict[int, int] = dict()
+        self.free_block_ids: deque[int] = deque(range(num_blocks))
+        self.used_block_ids: set[int] = set()
+
+```
+
+2. 同时我们在 ModelRunner 里面初始化了 `self.kv_cache = torch.empty(2, hf_config.num_hidden_layers, config.num_kvcache_blocks, self.block_size, num_kv_heads, head_dim)`，也就是 `num_blocks*block_size` 个 token 的 KVCache。然后我们通过 `view` 让每个 Attention 层只拿到**自己那一层**的 slice，所有层共享同一个大缓冲区，但访问的是自己的 layer slice。
+
+```python
+self.kv_cache = torch.empty(2, hf_config.num_hidden_layers, config.num_kvcache_blocks, self.block_size, num_kv_heads, head_dim)
+layer_id = 0
+for module in self.model.modules():
+    if hasattr(module, "k_cache") and hasattr(module, "v_cache"):
+        module.k_cache = self.kv_cache[0, layer_id]
+        module.v_cache = self.kv_cache[1, layer_id]
+        layer_id += 1
+```
+
+3. 在每个 sequence 的 Prefill 阶段，我们会通过 `allocate()` 方法为他分配物理块，不过这时候只是在 sequence 的类属性里面记录下，比如 `seq.block_table = [0, 1, 2]`
+
+```python
+for i in range(seq.num_blocks):
+    token_ids = seq.block(i)
+    h = self.compute_hash(token_ids, h) if len(token_ids) == self.block_size else -1
+    block_id = self.hash_to_block_id.get(h, -1)
+    if block_id == -1 or self.blocks[block_id].token_ids != token_ids:
+        cache_miss = True
+    if cache_miss:
+        block_id = self.free_block_ids[0]
+        block = self._allocate_block(block_id)
+    else:
+        seq.num_cached_tokens += self.block_size
+        if block_id in self.used_block_ids:
+            block = self.blocks[block_id]
+            block.ref_count += 1
+        else:
+            block = self._allocate_block(block_id)
+    if h != -1:
+        block.update(h, token_ids)
+        self.hash_to_block_id[h] = block_id
+    seq.block_table.append(block_id)
+```
+
+4. 由于进行 Flash Attention 的时候需要传入 token 和其对应 KVCache 位置的映射。一个就是我们之前的 `slot_mapping`：标志每个 token 映射到哪个槽位；第二个是 `block_tables`，它形如 \[0, 1, 2, -1, 3, 4, 5, 6, 7, -1, -1, -1]，表示每个 sequence 对应哪些 Block，比如这个例子里 sequence 1 对应 \[0, 1, 2]，sequence 2 对应 \[3, 4, 5, 6]，sequence 3 对应 \[7]，需要用 -1 进行 PAD。
+5. 然后就是 Attention Forward 的计算了。首先把传入的新的 KV 保存到 KVCache 中，然后把Q、**这一层的 KVCache**、摊平后的位置信息，以及 `block_tables` 都传入 Flash Attention，它内部就会根据位置偏移去这一层的 KVCache 这个大张量中索引每一个 token 对应槽位的 KVCache。
+
+```python
+def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor):
+        context = get_context()
+        k_cache, v_cache = self.k_cache, self.v_cache
+        if k_cache.numel() and v_cache.numel():
+            store_kvcache(k, v, k_cache, v_cache, context.slot_mapping)
+        if context.is_prefill:
+            if context.block_tables is not None:    # prefix cache
+                k, v = k_cache, v_cache
+            o = flash_attn_varlen_func(q, k, v,
+                                      max_seqlen_q=context.max_seqlen_q, cu_seqlens_q=context.cu_seqlens_q,
+                                      max_seqlen_k=context.max_seqlen_k, cu_seqlens_k=context.cu_seqlens_k,
+                                      softmax_scale=self.scale, causal=True, block_table=context.block_tables)
+        else:    # decode
+            o = flash_attn_with_kvcache(q.unsqueeze(1), k_cache, v_cache,
+                            cache_seqlens=context.context_lens, block_table=context.block_tables, 
+                            softmax_scale=self.scale, causal=True)
+        return o
+
+```
+
+![image.png](http://img.xilyfe.top/img/20260315162328558.png)
+
+`prepare_decode` 和 `prepare_prefill` 也有所不同，因为 **Decode 阶段每次 Q 长度都为 1**，并且**肯定会用到之前的 KVCache**，所以我们不需要记录摊平之后的位置，`slop_mapping` 也简单了很多。
 
 ### 生成流程
 
+假设我们有两个 prompt 要进行推理，完整走一遍生成过程：
 1. `outputs = llm.generate(prompts, sampling_params)`，无需多言
 2. `generate()` 内部会通过 while 不断执行一个个 step 直到全部生成结束
-	1. 通过 `scheduler.schedule()` 判断目前应该 Prefill or Decode
-	2. 通过 `model_runner` 调用模型的 forward
-	3. 如果某个 sequence 完成则更新状态，释放物理块等等
+3. 第一个 step：
+	1. 通过 `scheduler.schedule()` 判断目前应该 Prefill，并且通过 `block_manager.allocate()` 为两个 seq 分配物理块（实际上内存在一开始都申请好了，现在不过是把 block id 记录到 seq 里面）
+	2. 调用 `modelrunner.prepare_prefill()` 为两个 seq 记录 Flash Attention 需要的信息，并且把 batch 摊平为一个长序列
+	3. 将两个 seq 送入模型进行前向传播
+	4. 对输出的 logits 进行采样得到 next token 加到 seq 尾部
+4. 开始 step 2：
+	1. 此时判断处于 Decode 阶段，同时还会判断生成新 token 需不需要分配新的物理块
+	2. 调用 `modelrunner.prepare_decode()` 为两个 seq 记录 Flash Attention 需要的信息，并且把 batch 摊平为一个长序列。注意两个方法的区别，在前面也有提到。
+	3. 将两个 seq 送入模型进行前向传播
+	4. 对输出的 logits 进行采样得到 next token 加到 seq 尾部
+5. 经过多个 step 之后生成结束。

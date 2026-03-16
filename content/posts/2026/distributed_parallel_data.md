@@ -1,13 +1,14 @@
 ---
-title: 分布式训练技术
+title: 分布式训练技术 - 数据并行
 date: 2026-02-02T19:50:43+08:00
 featuredImage: http://img.xilyfe.top/img/20260202195145685.png
 authors:
   - Xilyfe
 series:
   - LLM
-tags: []
-lastmod: 2026-02-06T12:12:22+08:00
+tags:
+  - 分布式
+lastmod: 2026-03-15T11:09:41+08:00
 ---
 我们先回忆一下传统的单机单卡训练模式：
 

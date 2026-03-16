@@ -8,7 +8,7 @@ series:
   - 备忘
 tags:
   - CDN
-lastmod: 2026-01-16T11:15:20+08:00
+lastmod: 2026-03-15T11:04:56+08:00
 ---
 把博客部署到 Github Pages 确实很方便，不过由于种种原因在内地没法直连，于是研究用 Cloudflare 加速一下。
 
