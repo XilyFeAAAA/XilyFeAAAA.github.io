@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 深度学习
-lastmod: 2026-02-13T01:53:08+08:00
+lastmod: 2026-03-17T06:44:24+08:00
 ---
 这是 Minimind 学习指北系列的第一节，整个系列我们大致分为：
 1. 模型实现
@@ -392,7 +392,7 @@ class MiniMindForCausalLM(PreTrainedModel, GenerationMixin):
         )
 ```
 
-当处于训练模式的时候，由于因果语言模型的训练逻辑是 **预测下一个词（Next Token Prediction）**，所以我们需要把 logits 和labels 错位，将“模型的预测结果”和“真实的标准答案”对齐。
+当处于训练模式的时候，由于因果语言模型的训练逻辑是 **预测下一个词**，所以我们需要把 logits 和labels 错位，将“模型的预测结果”和“真实的标准答案”对齐。
 
 ```python
 shift_logits = logits[..., :-1, :].contiguous()
@@ -406,3 +406,26 @@ slice_indices = slice(-logits_to_keep, None) if isinstance(logits_to_keep, int) 
 logits = self.lm_head(hidden_states[:, slice_indices, :])
 ```
 
+{{< admonition type=info title="权重共享">}} 
+由于输入 `embedding` 和输出 `lm_head` 是同一个空间，输入 embedding 是一个编码过程，把 token 变成向量。输出是一个解码过程，把向量变成 token 概率。如果不共享就会导致两个空间不对齐，训练很困难。
+
+理论上 embedding 的权重矩阵为：
+
+$$
+W_{emb} \in \mathbb{R}^{V \times H}
+$$
+
+lm_head 的权重矩阵为：
+
+$$
+W_{out} \in \mathbb{R}^{H \times V}
+$$
+
+并且希望：
+
+$$
+W_{out} = W_{emb}^T
+$$
+
+但是由于 PyTorch 里面 Linear 是反着存的，`nn.Linear(in_features, out_features)` 存储的 shape 为 \[out_features,in_features]，所以代码里直接 `self.model.embedding.weight = self.lm_head.weight` 就好了。
+{{< /admonition >}}

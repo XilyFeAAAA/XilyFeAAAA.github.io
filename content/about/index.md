@@ -37,18 +37,21 @@ lastmod: 2026-03-15T10:43:26+08:00
 
 {{< admonition type=summary title="ToBeDone">}} 
 - Currently：
-	- LLM Inference：
-		- vLLM 原理（PagedAttention、Flash Attention）+ 使用
-		- vLLM 实际部署一个模型
 	- RLHF：
 		- DAPO
+		- 手写 RLHF Pipeline 类似 VeRL
+	- LLM 微调
+		- 阅读 Peft 框架
+	- 数据处理(CS336)：
+		- pipeline
+		- dedup
+		- 质量过滤
+		- toxic filter
 - Long Term：
 	- 算法刷题： 
 		- LeetCode
 		- 代码随想录
 		- Hot100
-	- RLHF：
-		- 手写 RLHF Pipeline 类似 VeRL
 	- Rag：
 		- LangChain，LangGraph，LlamaIndex
 		- 向量数据库
@@ -58,15 +61,6 @@ lastmod: 2026-03-15T10:43:26+08:00
 	- LLM Evaluation
 		- 工具
 		- 评估基准 GSM8K 等
-	- LLM RLHF
-		- DAPO
-	- LLM 微调
-		- 阅读 Peft 框架
-	- 数据处理：
-		- pipeline
-		- dedup
-		- 质量过滤
-		- toxic filter
 	- LLM 框架：
 		- VeRL
 		- LlamaFactory
