@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 强化学习
-lastmod: 2026-03-04T08:11:53+08:00
+lastmod: 2026-03-22T11:48:36+08:00
 ---
 ## 公式推导
 
@@ -35,16 +35,52 @@ $$
 \hat{A}_i = \frac{r_i - \mu}{\sigma + \epsilon}
 $$
 
-这样 GRPO 就把每一个 response 的得分化作了组内的相对优势，减少了 critic model 的占用。GRPO 和 PPO 损失函数公式相同，就是把 advantage 换了一个计算方式。
+这样 GRPO 就把每一个 response 的得分化作了组内的相对优势，减少了 critic model 的占用。GRPO 和 PPO 损失函数公式相同，就是把 advantage 换了一个计算方式，我们就能得到 GRPO 的公式：
+
+$$
+J_{\text{GRPO}}(\theta) = \mathbb{E} \left[ \frac{1}{G} \sum_{i=1}^{G}  \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \min\left( r_{i,t}(\theta) \hat{A}_{i,t},\ \text{clip}(r_{i,t}(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_{i,t} \right)  - \beta D_{\text{KL}} \right]
+$$
 
 >在训练DeepSeek-R1-Zero时，不仅去掉了价值模型，甚至连奖励模型都去掉了。取而代之的是仅仅使用基于规则的奖励函数。进一步降低了计算消耗。
 >- 准确奖励：对于有确定结果的问题，直接判断结果是否正确。例如数学题，代码题。
 >- 格式奖励：是否按照指定格式输出。（对于没有客观答案的题，只判断格式进行奖励。为后面的自我进化做铺垫)
 
-在 PPO 里面我们用 GAE 计算了每个时间步的 advantage，那么 GRPO 采用同一个公式应该也是逐 token 的advantage吧。可是 reward model 是对整个 sequence 进行打分，并且归一化后我们每个句子得到一个相对优势，那是不是矛盾了呢？实际上GRPO 的 advantage 确实是基于句子级 reward 计算出来的标量，但在计算 policy gradient / surrogate loss 时，这个标量会被广播到该 response 的所有 token 上，所以训练过程仍然是逐 token 的，只是所有 token 用的 advantage 值相同。这么做是因为 GRPO 的设计目标就是**简化 + 适配可验证奖励**：
+在 PPO 里面我们用 GAE 计算了每个时间步的 advantage，那么 GRPO 采用同一个公式应该也是逐 token 的 advantage吧。可是 reward model 是对整个 sequence 进行打分，并且归一化后我们每个句子得到一个相对优势，那是不是矛盾了呢？实际上GRPO 的 advantage 确实是基于句子级 reward 计算出来的标量，但在计算 policy gradient / surrogate loss 时，这个标量会被广播到该 response 的所有 token 上，所以训练过程仍然是逐 token 的，只是所有 token 用的 advantage 值相同。这么做是因为 GRPO 的设计目标就是**简化 + 适配可验证奖励**：
 - 很多推理任务的 reward 是**句子级别对错**（数学题答对=1，答错=0；代码跑通=1，没跑通=0）
 - 如果强行用 GAE 去逐 token 估计 advantage，由于中间 token 没有显式奖励信号，反而会引入大量噪声
 - 而“一题多答 + 组内相对”正好利用了“同样问题不同回答的质量差异”来提供干净的相对信号
+
+{{< admonition type=question title="GRPO 每个 token 的损失都一样为什么还要求平均？">}} 
+一开始看的时候我有个疑惑：reward function 都是对一整个 sequence 进行打分得到优势，然后通过 group 内标准化得到优势 $\hat A_i$，这个优势被分配给 sequence 内的所有 token $\hat A_{i,t} = \hat A_i$，也就是说每一个 token 的优势是一样的。其次在 GRPO 中 `num_iterations=1`，也就是说： 
+
+$$
+r_{i,t}(\theta) = \exp(\log \pi_\theta - \log \pi_{\text{old}}) = 1
+$$
+
+那么每个 token 的损失 $r_{i,t}(\theta) \hat{A}_{i,t}$ 不就都是相同的吗，我们有什么必要求平均呢？问题在于：**损失的值相同，但是每个 token 的梯度不同**。损失函数对 $\theta$ 求梯度时，虽然 $r_{i,t}$​ 的 **数值**为 1，但它**不是常数**，因为：
+
+$$
+r_{i,t}(\theta) = \exp\bigl(\log\pi_\theta(o_{i,t}) - \log\pi_\theta(o_{i,t}).\text{detach()}\bigr)
+$$
+
+对 $\theta$ 求导：
+
+$$
+\nabla_\theta r_{i,t} = r_{i,t} \cdot \nabla_\theta \log\pi_\theta(o_{i,t}) = 1 \cdot \nabla_\theta \log\pi_\theta(o_{i,t})
+$$
+
+所以整体梯度为：
+
+$$
+\nabla_\theta \mathcal{L} = -\frac{1}{G} \sum_i \hat{A}_i \cdot \left( \frac{1}{|o_i|} \sum_t \nabla_\theta \log\pi_\theta(o_{i,t}) \right)
+$$
+
+每一个 token 的贡献不同，虽然大家共享同一个 $\hat{A}_i$，但每个 token 在当前模型下的 log-probability 不同。有的 token 模型本来就很确定，有的很犹豫。梯度下降会根据 $\hat{A}_i$ 的正负，去集体拉高或压低这组 token 的出现概率。如果不求平均，只选其中一个 token 来计算，那么只更新了模型在那个特定位置的生成偏好，而忽略了整个 sequence 其他 token 的贡献。
+
+其次是为了消除序列长度的影响。如果在计算 Loss 时不除以 $|o_i|$：
+- **长响应会统治梯度：** 一个 1000 tokens 的废话连篇的回复，其梯度总和会比一个 10 tokens 的精炼回复大 100 倍。 
+- **训练不稳定：** 如果不平均，模型会为了获取更高的“总梯度”而倾向于把序列越写越长。
+{{< /admonition >}}
 
 ## 代码实现
 
