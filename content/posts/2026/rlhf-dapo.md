@@ -9,9 +9,13 @@ series:
 tags:
   - 大模型
   - 强化学习
-lastmod: 2026-03-23T12:06:40+08:00
+lastmod: 2026-03-26T06:38:49+08:00
 ---
->**DAPO** 全称为 Decoupled Clip and Dynamic Sampling Policy Optimization，解耦裁剪与动态采样策略优化。该算法在 **GRPO** 基础上进行了重大改进。GRPO 是 PPO 的简化版，但在长 CoT 场景下容易出现**熵崩塌**、奖励噪声、训练不稳定等问题，DAPO 通过四个核心技术解决了这些问题。
+{{< admonition type=info title="Summary">}} 
+**DAPO** 全称为 Decoupled Clip and Dynamic Sampling Policy Optimization，解耦裁剪与动态采样策略优化。该算法在 **GRPO** 基础上进行了重大改进。GRPO 是 PPO 的简化版，但在长 CoT 场景下容易出现**熵崩塌**、奖励噪声、训练不稳定等问题，DAPO 通过四个核心技术解决了这些问题。
+{{< /admonition >}}
+
+
 
 $$
 J_{\text{DAPO}}(\theta) = \mathbb{E} \left[ \frac{1}{\sum |o_i|} \sum_i \sum_t \min \left( r_{i,t}(\theta) \hat{A}_{i,t},\ \text{clip}(r_{i,t}(\theta), 1-\epsilon_{\text{low}}, 1+\epsilon_{\text{high}}) \hat{A}_{i,t} \right) \right]
@@ -136,3 +140,5 @@ $$
 $$
 
 具体来说，当响应长度超过预设的最大值时，定义一个惩罚区间。在区间内，响应越长，受到的惩罚越大。该惩罚将被添加到原始的基于规则的正确性奖励中，从而引导模型避免生成过长的响应。
+
+>但是奖励噪声的根本问题在于：合理的推理过程可能仅因其过长而受到惩罚，此类惩罚机制可能会使模型对其推理过程的有效性产生混淆。而 Soft Overlong Punishment 的本质只是把 Overlong Punishment 从悬崖变成斜坡，信号语义污染的问题没得到解决。

@@ -4,7 +4,8 @@ date: 2026-03-14T10:59:39+08:00
 featuredImage: http://img.xilyfe.top/img/20260314174134259.png
 authors:
   - Xilyfe
-series: []
+series:
+  - LLM
 tags:
   - GPU
 lastmod: 2026-03-14T11:44:21+08:00
