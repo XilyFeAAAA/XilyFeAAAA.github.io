@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Python 技巧 on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/series/python-%E6%8A%80%E5%B7%A7/</link>
+    <description>Recent content in Python 技巧 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sat, 14 Feb 2026 04:48:02 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/series/python-%E6%8A%80%E5%B7%A7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Python Tricks</title>
+      <link>http://xilyfeAAAA.github.io/posts/tricks/</link>
+      <pubDate>Sun, 19 Oct 2025 17:59:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/tricks/</guid>
+      <description>&lt;h2 id=&#34;如何实现给一个类成员函数绑定事件&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%a6%82%e4%bd%95%e5%ae%9e%e7%8e%b0%e7%bb%99%e4%b8%80%e4%b8%aa%e7%b1%bb%e6%88%90%e5%91%98%e5%87%bd%e6%95%b0%e7%bb%91%e5%ae%9a%e4%ba%8b%e4%bb%b6&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;如何实现给一个类成员函数绑定事件&lt;/h2&gt;&lt;blockquote&gt;&#xA;  &lt;p&gt;场景：插件系统中，需要给插件的函数绑定&lt;code&gt;on_message&lt;/code&gt;，当收到消息时候调用函数。&lt;/p&gt;&#xA;&#xA;&lt;/blockquote&gt;&lt;p&gt;一切都是&lt;strong&gt;绑定方法&lt;/strong&gt;和&lt;strong&gt;未绑定方法&lt;/strong&gt;的处理&lt;/p&gt;&#xA;&lt;p&gt;方案1：&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;code&gt;@on_message&lt;/code&gt;装饰器给需要的插件添加&lt;code&gt;metadata&lt;/code&gt;&lt;/li&gt;&#xA;&lt;li&gt;在&lt;code&gt;__init__&lt;/code&gt;中，遍历全部成员函数，如果有&lt;code&gt;metadata&lt;/code&gt;，就从self上getattr下来这个&lt;strong&gt;绑定方法&lt;/strong&gt;&lt;/li&gt;&#xA;&lt;li&gt;在加载插件时候实例化插件类&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;方案2：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Python 设计模式</title>
+      <link>http://xilyfeAAAA.github.io/posts/design/</link>
+      <pubDate>Sun, 19 Oct 2025 17:59:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/design/</guid>
+      <description>&lt;h2 id=&#34;单例模式&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%8d%95%e4%be%8b%e6%a8%a1%e5%bc%8f&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;单例模式&lt;/h2&gt;&lt;h3 id=&#34;实现方式&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%ae%9e%e7%8e%b0%e6%96%b9%e5%bc%8f&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;实现方式&lt;/h3&gt;&lt;ol&gt;&#xA;&lt;li&gt;&lt;strong&gt;模块实现单例&lt;/strong&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;div class=&#34;code-block highlight is-open show-line-numbers  tw-group tw-my-2&#34;&gt;&#xA;  &lt;div class=&#34;&#xA;    &#xA;    tw-flex &#xA;    tw-flex-row&#xA;    tw-flex-1 &#xA;    tw-justify-between &#xA;    tw-w-full tw-bg-bgColor-secondary&#xA;    &#34;&gt;      &#xA;    &lt;button &#xA;      class=&#34;&#xA;        code-block-button&#xA;        tw-mx-2 &#xA;        tw-flex&#xA;        tw-flex-row&#xA;        tw-flex-1&#34;&#xA;      aria-hidden=&#34;true&#34;&gt;&#xA;          &lt;div class=&#34;group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 320 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z&#34;/&gt;&lt;/svg&gt;&lt;/div&gt;&#xA;          &lt;p class=&#34;tw-select-none !tw-my-1&#34;&gt;python&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Python 异步编程</title>
+      <link>http://xilyfeAAAA.github.io/posts/async/</link>
+      <pubDate>Sun, 19 Oct 2025 17:59:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/async/</guid>
+      <description>&lt;h2 id=&#34;事件循环&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%ba%8b%e4%bb%b6%e5%be%aa%e7%8e%af&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;事件循环&lt;/h2&gt;&lt;h3 id=&#34;获取当前事件循环&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e8%8e%b7%e5%8f%96%e5%bd%93%e5%89%8d%e4%ba%8b%e4%bb%b6%e5%be%aa%e7%8e%af&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;获取当前事件循环&lt;/h3&gt;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th&gt;方法&lt;/th&gt;&#xA;          &lt;th&gt;适用场景&lt;/th&gt;&#xA;          &lt;th&gt;是否要求协程中运行&lt;/th&gt;&#xA;          &lt;th&gt;Python 3.10+&lt;/th&gt;&#xA;          &lt;th&gt;行为&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;&lt;code&gt;asyncio.get_running_loop()&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td&gt;在协程/任务中获取当前运行的事件循环&lt;/td&gt;&#xA;          &lt;td&gt;✅ 必须在事件循环中调用&lt;/td&gt;&#xA;          &lt;td&gt;✅ 推荐&lt;/td&gt;&#xA;          &lt;td&gt;抛错如果没有运行的 loop&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;&lt;code&gt;asyncio.get_event_loop()&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td&gt;早期通用方式&lt;/td&gt;&#xA;          &lt;td&gt;❌ 可在同步代码中用&lt;/td&gt;&#xA;          &lt;td&gt;⚠️ 不推荐新项目用&lt;/td&gt;&#xA;          &lt;td&gt;自动创建事件循环（旧行为）&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;&lt;strong&gt;官方推荐（Python 3.10+）&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Python 装饰器</title>
+      <link>http://xilyfeAAAA.github.io/posts/decorator/</link>
+      <pubDate>Sun, 19 Oct 2025 17:59:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/decorator/</guid>
+      <description>&lt;h2 id=&#34;最基本的装饰器&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e6%9c%80%e5%9f%ba%e6%9c%ac%e7%9a%84%e8%a3%85%e9%a5%b0%e5%99%a8&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;最基本的装饰器&lt;/h2&gt;&lt;div class=&#34;code-block highlight is-open show-line-numbers  tw-group tw-my-2&#34;&gt;&#xA;  &lt;div class=&#34;&#xA;    &#xA;    tw-flex &#xA;    tw-flex-row&#xA;    tw-flex-1 &#xA;    tw-justify-between &#xA;    tw-w-full tw-bg-bgColor-secondary&#xA;    &#34;&gt;      &#xA;    &lt;button &#xA;      class=&#34;&#xA;        code-block-button&#xA;        tw-mx-2 &#xA;        tw-flex&#xA;        tw-flex-row&#xA;        tw-flex-1&#34;&#xA;      aria-hidden=&#34;true&#34;&gt;&#xA;          &lt;div class=&#34;group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 320 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z&#34;/&gt;&lt;/svg&gt;&lt;/div&gt;&#xA;          &lt;p class=&#34;tw-select-none !tw-my-1&#34;&gt;python&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

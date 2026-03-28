@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Asyncio on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/asyncio/</link>
+    <description>Recent content in Asyncio on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sun, 19 Oct 2025 17:59:11 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/asyncio/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Python 异步编程</title>
+      <link>http://xilyfeAAAA.github.io/posts/async/</link>
+      <pubDate>Sun, 19 Oct 2025 17:59:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/async/</guid>
+      <description>&lt;h2 id=&#34;事件循环&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%ba%8b%e4%bb%b6%e5%be%aa%e7%8e%af&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;事件循环&lt;/h2&gt;&lt;h3 id=&#34;获取当前事件循环&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e8%8e%b7%e5%8f%96%e5%bd%93%e5%89%8d%e4%ba%8b%e4%bb%b6%e5%be%aa%e7%8e%af&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;获取当前事件循环&lt;/h3&gt;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th&gt;方法&lt;/th&gt;&#xA;          &lt;th&gt;适用场景&lt;/th&gt;&#xA;          &lt;th&gt;是否要求协程中运行&lt;/th&gt;&#xA;          &lt;th&gt;Python 3.10+&lt;/th&gt;&#xA;          &lt;th&gt;行为&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;&lt;code&gt;asyncio.get_running_loop()&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td&gt;在协程/任务中获取当前运行的事件循环&lt;/td&gt;&#xA;          &lt;td&gt;✅ 必须在事件循环中调用&lt;/td&gt;&#xA;          &lt;td&gt;✅ 推荐&lt;/td&gt;&#xA;          &lt;td&gt;抛错如果没有运行的 loop&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;&lt;code&gt;asyncio.get_event_loop()&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td&gt;早期通用方式&lt;/td&gt;&#xA;          &lt;td&gt;❌ 可在同步代码中用&lt;/td&gt;&#xA;          &lt;td&gt;⚠️ 不推荐新项目用&lt;/td&gt;&#xA;          &lt;td&gt;自动创建事件循环（旧行为）&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;&lt;strong&gt;官方推荐（Python 3.10+）&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
