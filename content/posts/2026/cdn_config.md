@@ -20,9 +20,9 @@ lastmod: 2026-03-15T11:04:56+08:00
 这样 Cloudflare 就能接管域名的 DNS服务。当我们访问域名 `xilyfe.top` 时候，浏览器会请求 Cloudflare 的 DNS，得到最近节点 IP，然后访问最近 Cloudflare 边缘节点，而不是直接访问 Github Pages。而 Cloudflare 节点会代替我们访问 GitHub Pages 源站。
 {{< /admonition >}}
 
-## 加速 Github Page
+## 1. 加速 Github Page
 
-### 配置 cloudflare
+### 1.1 配置 cloudflare
 
 1. 进入[https://www.cloudflare-cn.com/](https://www.cloudflare-cn.com/)，注册账号并登录
 2. 添加自己的域名
@@ -56,7 +56,7 @@ lastmod: 2026-03-15T11:04:56+08:00
 
 ![](http://img.xilyfe.top/img/20260116105907445.png)
 
-### 配置 Github Repo
+### 1.2 配置 Github Repo
 
 1. 进入 github.io 对应的仓库，进入 Settings：
 
@@ -66,9 +66,9 @@ lastmod: 2026-03-15T11:04:56+08:00
 
 ![](http://img.xilyfe.top/img/20260116110155120.png)
 
-## 加速图床 
+## 2. 加速图床 
 
-### 配置 cloudflare
+### 2.1 配置 cloudflare
 
 1. 回到 Cloudflare 面板，打开 **Workds and Pages** 这个 tab，点击**创建应用程序**：
 
@@ -287,7 +287,7 @@ async function device_status(user_agent_info) {
 7. 域的名称可以是 **任意前缀+域名**，例如：img.xilyfe.top：
 
 ![](http://img.xilyfe.top/img/20260116111402241.png)
-### 配置 picgo
+### 2.2 配置 picgo
 
 在 picgo 设置中填写自定义域名就可以了
 

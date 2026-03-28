@@ -8,7 +8,7 @@ series:
   - LLM
 tags:
   - 数据集
-lastmod: 2026-03-26T06:44:31+08:00
+lastmod: 2026-03-27T02:32:03+08:00
 ---
 {{< admonition type=info title="Summary">}} 
 这一篇笔记主要记录一下 Huggingface 库提供的 Trainer 接受的数据集格式，以及 Packing 和 Padding 两种对其策略。
@@ -139,6 +139,46 @@ for knapsack in knapsacks:
 ```
 
 LlamaFactory 采用了 Packing 和 Padding 结合的策略：它首先基于所有数据的长度进行检索，类似于背包问题，将其排序然后在截断长度之内贪心检索最合适的长度加入。例如排序之后我们得到如下数组：$[[2048],[1024,1023],[1000,1000,41],[500,500,500,20]]$。我们确保每一个 block 都尽可能容纳 sample，然后剩余的部分就进行 padding 补全，这样就不会出现 sample 被截断出现在两个 block，导致缺失上下文信息的问题。
+
+### 如何选择
+
+一般来说，Padding 适用于 SFT 和推理阶段，Packing 适用于 Pretrain 阶段。
+
+Pretrain 的 loss 是单纯的 **next token prediction**，对整个 token 序列的每一个位置都预测下一个 token：
+
+```
+输入:  The  cat  sat  on  the  mat
+预测:  cat  sat  on   the mat  <EOS>
+loss:   ✓    ✓    ✓    ✓   ✓    ✓   ← 每个位置都算
+```
+
+pretrain 的目标是让模型学会"什么词后面跟什么词"，也就是语言的统计规律。这个目标**天然不需要样本边界**。自然语言本身就是一条流。互联网上的文本从来不是孤立存在的，一篇文章结束另一篇开始，这种"跨文档"的语言模式本来就是真实世界语言数据的样子。模型只需要在 EOS 处学会"这里是文档结束"，剩下的 token 全部参与 loss 完全合理。所以 packing 对 pretrain 是 **zero-cost 的**，不损失任何训练信号，反而把算力利用率提高了。
+
+SFT 的目标完全不同，它要教模型**在给定 prompt 的条件下生成正确的 response**，Loss 只算 response 部分：
+
+```
+输入:  [INST] 帮我写诗 [/INST]  春风吹  绿了  江南岸  <EOS>
+label:  -100    -100   -100  -100   春风吹  绿了  江南岸  <EOS>
+loss:    ✗       ✗      ✗     ✗      ✓      ✓      ✓      ✓
+```
+
+在 SFT 阶段使用 packing 就会出现上文提到的 2/3 种情况，模型在生成问题 B 的回答时，它的"已知条件"不只是问题 B，还包含了回答 A。真实推理时每个请求是独立的，不会有"上一个用户的回答"混在 context 里。这就产生了**训练和推理的分布偏差**，模型学到了一些在推理时永远不会出现的 pattern，实际效果变差。其次 SFT 阶段的数据集大小比 Pretrain 小几个数量级，所以 padding 导致的算力浪费可以接受。
+
+>Pretrain 的 loss 是无差别的 next token prediction，token 流可以任意拼接；SFT 的 loss 是有条件的、有边界的，样本之间必须隔离，推理时样本天然独立
+
+{{< admonition type=question title="SFT 就完全不能用 packing 吗">}} 
+可以用，但需要额外处理——加 **document attention mask**，让 packing 后的每条样本只 attend 自己内部的 token：
+
+```python
+# 每个 token 记录自己属于哪条样本
+doc_ids = [0,0,0,0, 1,1,1,1,1, 2,2,2]  # 拼了3条样本
+
+# attention 时只允许同一 doc_id 内的 causal attention
+# 不同 doc_id 之间完全屏蔽
+```
+
+TRL 的 `SFTTrainer` 4.x 之后支持 `packing=True`，内部就是这么做的。但实现复杂，且 SFT 数据量通常不大，收益有限，大多数情况下直接 padding 更省心。
+{{< /admonition >}}
 
 ## Trainer 数据集处理
 

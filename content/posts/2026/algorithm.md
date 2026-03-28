@@ -8,13 +8,13 @@ series: []
 tags: []
 lastmod: 2026-02-10T03:59:58+08:00
 ---
-## 数组
+## 1. 数组
 
-### 二分查找
+### 1.1 二分查找
 
 二分查找的原理就是不断收缩 left 和 right 指针，使得最终希望找的的元素 target 在他们围成的区域里。所以这就引申出两种写法，如果区域是左闭右闭的 \[left, right]，那么最终 target 就是 `left==right` 的那个值；如果是左闭右开的 \[left, right)，那么当 `left+1==right` 时候 target 就在左端点的位置。
 
-#### 左闭右开
+#### 1.1.1 左闭右开
 
 - 如果 `left==right`，那么说明已经没有意义 target 不存在了，所以循环条件应该是 `while left < right`。
 - 出现 `A[mid] > target` 时候，我们应该收缩右边界。由于规定了右边界是开的，所以可以让 `right=A[mid]`。
@@ -33,7 +33,7 @@ def binaery_search(arr, tgt):
 	return -1
 ```
 
-#### 左闭右闭
+#### 1.1.2 左闭右闭
 
 - 由于右端点是闭的，所以 `left==right` 时 target 仍然可能存在，需要 `while left <= right` 判断
 - 出现 `A[mid] > target` 时候，我们明确 `A[mid]` 不可能为 target 了，所以不能放在右端点
@@ -52,7 +52,7 @@ def binaery_search(arr, tgt):
 	return l
 ```
 
-#### lower_bound
+#### 1.1.3 lower_bound
 
 lower_bound 标准定义是：在一个有序数组 A\[0…n−1] 中，返回第一个**大等于** x 的位置下标。假设我们使用左闭右开区间 \[left, right)，那么我们就需要保持以下的循环不变量：
 1. 区间左侧 $[0, l)$中的元素一定满足 A\[i] < x  
@@ -64,7 +64,7 @@ def lower_bound(nums, tgt):
 	while 
 ```
 
-#### upper_bound
+#### 1.1.4 upper_bound
 
 upper_bound 标准定义是：在一个有序数组 A\[0…n−1] 中，返回第一个**严格大于** x 的位置下标。假设我们使用左闭右开区间 \[left, right)，那么我们就需要保持以下的循环不变量：
 1. 区间左侧 $[0, l)$中的元素一定满足 A\[i] ≤ x  
@@ -85,24 +85,24 @@ def upper_bound(nums, tgt):
 ```
 
 
-## 链表
+## 2. 链表
 
-## 哈希表
+## 3. 哈希表
 
-## 字符串
+## 4. 字符串
 
-## 双指针
+## 5. 双指针
 
-## 栈&队列
+## 6. 栈&队列
 
-## 二叉树
+## 7. 二叉树
 
-## 回溯
+## 8. 回溯
 
-## 贪心
+## 9. 贪心
 
-## 动态规划
+## 10. 动态规划
 
-## 单调栈
+## 11. 单调栈
 
-## 图论
+## 12. 图论
