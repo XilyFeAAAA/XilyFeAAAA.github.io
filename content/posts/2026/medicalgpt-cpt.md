@@ -6,7 +6,7 @@ authors:
   - Xilyfe
 series:
 tags: []
-lastmod: 2026-03-28T06:17:37+08:00
+lastmod: 2026-03-30T09:06:45+08:00
 ---
 {{< admonition type=info title="Summary">}} 
 Minimind 和强化学习暂时告一段落了，现在准备开始一个新的项目 “MedicalGPT”。这个项目也是 Github 上的一个开源项目，实现了包括增量预训练、有监督微调、RLHF 和 DPO。这个项目中我主要会学习其中的一些 trick、数据构造思路、训练评估的完整流程，总体如下：
@@ -125,7 +125,6 @@ def calc_ppl_sliding_window(
         else None,
     }
 ```
-
 
 ## 2. CPT
 ### 2.1 构造数据集
@@ -598,7 +597,6 @@ if __name__ == "__main__":
     alpaca_to_sharegpt(args.input, args.output)
 ```
 
-
 #### 3.1.2 整体思路
 
 数据筛选的 pipeline 包括多锚点目标分布 + 粗筛 + 质量过滤 + 多样性去冗：
@@ -666,7 +664,9 @@ def is_zh(text):
 
 ---
 
-语义相似度去重又是一个比较麻烦的环节，一开始我的想法是 **MinHash + Locality-Sensitive Hashing 做近似去重**。我们通过 MinHash 给句子计算出一个签名，它是一个长度为 128 的向量。然后用 LSH 存储前面，这样就可以用用桶快速找到候选相似项。
+语义相似度去重又是一个比较麻烦的环节，一开始我的想法是 **n-gram + MinHash + LSH 做近似去重**，这也是一个比较主流的去重方法，具体原理可见文章：
+
+{{< link_ref "data_clean" >}}
 
 ```python
 @staticmethod
@@ -693,181 +693,71 @@ def minhash_dedup(self, samples: list[dict]) -> list[dict]:
     return kept
 ```
 
-测试中出现了这样的问题，医疗数据集中可能出现大量重复的词，例如："怎么办"、"是什么"、"如何治疗"、"怎么做"。这种词就会导致算法误判两个句子的相似度，例如 "糖尿病怎么治疗" 和 "低血糖怎么治疗" 两个完全不同意思的句子可能判断为相似。这个问题的本质是：**MinHash 的输入信号被模板词污染了**。MinHash 把 "怎么治疗" 这个模板当成核心特征，两个问题的交集大，Jaccard 自然高。我的解决方案是过滤掉模板词，让 MinHash 只关注实体词。
+测试中出现了这样的问题，医疗数据集中可能出现大量重复的词，例如："怎么办"、"是什么"、"如何治疗"、"怎么做"。这种词就会导致算法误判两个句子的相似度，例如 "糖尿病怎么治疗" 和 "低血糖怎么治疗" 两个完全不同意思的句子可能判断为相似。这个问题的本质是：**MinHash 的输入信号被模板词污染了**。MinHash 把 "怎么治疗" 这个模板当成核心特征，两个问题的交集大，Jaccard 自然高。我的解决方案是过滤掉 stopwords，让 MinHash 只关注实体词。
 
-首先设计了一个 AutoStopwords 类从数据集中搜索 stopwords，为每个词计算它的 DF（文档频率）：
+那我们应该如何知道哪些词是 stopwords，哪些词很重要呢？这里引入 **逆文档频率 (Inverse Document Frequency)** 的概念，它评估一个词在语料库中的“稀有程度”，假如一个词 "心脏" 出现的频率很低，说明它比较稀有，那么我们就可以且认为它是比较重要的词。同样 "怎么样" 这个词出现频率非常高，那么就不怎么重要了，这个 stopwords 我们就不应该考虑。
 
 ```python
-class AutoStopwords:
-    def __init__(self, df_threshold: float = 0.3):
-        self.df_threshold = df_threshold
-        self.doc_freq: dict[str, int] = {}
-        self.idf: dict[str, float] = {}
-        self.stopwords: set[str] = set(BASE_STOPWORDS)
-        self.n_docs: int = 0
+def collect(self, docs: list[str]):
+    self.n_docs = len(docs)
+    for doc in tqdm(docs, desc="统计词频"):
+        for w in set(self.tokenize(doc)):
+            self.freqs[w] += 1
+    for w, df in tqdm(self.freqs.items(), desc="计算IDF"):
+        idf = math.log((self.n_docs + 1) / df) + 1.0
+        self.idf[w] = idf
+        if idf <= self.df_threshold:
+            self.stopwords.add(w)
+    print(f"stopwords size: {len(self.stopwords)}")
+    return self
 
-    def fit(self, texts: list[str], sample_n: Optional[int] = 50000) -> "AutoStopwords":
-        log.info(
-            f"AutoStopwords: 统计 DF（样本 {min(sample_n or len(texts), len(texts))} 条）..."
-        )
-
-        if sample_n and len(texts) > sample_n:
-            probe = random.sample(texts, sample_n)
-        else:
-            probe = texts
-
-        self.n_docs = len(probe)
-        for text in tqdm(probe, desc="DF 统计"):
-            tokens = set(tokenize(text))
-            for tok in tokens:
-                self.doc_freq[tok] = self.doc_freq.get(tok, 0) + 1
-
-        for word, df in self.doc_freq.items():
-            self.idf[word] = math.log((self.n_docs + 1) / (df + 1)) + 1.0
-
-        auto_stop = {
-            w
-            for w, df in self.doc_freq.items()
-            if df / self.n_docs >= self.df_threshold
-        }
-        self.stopwords |= auto_stop
-
-        log.info(f"  词表大小: {len(self.doc_freq)}")
-        log.info(f"  自动停用词: {len(auto_stop)} 个（DF ≥ {self.df_threshold}）")
-        log.info(f"  示例停用词: {list(auto_stop)[:20]}")
-        return self
-
-    def top_k_tokens(self, text: str, k: int = 8) -> list[str]:
-        tokens = [t for t in tokenize(text) if t not in self.stopwords]
-        if not tokens:
-            tokens = [t for t in tokenize(text) if t not in BASE_STOPWORDS]
-        if not tokens:
-            return tokenize(text)
-        
-        scored = sorted(
-            tokens,
-            key=lambda t: self.idf.get(t, 1.0),
-            reverse=True,
-        )
-        return scored[:k]
+def build_features(self, text: str):
+    tokens = self.tokenize(text)
+    word_ngrams = [" ".join(tokens[i : i + 2]) for i in range(len(tokens) - 1)]
+    word_ngrams = [
+        g
+        for g in word_ngrams
+        if any(self.idf.get(w, 0) > self.df_threshold for w in g.split())
+    ]
+    char_ngrams = self.char_ngrams(text)
+    return set(word_ngrams) | set(char_ngrams)
 ```
 
-`dt_thresholds` 的选择也是一个问题，太大了容易导致 stopwords 范围太宽选中一些实体词，太小容易导致 stopwords 不足，minhash 仍然收到干扰。所以建议对不同参数跑一遍，看看哪一个参数得到的 stopwords 最好。然后我们通过 `top_k_token` 这个方法就可以得到一段话中 IDF 最高的 topk 个词，这些词就是最有区分度的实体词。之后我们只要用 MinHash 对这些词计算签名，而不是对整个句子的每一个字符计算签名，就可以大幅度降低模板词的污染了。
+>这里我试过能不能把 char ngrams 去掉只使用 word ngrams，结果是效果更差了。因为 word ngram 很受 df_threshold 的影响，例如 `{"kept": "肢端肥大症性心肌病的发病原因？", "duplicates": [{"text": "肢端肥大症性心肌病的辅助治疗有些什么？", "sim": 1.0}]}` 这个例子中大概率把 "发病原因" 和 "辅助治疗" 过滤掉了，导致两个句子判断为完全相似。
 
-```python
-def build_minhash(tokens: list[str], num_perm: int = 128) -> MinHash:
-    m = MinHash(num_perm=num_perm)
-    for tok in tokens:
-        m.update(tok.encode("utf-8"))
-    return m
+实验中还存在一个问题 ：
 
-def tfidf_minhash_dedup(
-    samples: list[dict],
-    top_k_tokens: int = 8,
-    minhash_threshold: float = 0.6,
-    num_perm: int = 128,
-    df_threshold: float = 0.3,
-    sample_n: int = 50000,
-) -> list[dict]:
-    log.info(f"TF-IDF MinHash 去重: {len(samples)} 条输入")
-
-    all_texts = [s.get("instruction", "") for s in samples]
-    stopwords_model = AutoStopwords(df_threshold=df_threshold)
-    stopwords_model.fit(all_texts, sample_n=sample_n)
-
-    lsh = MinHashLSH(threshold=minhash_threshold, num_perm=num_perm)
-    kept = []
-    duplicates = 0
-
-    for idx, sample in enumerate(tqdm(samples, desc="MinHash 去重")):
-        text = sample.get("instruction", "")
-        tokens = stopwords_model.top_k_tokens(text, k=top_k_tokens)
-
-        if not tokens:
-            kept.append(sample)
-            continue
-
-        m = build_minhash(tokens, num_perm)
-        key = f"doc_{idx}"
-
-        similar = lsh.query(m)
-        if not similar:
-            lsh.insert(key, m)
-            kept.append(sample)
-        else:
-            duplicates += 1
-
-    log.info(f"去重完成: {len(samples)} → {len(kept)}（移除 {duplicates} 条重复）")
-    return kept
 ```
-
-下面我设计了一个简单的 demo 才测试一下代码的可行性，假设我们有数据集：
-
-```python
-a = [
-	    {"instruction": "轻度烧伤的辅助治疗有些什么？"},
-	    {"instruction": "阴式大子宫切除术的手术治疗有些什么？"},
-	    {"instruction": "轻度烧伤应该如何进行辅助治疗？"},
-	    {"instruction": "高血压患者的日常注意事项有哪些？"},
-	    {"instruction": "糖尿病患者的日常注意事项有哪些？"},
-	    {"instruction": "高血压病人平时需要注意什么？"},
-	    {"instruction": "PCR阳性，CT示双肺浸润，如何治疗？"},
-	    {"instruction": "如何治疗慢性阻塞性肺疾病急性加重期？"},
+{
+"kept": "肾肿瘤的患病比例是多少？", 
+"duplicates": [
+		{"text": "喉肿瘤的患病比例是多少？", "sim": 0.8594}, 
+		{"text": "枕叶肿瘤的患病比例是多少？", "sim": 0.7812}
 	]
+}
 ```
 
-数据集可以观察到，sample1/3 还有 sample4/6 的语义是重复的，然后我们把测试样本送入 AutoStopwords，统计得到 stopwords。
+这个例子里面，"肿瘤"、"患病"、"比例" 都是低频词，导致这两个句子被识别为相似的句子，但实际上 "肾"、"喉"、"枕叶" 才是决定相不相同的关键。我的想法是在最后用一个额外的函数来判断这些潜在的句子，是不是真的相同：
 
 ```python
-all_texts = [s["instruction"] for s in test_samples]
-sw_model = AutoStopwords(df_threshold=0.25).fit(all_texts, sample_n=None)
+def is_real_duplicate(self, text_a: str, text_b: str) -> bool:
+    tokens_a = set(self.tokenize(text_a)) - self.stopwords
+    tokens_b = set(self.tokenize(text_b)) - self.stopwords
+
+    # 互相独有的词
+    diff_tokens = (tokens_a - tokens_b) | (tokens_b - tokens_a)
+
+    if not diff_tokens:
+        return True
+
+    # 差异词中最大 IDF
+    max_diff_idf = max(self.idf.get(w, 0) for w in diff_tokens)
+
+    # 如果差异词有高 IDF（语义重要），则不是重复
+    return max_diff_idf <= self.df_threshold
 ```
 
-一开始我们还不确定 threshold 设置多少好，随便跳了一个不太大的 0.25，结果如下：
-
-```
-词表大小: 33
-自动停用词: 12 个（DF ≥ 0.25）
-示例停用词: ['如何', '注意事项', '治疗', '日常', '有些', '什么', '烧伤', '高血压', '辅助', '轻度', '患者', '哪些']
-```
-
-烧伤、高血压明显都是实体词，说明我们把 threshold 设太低了，改成 0.3 试试：
-
-```
-词表大小: 33
-自动停用词: 3 个（DF ≥ 0.26）
-示例停用词: ['什么', '治疗', '如何']
-```
-
-这次感觉又太大了，但主要还是我们 **demo 的数据量太小了**，在实际应用中对上 w 条数据集筛选 stopwords 就不会出现这种情况，这里我们还是采用 0.3 当阈值。最后我们进行去重：
-
-```python
-print("\n\n【去重结果】")
-result = tfidf_minhash_dedup(
-    test_samples,
-    top_k_tokens=8,
-    minhash_threshold=0.6,
-    df_threshold=0.3,
-    sample_n=None,
-)
-print(f"\n保留 {len(result)}/{len(test_samples)} 条：")
-for s in result:
-    print(f"  · {s['instruction']}")
-```
-
-查看结果可以看到把 sample1/6 去掉了，正是之前提到的语义重复的两个 sample：
-
-```python
-去重完成: 8 → 6（移除 2 条重复）
-
-保留 6/8 条：
-  · 轻度烧伤的辅助治疗有些什么？
-  · 阴式大子宫切除术的手术治疗有些什么？
-  · 高血压患者的日常注意事项有哪些？
-  · 高血压病人平时需要注意什么？
-  · PCR阳性，CT示双肺浸润，如何治疗？
-  · 如何治疗慢性阻塞性肺疾病急性加重期？
-```
+我们在两个句子独有的词中找最大的 idf，如果 idf 大于阈值，说明他们独有的词是关键词，就应该保留。
 
 #### 3.1.5 向量化
 
