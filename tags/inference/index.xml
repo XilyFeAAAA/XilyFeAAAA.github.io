@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Inference on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/inference/</link>
+    <description>Recent content in Inference on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 16 Mar 2026 10:48:53 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/inference/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>vLLM 部署大模型</title>
+      <link>http://xilyfeAAAA.github.io/posts/vllm-deploy/</link>
+      <pubDate>Sun, 15 Mar 2026 23:03:06 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/vllm-deploy/</guid>
+      <description>&lt;h2 id=&#34;1-概述&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#1-%e6%a6%82%e8%bf%b0&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;1. 概述&lt;/h2&gt;&lt;p&gt;大模型推理有多种方式比如&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;最基础的 HuggingFace Transformers&lt;/li&gt;&#xA;&lt;li&gt;TGI&lt;/li&gt;&#xA;&lt;li&gt;vLLM&lt;/li&gt;&#xA;&lt;li&gt;Triton + TensorRT-LLM&lt;/li&gt;&#xA;&lt;li&gt;…&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;其中，热度最高的应该就是 vLLM，性能好的同时使用也非常简单，上一次分析了 vLLM 如何实现这么高的性能，这次记录一下如何使用 vLLM 来启动大模型推理服务。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>vLLM 原理</title>
+      <link>http://xilyfeAAAA.github.io/posts/vllm_principle/</link>
+      <pubDate>Thu, 12 Mar 2026 11:29:34 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/vllm_principle/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;vLLM 是目前最受欢迎的开源 LLM 推理与服务引擎之一，它以 PagedAttention 为核心创新，彻底解决了传统 LLM Inference 中 KV Cache 内存碎片化的问题，让 throughput 提升 2~24×，同时内存利用率接近 100%。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>模型的 generate 方法</title>
+      <link>http://xilyfeAAAA.github.io/posts/llm-generate/</link>
+      <pubDate>Wed, 11 Feb 2026 11:19:33 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/llm-generate/</guid>
+      <description>&lt;p&gt;在 MiniMind 系列的 eval 部分我们已经学习了如何通过 transformers 库里 GenerateMixin 基类来生成文本，这一章学习一下 &lt;code&gt;model.generate()&lt;/code&gt; 方法到底是怎么实现的。&lt;/p&gt;&#xA;&#xA;&#xA;&lt;div class=&#34;post-preview&#34;&gt;&#xA;  &lt;div class=&#34;post-preview--meta&#34; style=&#34;width:100%;&#34;&gt;&#xA;    &lt;div class=&#34;post-preview--middle&#34;&gt;&#xA;      &lt;h4 class=&#34;post-preview--title&#34;&gt;&#xA;        &lt;a target=&#34;_blank&#34; href=&#34;http://xilyfeAAAA.github.io/posts/minimind-eval/&#34;&gt;MiniMind 学习指北(四)：评估&lt;/a&gt;&#xA;      &lt;/h4&gt;&#xA;      &lt;time class=&#34;post-preview--date&#34;&gt;2026-01-25&lt;/time&gt;&#xA;      &#xA;      &lt;small&gt;#大模型&amp;nbsp;#深度学习&amp;nbsp;&lt;/small&gt;&#xA;      &#xA;      &lt;section style=&#34;max-height:105px;overflow:hidden;&#34; class=&#34;post-preview--excerpt&#34;&gt;&#xA;         这一章我们需要设计一个脚本来验证大模型的对话能力&#xA;评估脚本我们预训练是让模型学会说话的能力，或者说词语接龙的能力，给他一个 prompt 它可以接着说下去。因此我们在处理 prompt 时候需要稍加处理：&#xA;python&#xA;&#xA;      &lt;/section&gt;&#xA;    &lt;/div&gt;&#xA;  &lt;/div&gt;&#xA;&lt;/div&gt;&#xA;&#xA;&lt;h2 id=&#34;为什么需要-generate&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81-generate&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;为什么需要 Generate？&lt;/h2&gt;&lt;p&gt;Transformer 模型在训练时有一个 &lt;code&gt;forward&lt;/code&gt; 方法，是用于针对模型的输入来产生输出，从而计算损失 loss，更新模型的参数。既然有这么一个生成的函数了，为什么 Transformer 中还有专门设计 &lt;code&gt;generate&lt;/code&gt; 方法来负责在推理时生成文本呢？&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

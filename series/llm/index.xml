@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>LLM on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/series/llm/</link>
+    <description>Recent content in LLM on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sun, 29 Mar 2026 12:36:14 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/series/llm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LLM 清洗数据</title>
+      <link>http://xilyfeAAAA.github.io/posts/data_clean/</link>
+      <pubDate>Sun, 29 Mar 2026 12:35:46 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/data_clean/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Dataset 预处理</title>
+      <link>http://xilyfeAAAA.github.io/posts/dataset_preprocess/</link>
+      <pubDate>Wed, 25 Mar 2026 23:13:25 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/dataset_preprocess/</guid>
+      <description>&lt;div class=&#34;details admonition info open&#34;&gt;&#xA;    &lt;div class=&#34;details-summary admonition-title&#34;&gt;&#xA;        &lt;span class=&#34;icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 512 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;Summary&lt;span class=&#34;details-icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 256 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;&#xA;    &lt;/div&gt;&#xA;    &lt;div class=&#34;details-content&#34;&gt;&#xA;        &lt;div class=&#34;admonition-content&#34;&gt;这一篇笔记主要记录一下 Huggingface 库提供的 Trainer 接受的数据集格式，以及 Packing 和 Padding 两种对其策略。&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#xA;&lt;h2 id=&#34;对其策略&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%af%b9%e5%85%b6%e7%ad%96%e7%95%a5&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;对其策略&lt;/h2&gt;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th&gt;&lt;strong&gt;Padding&lt;/strong&gt;&lt;/th&gt;&#xA;          &lt;th&gt;&lt;strong&gt;Packing&lt;/strong&gt;&lt;/th&gt;&#xA;          &lt;th&gt;&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;思路&lt;/td&gt;&#xA;          &lt;td&gt;每条样本补齐到固定长度&lt;/td&gt;&#xA;          &lt;td&gt;多条样本拼接填满 block&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;计算效率&lt;/td&gt;&#xA;          &lt;td&gt;低（大量无效 token）&lt;/td&gt;&#xA;          &lt;td&gt;高（几乎无浪费）&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;实现复杂度&lt;/td&gt;&#xA;          &lt;td&gt;简单&lt;/td&gt;&#xA;          &lt;td&gt;较复杂&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;适用场景&lt;/td&gt;&#xA;          &lt;td&gt;样本长度均匀 / finetune&lt;/td&gt;&#xA;          &lt;td&gt;Pretrain 主流做法&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;h3 id=&#34;padding&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#padding&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Padding&lt;/h3&gt;&lt;p&gt;Pretrain 几乎不用纯 padding，但有时在 eval 或 SFT 阶段使用。它的思路就是用 pad_token 把每一个 sample 都补齐到相同的长度，因为不同长度的 sample 无法组成一个张量。但它存在的问题就是：为了补齐到相同长度，我们不得已加入无意义的 pad_token，可能导致某些 sample 的长度 10 → 512 的情况，浪费大量算力。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Flash Attention</title>
+      <link>http://xilyfeAAAA.github.io/posts/flash-attention/</link>
+      <pubDate>Sat, 14 Mar 2026 10:59:39 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/flash-attention/</guid>
+      <description>&lt;h2 id=&#34;前情提要&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e6%83%85%e6%8f%90%e8%a6%81&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前情提要&lt;/h2&gt;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260314111856134.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260314111856134.png&#34; alt=&#34;image.png&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;GPU 存储分为芯片内和芯片外，芯片内的 SRAM 用于储存需要计算的临时数据，显存 HBM 在芯片外：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;HBM：位于 GPU 芯片外，就是我们所说的显存，类似于 CPU 的 DRAM，储存模型训练和推理时的参数，容量大，例如 A100 一般为 40G 或 80G。&lt;/li&gt;&#xA;&lt;li&gt;SRAM：位于 GPU 芯片上，仅用于存储 CUDA Kernel 计算时所需的临时数据，容量极限一般在 20MB&lt;/li&gt;&#xA;&lt;li&gt;CUDA Kernel：GPU 上执行并行的计算函数，是实现并行计算任务的基本单元&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260314112212450.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260314112212450.png&#34; alt=&#34;image.png&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM reasoning &amp; CoT</title>
+      <link>http://xilyfeAAAA.github.io/posts/reasoning/</link>
+      <pubDate>Sat, 07 Mar 2026 12:44:58 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/reasoning/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;本文系统介绍了当前大语言模型推理（Reasoning）能力的核心技术路线，包括推理范式、推理蒸馏以及基于强化学习的推理训练方法，并实现了一套完整的 Reasoning Pipeline。在推理蒸馏阶段，利用 open-thoughts 数据集（由 DeepSeek-R1 生成的高质量推理轨迹）对 Qwen3.5 模型进行监督微调，使模型能够学习显式的 Chain-of-Thought 推理过程，从而获得基础推理能力。在此基础上，通过设计多种奖励函数对模型进行强化学习训练，进一步提升模型的推理能力与输出质量。本文通过完整的工程实践展示了从推理数据构建、蒸馏训练到强化学习优化的全过程，为构建具备推理能力的中小规模语言模型提供了一套可复现的实现方案。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>大模型知识蒸馏</title>
+      <link>http://xilyfeAAAA.github.io/posts/distill/</link>
+      <pubDate>Thu, 05 Mar 2026 19:44:00 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/distill/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;模型蒸馏即知识蒸馏，是一种模型压缩和加速技术。在深度学习中，大型深度神经网络虽性能优异，但因计算复杂度高、存储需求大，难以部署在资源受限设备上。模型蒸馏通过构建师生架构，让小的学生模型学习大的教师模型的知识，使学生模型在保持较小规模的同时，尽可能接近教师模型的性能。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>大模型量化</title>
+      <link>http://xilyfeAAAA.github.io/posts/quantization/</link>
+      <pubDate>Tue, 17 Feb 2026 14:11:42 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/quantization/</guid>
+      <description>&lt;h2 id=&#34;数据类型&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e6%95%b0%e6%8d%ae%e7%b1%bb%e5%9e%8b&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;数据类型&lt;/h2&gt;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260319145306223.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260319145306223.png&#34; alt=&#34;image.png&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;计算机中浮点数按 IEEE 754 标准存储，用 “指数+尾数” 的方式来表示一个实数的“科学计数法”形式。任何浮点数都可以写成：&lt;/p&gt;&#xA;&lt;span class=&#34;katex-display&#34;&gt;&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math xmlns=&#34;http://www.w3.org/1998/Math/MathML&#34; display=&#34;block&#34;&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mo stretchy=&#34;false&#34;&gt;(&lt;/mo&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;msup&gt;&lt;mo stretchy=&#34;false&#34;&gt;)&lt;/mo&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;/msup&gt;&lt;mo&gt;×&lt;/mo&gt;&lt;mi&gt;M&lt;/mi&gt;&lt;mo&gt;×&lt;/mo&gt;&lt;msup&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;mi&gt;E&lt;/mi&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;&#xA;(-1)^S \times M \times 2^E&#xA;&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:1.1413em;vertical-align:-0.25em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mopen&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;−&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;mclose&#34;&gt;&lt;span class=&#34;mclose&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.8913em;&#34;&gt;&lt;span style=&#34;top:-3.113em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mathnormal mtight&#34; style=&#34;margin-right:0.05764em;&#34;&gt;S&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mbin&#34;&gt;×&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:0.7667em;vertical-align:-0.0833em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord mathnormal&#34; style=&#34;margin-right:0.10903em;&#34;&gt;M&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mbin&#34;&gt;×&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:0.8913em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.8913em;&#34;&gt;&lt;span style=&#34;top:-3.113em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mathnormal mtight&#34; style=&#34;margin-right:0.05764em;&#34;&gt;E&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;p&gt;如上图：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LoRA&amp;QLoRA</title>
+      <link>http://xilyfeAAAA.github.io/posts/loraqlora/</link>
+      <pubDate>Mon, 16 Feb 2026 20:21:20 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/loraqlora/</guid>
+      <description>&lt;h2 id=&#34;lora&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#lora&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;LoRA&lt;/h2&gt;&lt;h3 id=&#34;为什么选择旁路而不是堆叠&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89%e6%8b%a9%e6%97%81%e8%b7%af%e8%80%8c%e4%b8%8d%e6%98%af%e5%a0%86%e5%8f%a0&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;为什么选择旁路而不是堆叠&lt;/h3&gt;&lt;p&gt;LoRA 现在的方案是 $y=Wx+\Delta{W}x$ 这样在旁路加一个矩阵进行微调，那为什么不选择 $y=W_2(W_1x)$ 这样的堆叠方案呢？&lt;/p&gt;&#xA;&lt;p&gt;首先这种旁路设计可以保持原权重函数不变。LoRA 只提供一个低秩修正项。初始化时 A、B 接近零，模型行为≈原模型。训练是“微调偏移量”，不是“重建映射”。如果改成堆叠新层，前向函数直接改变，初始输出就漂移，大模型容易不稳定。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>模型的 generate 方法</title>
+      <link>http://xilyfeAAAA.github.io/posts/llm-generate/</link>
+      <pubDate>Wed, 11 Feb 2026 11:19:33 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/llm-generate/</guid>
+      <description>&lt;p&gt;在 MiniMind 系列的 eval 部分我们已经学习了如何通过 transformers 库里 GenerateMixin 基类来生成文本，这一章学习一下 &lt;code&gt;model.generate()&lt;/code&gt; 方法到底是怎么实现的。&lt;/p&gt;&#xA;&#xA;&#xA;&lt;div class=&#34;post-preview&#34;&gt;&#xA;  &lt;div class=&#34;post-preview--meta&#34; style=&#34;width:100%;&#34;&gt;&#xA;    &lt;div class=&#34;post-preview--middle&#34;&gt;&#xA;      &lt;h4 class=&#34;post-preview--title&#34;&gt;&#xA;        &lt;a target=&#34;_blank&#34; href=&#34;http://xilyfeAAAA.github.io/posts/minimind-eval/&#34;&gt;MiniMind 学习指北(四)：评估&lt;/a&gt;&#xA;      &lt;/h4&gt;&#xA;      &lt;time class=&#34;post-preview--date&#34;&gt;2026-01-25&lt;/time&gt;&#xA;      &#xA;      &lt;small&gt;#大模型&amp;nbsp;#深度学习&amp;nbsp;&lt;/small&gt;&#xA;      &#xA;      &lt;section style=&#34;max-height:105px;overflow:hidden;&#34; class=&#34;post-preview--excerpt&#34;&gt;&#xA;         这一章我们需要设计一个脚本来验证大模型的对话能力&#xA;评估脚本我们预训练是让模型学会说话的能力，或者说词语接龙的能力，给他一个 prompt 它可以接着说下去。因此我们在处理 prompt 时候需要稍加处理：&#xA;python&#xA;&#xA;      &lt;/section&gt;&#xA;    &lt;/div&gt;&#xA;  &lt;/div&gt;&#xA;&lt;/div&gt;&#xA;&#xA;&lt;h2 id=&#34;为什么需要-generate&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81-generate&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;为什么需要 Generate？&lt;/h2&gt;&lt;p&gt;Transformer 模型在训练时有一个 &lt;code&gt;forward&lt;/code&gt; 方法，是用于针对模型的输入来产生输出，从而计算损失 loss，更新模型的参数。既然有这么一个生成的函数了，为什么 Transformer 中还有专门设计 &lt;code&gt;generate&lt;/code&gt; 方法来负责在推理时生成文本呢？&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MoE 混合专家模型</title>
+      <link>http://xilyfeAAAA.github.io/posts/moe/</link>
+      <pubDate>Fri, 06 Feb 2026 11:53:20 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/moe/</guid>
+      <description>&lt;h2 id=&#34;moe-是什么&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#moe-%e6%98%af%e4%bb%80%e4%b9%88&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;MoE 是什么&lt;/h2&gt;&lt;p&gt;MoE means Mixture of Experts，它是一种神经网络架构，可以把一个大模型拆分成多个小型的 expert，再用一个门控网络来决定每个输入该路由到哪些专家处理。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>分布式训练技术 - 张量并行</title>
+      <link>http://xilyfeAAAA.github.io/posts/distributed_parallel_tensor/</link>
+      <pubDate>Thu, 05 Feb 2026 19:50:43 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/distributed_parallel_tensor/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;上一篇文章我们学的是 DP 和 DDP，它们的思路是 &lt;strong&gt;用显存冗余换吞吐量&lt;/strong&gt;。每张 GPU&lt;strong&gt;都有完整模型&lt;/strong&gt;，但是只&lt;strong&gt;处理不同的数据&lt;/strong&gt;，它的本质是&lt;strong&gt;复制模型 → 并行处理数据 → 最后通过 AllReduce 同步梯度&lt;/strong&gt;，代价是模型被复制 N 份，占用 &lt;strong&gt;N 倍显存&lt;/strong&gt;。张量并行 Tensor Parallel 的思路正好相反是 &lt;strong&gt;用通信换显存&lt;/strong&gt;。现在的大模型参数量巨大一张卡很可能放不下，所以把模型拆到多卡，每张 GPU &lt;strong&gt;只有部分模型&lt;/strong&gt;，但是&lt;strong&gt;处理完整的数据&lt;/strong&gt;，最后进行合并。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>分布式训练技术 - 数据并行</title>
+      <link>http://xilyfeAAAA.github.io/posts/distributed_parallel_data/</link>
+      <pubDate>Mon, 02 Feb 2026 19:50:43 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/distributed_parallel_data/</guid>
+      <description>&lt;p&gt;我们先回忆一下传统的单机单卡训练模式：&lt;/p&gt;&#xA;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260202195324965.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260202195324965.png&#34; alt=&#34;&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;首先硬盘读取数据，CPU 处理数据，将数据组成一个 batch，再传入 GPU，网络前向传播算出 loss，再反向传播计算梯度，用梯度更新参数完成一次训练。这种传统模式在大参数量或者大数据量的情况下就容易陷入显存的瓶颈，于是就引出了多卡并行训练。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>transformer库的基类</title>
+      <link>http://xilyfeAAAA.github.io/posts/hg_transformer/</link>
+      <pubDate>Tue, 27 Jan 2026 19:16:19 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/hg_transformer/</guid>
+      <description>&lt;h2 id=&#34;长话短说&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e9%95%bf%e8%af%9d%e7%9f%ad%e8%af%b4&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;长话短说&lt;/h2&gt;&lt;p&gt;今天看了一下源码和官方文档，梳理过后会发现其实也不是很复杂，简单理解就两条：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;code&gt;ModelOutput&lt;/code&gt;(transformers.utils.ModelOutput)是所有模型输出的基类。简单理解它就是一个字典，在模型的 &lt;code&gt;forward&lt;/code&gt;函数里把原本的输出做了一下封装而已，方便用户能直观地知道输出是什么。例如&lt;code&gt;CausalLMOutput&lt;/code&gt;顾名思义就是用于像 GPT 这样自回归模型的输出。&lt;/li&gt;&#xA;&lt;li&gt;&lt;code&gt;PreTrainedModel&lt;/code&gt; (transformers.modeling_utils.PretrainedModel) 是所有模型的基类。所以你如果看到一个模型取名为&lt;code&gt;LlamaForCausalLM&lt;/code&gt;，那你就可以知道这个模型的输出格式大概率就是自回归输出，即前面提到的&lt;code&gt;CausalLMOutput&lt;/code&gt;。为什么说大概率呢，因为自回归输出还有蛮多种的，赶时间的朋友看到这就可以切换到其他文章了，至此你应该也能了解 transformers 最核心的模块了。感兴趣的可以继续往下看，下面做一个简单的总结和介绍。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;短话长说&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e7%9f%ad%e8%af%9d%e9%95%bf%e8%af%b4&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;短话长说&lt;/h2&gt;&lt;h3 id=&#34;modeloutput&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#modeloutput&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;ModelOutput&lt;/h3&gt;&lt;p&gt;前面已经介绍过了，&lt;code&gt;ModelOutput&lt;/code&gt;是所有模型输出的基类。下面是其源码核心部分，一些具体实现代码删除了，不过不影响理解。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>KVCache</title>
+      <link>http://xilyfeAAAA.github.io/posts/kvcache/</link>
+      <pubDate>Wed, 03 Dec 2025 16:25:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/kvcache/</guid>
+      <description>&lt;div class=&#34;details admonition tip open&#34;&gt;&#xA;    &lt;div class=&#34;details-summary admonition-title&#34;&gt;&#xA;        &lt;span class=&#34;icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 352 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M96.06 454.35c.01 6.29 1.87 12.45 5.36 17.69l17.09 25.69a31.99 31.99 0 0 0 26.64 14.28h61.71a31.99 31.99 0 0 0 26.64-14.28l17.09-25.69a31.989 31.989 0 0 0 5.36-17.69l.04-38.35H96.01l.05 38.35zM0 176c0 44.37 16.45 84.85 43.56 115.78 16.52 18.85 42.36 58.23 52.21 91.45.04.26.07.52.11.78h160.24c.04-.26.07-.51.11-.78 9.85-33.22 35.69-72.6 52.21-91.45C335.55 260.85 352 220.37 352 176 352 78.61 272.91-.3 175.45 0 73.44.31 0 82.97 0 176zm176-80c-44.11 0-80 35.89-80 80 0 8.84-7.16 16-16 16s-16-7.16-16-16c0-61.76 50.24-112 112-112 8.84 0 16 7.16 16 16s-7.16 16-16 16z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;KVCache 的应用场景&lt;span class=&#34;details-icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 256 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;&#xA;    &lt;/div&gt;&#xA;    &lt;div class=&#34;details-content&#34;&gt;&#xA;        &lt;div class=&#34;admonition-content&#34;&gt;KV Cache 的主要目的是 “加速自回归生成”，在生成下一个 token 时，只需要计算当前 token 的 query、key、value。之前的 key/value 被缓存，直接拼接使用，避免重复计算整个历史序列的 attention，这在推理阶段能显著提升速度。但是在预训练阶段，例如 LLaMa 或者 GPT 采用的都是 Teacher-Forcing 这种并行训练，我们把 logits 和 labels 错位。这种计算是并行的，不需要“增量”生成，所以使用 KV Cache 反而会增加代码复杂度和内存开销，收益很小甚至为负。&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#xA;&lt;h2 id=&#34;前情提要&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e6%83%85%e6%8f%90%e8%a6%81&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前情提要&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;Teacher-Forcing vs 自回归生成&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>RoPE</title>
+      <link>http://xilyfeAAAA.github.io/posts/rope/</link>
+      <pubDate>Fri, 28 Nov 2025 16:23:11 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/rope/</guid>
+      <description>&lt;h2 id=&#34;作用&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e4%bd%9c%e7%94%a8&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;作用&lt;/h2&gt;&lt;p&gt;RoPE 相对于正余弦位置编码和可学习位置编码，更能够表达&lt;strong&gt;相对位置信息&lt;/strong&gt;，便于模型捕捉序列中元素之间的关系，还便于模型泛化到更长的序列，支持超长文本推理。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>估算模型需要的显存</title>
+      <link>http://xilyfeAAAA.github.io/posts/llm_vram/</link>
+      <pubDate>Fri, 22 Aug 2025 16:56:43 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/llm_vram/</guid>
+      <description>&lt;p&gt;到底需要多少算力才能部署一个模型，这是一个非常常见的问题。我们就从训练和推理两个场景，分析一下如何估计模型所需要的显存。&lt;/p&gt;&#xA;&lt;h2 id=&#34;训练&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e8%ae%ad%e7%bb%83&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;训练&lt;/h2&gt;&lt;p&gt;训练显存大致分为以下四部分：&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;模型权重：取决于存储的精度，常见的 BF16 和 FP16 占用大小为 2B&lt;/li&gt;&#xA;&lt;li&gt;梯度：反向传播计算的梯度，和权重一样常见情况下占用 2B&lt;/li&gt;&#xA;&lt;li&gt;优化器状态：常见的 Adam 会为每个参数都保存它的 Momentum、Variance 和 Master weights，精度为 FP32 所以总计 12B&lt;/li&gt;&#xA;&lt;li&gt;中间激活值：简单来说就是为了计算反向传播的梯度，需要把前向计算的中间值存储起来，具体计算见下文。&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;因此使用 AdamW 优化器 + 混合精度训练的经验公式为：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

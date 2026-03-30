@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>分布式 on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/</link>
+    <description>Recent content in 分布式 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Thu, 19 Mar 2026 02:17:32 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分布式训练技术 - 张量并行</title>
+      <link>http://xilyfeAAAA.github.io/posts/distributed_parallel_tensor/</link>
+      <pubDate>Thu, 05 Feb 2026 19:50:43 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/distributed_parallel_tensor/</guid>
+      <description>&lt;blockquote&gt;&#xA;  &lt;p&gt;上一篇文章我们学的是 DP 和 DDP，它们的思路是 &lt;strong&gt;用显存冗余换吞吐量&lt;/strong&gt;。每张 GPU&lt;strong&gt;都有完整模型&lt;/strong&gt;，但是只&lt;strong&gt;处理不同的数据&lt;/strong&gt;，它的本质是&lt;strong&gt;复制模型 → 并行处理数据 → 最后通过 AllReduce 同步梯度&lt;/strong&gt;，代价是模型被复制 N 份，占用 &lt;strong&gt;N 倍显存&lt;/strong&gt;。张量并行 Tensor Parallel 的思路正好相反是 &lt;strong&gt;用通信换显存&lt;/strong&gt;。现在的大模型参数量巨大一张卡很可能放不下，所以把模型拆到多卡，每张 GPU &lt;strong&gt;只有部分模型&lt;/strong&gt;，但是&lt;strong&gt;处理完整的数据&lt;/strong&gt;，最后进行合并。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>分布式训练技术 - 数据并行</title>
+      <link>http://xilyfeAAAA.github.io/posts/distributed_parallel_data/</link>
+      <pubDate>Mon, 02 Feb 2026 19:50:43 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/distributed_parallel_data/</guid>
+      <description>&lt;p&gt;我们先回忆一下传统的单机单卡训练模式：&lt;/p&gt;&#xA;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260202195324965.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260202195324965.png&#34; alt=&#34;&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;首先硬盘读取数据，CPU 处理数据，将数据组成一个 batch，再传入 GPU，网络前向传播算出 loss，再反向传播计算梯度，用梯度更新参数完成一次训练。这种传统模式在大参数量或者大数据量的情况下就容易陷入显存的瓶颈，于是就引出了多卡并行训练。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>GPU on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/tags/gpu/</link>
+    <description>Recent content in GPU on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sat, 14 Mar 2026 11:44:21 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/tags/gpu/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Flash Attention</title>
+      <link>http://xilyfeAAAA.github.io/posts/flash-attention/</link>
+      <pubDate>Sat, 14 Mar 2026 10:59:39 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/flash-attention/</guid>
+      <description>&lt;h2 id=&#34;前情提要&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#%e5%89%8d%e6%83%85%e6%8f%90%e8%a6%81&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;前情提要&lt;/h2&gt;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260314111856134.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260314111856134.png&#34; alt=&#34;image.png&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;GPU 存储分为芯片内和芯片外，芯片内的 SRAM 用于储存需要计算的临时数据，显存 HBM 在芯片外：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;HBM：位于 GPU 芯片外，就是我们所说的显存，类似于 CPU 的 DRAM，储存模型训练和推理时的参数，容量大，例如 A100 一般为 40G 或 80G。&lt;/li&gt;&#xA;&lt;li&gt;SRAM：位于 GPU 芯片上，仅用于存储 CUDA Kernel 计算时所需的临时数据，容量极限一般在 20MB&lt;/li&gt;&#xA;&lt;li&gt;CUDA Kernel：GPU 上执行并行的计算函数，是实现并行计算任务的基本单元&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;&#xA;&lt;div class=&#34;post-img-view&#34;&gt;&#xA;&lt;a data-fancybox=&#34;gallery&#34; href=&#34;http://img.xilyfe.top/img/20260314112212450.png&#34;&gt;&#xA;&lt;img src=&#34;http://img.xilyfe.top/img/20260314112212450.png&#34; alt=&#34;image.png&#34;  /&gt;&#xA;&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
