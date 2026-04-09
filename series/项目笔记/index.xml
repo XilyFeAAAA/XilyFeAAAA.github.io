@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>项目笔记 on 多辣加香菜</title>
+    <link>http://xilyfeAAAA.github.io/series/%E9%A1%B9%E7%9B%AE%E7%AC%94%E8%AE%B0/</link>
+    <description>Recent content in 项目笔记 on 多辣加香菜</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Thu, 09 Apr 2026 02:03:36 +0800</lastBuildDate>
+    <atom:link href="http://xilyfeAAAA.github.io/series/%E9%A1%B9%E7%9B%AE%E7%AC%94%E8%AE%B0/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MedicalGPT 学习指北</title>
+      <link>http://xilyfeAAAA.github.io/posts/medicalgpt/</link>
+      <pubDate>Fri, 27 Mar 2026 11:09:35 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/medicalgpt/</guid>
+      <description>&lt;div class=&#34;details admonition info open&#34;&gt;&#xA;    &lt;div class=&#34;details-summary admonition-title&#34;&gt;&#xA;        &lt;span class=&#34;icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 512 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;Summary&lt;span class=&#34;details-icon&#34;&gt;&lt;svg class=&#34;icon&#34;&#xA;    xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 256 512&#34;&gt;&lt;!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --&gt;&lt;path d=&#34;M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;&#xA;    &lt;/div&gt;&#xA;    &lt;div class=&#34;details-content&#34;&gt;&#xA;        &lt;div class=&#34;admonition-content&#34;&gt;&lt;p&gt;Minimind 和强化学习暂时告一段落了，现在准备开始一个新的项目 “MedicalGPT”。这个项目也是 Github 上的一个开源项目，实现了包括增量预训练、有监督微调、RLHF 和 DPO。这个项目中我主要会学习其中的一些 trick、数据构造思路、训练评估的完整流程，总体如下：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MiniMind 学习指北</title>
+      <link>http://xilyfeAAAA.github.io/posts/minimind/</link>
+      <pubDate>Fri, 13 Feb 2026 14:08:48 +0800</pubDate>
+      <guid>http://xilyfeAAAA.github.io/posts/minimind/</guid>
+      <description>&lt;h2 id=&#34;1-tokenizer&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#1-tokenizer&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;1. Tokenizer&lt;/h2&gt;&lt;h3 id=&#34;tokenizer&#34; class=&#34;headerLink&#34;&gt;&#xA;    &lt;a href=&#34;#tokenizer&#34; class=&#34;header-mark&#34;&gt;&lt;/a&gt;Tokenizer&lt;/h3&gt;&lt;blockquote&gt;&#xA;  &lt;p&gt;在 CS336 的笔记中我已经完整介绍了一个 Tokenizer 是如何训练并且读取的，详情可见 &lt;a href=&#34;../cs336_assignment1&#34; rel=&#34;&#34;&gt;cs336_assignment1&lt;/a&gt;。&lt;/p&gt;&#xA;&#xA;&lt;/blockquote&gt;&lt;p&gt;简单来说，训练一个 tokenizer 经过以下步骤：&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;通过正则分词，获得文本中全部 token，将其和 special_tokens 一起记录。&lt;/li&gt;&#xA;&lt;li&gt;不断把文本中出现频率最高的 token_pair 合并得到新 token，然后用新 token 替换文本中原先的 pair。&lt;/li&gt;&#xA;&lt;li&gt;重复上一步直到 vocab 达到指定规模。&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;上面的代码我们已经在 CS336 里实现过了，这一次我们通过 Huggingface 的 tokenizers 库直接生成。为了方便阅读，我先从如何得到一个 tokenizer 讲起。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
