@@ -1,11 +1,11 @@
 ---
-title: 组合数学复习
+title: 组合数学
 date: 2026-03-18T10:52:02+08:00
 featuredImage: http://img.xilyfe.top/img/20260113133012452.jpg
 authors:
   - Xilyfe
 series:
-  - 期末复习
+  - 课程笔记
 tags: []
 lastmod: 2026-03-18T01:01:16+08:00
 ---

@@ -1,11 +1,11 @@
 ---
-title: 高级数据库系统复习
+title: 高级数据库系统
 date: 2026-01-13T13:31:14+08:00
 featuredImage: http://img.xilyfe.top/img/20260113133012452.jpg
 authors:
   - Xilyfe
 series:
-  - 期末复习
+  - 课程笔记
 tags:
   - 数据库
   - 复习

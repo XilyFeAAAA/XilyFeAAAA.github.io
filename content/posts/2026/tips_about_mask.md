@@ -5,7 +5,7 @@ featuredImage: http://img.xilyfe.top/img/20260124122403258.png
 authors:
   - Xilyfe
 series:
-  - Transformer相关
+  - DeepLearning
 tags:
   - 掩码
   - Transformer

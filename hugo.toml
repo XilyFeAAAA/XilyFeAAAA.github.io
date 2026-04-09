@@ -352,7 +352,7 @@ theme = "Dolt"
         enable = true
         [markup.goldmark.extensions.passthrough.delimiters]
           block = [['\[', '\]'], ['$$', '$$']]
-          inline = [['\(', '\)']]
+          inline = [['\(', '\)'], ['$', '$']]
   # 目录设置
   [markup.tableOfContents]
     startLevel = 2

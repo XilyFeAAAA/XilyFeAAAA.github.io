@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 强化学习
-lastmod: 2026-03-22T11:48:36+08:00
+lastmod: 2026-04-09T12:00:50+08:00
 ---
 ## 公式推导
 
@@ -80,6 +80,19 @@ $$
 其次是为了消除序列长度的影响。如果在计算 Loss 时不除以 $|o_i|$：
 - **长响应会统治梯度：** 一个 1000 tokens 的废话连篇的回复，其梯度总和会比一个 10 tokens 的精炼回复大 100 倍。 
 - **训练不稳定：** 如果不平均，模型会为了获取更高的“总梯度”而倾向于把序列越写越长。
+{{< /admonition >}}
+
+{{< admonition type=question title="GRPO 的损失是 token-level 还是 sample-level?">}} 
+在网上搜 GRPO 的损失还是 token-level 还是 sample-level 有很多声音，如果问 ChatGPT 会告诉你 GRPO 是 token-level 的 loss，但是如果你看过我 DAPO 的文章，里面写到 GRPO 是 sample-level 的，长序列 token 的权重会被稀释，所以答案是什么？
+
+$$
+\mathcal{L}_{\text{GRPO}} = \frac{1}{G} \sum_{i=1}^{G} \underbrace{\frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \ell_{i,t}}_{\text{先在 sample 内做 token 平均}}
+$$
+
+- 说 token-level 的人指的是 loss 是对每个 token 的 log prob 逐一计算的
+- 说 sample-level 的是指每条回答对 loss 的贡献是**等权**的，每条回答权重 = $\frac{1}{G}$。也正是因为每个 sample 的权重相同，如果某个权重的 token 很多，每个 token 的权重就会相应被稀释，这也是 DAPO 所说的。
+
+所以GRPO 中 token-level 是指计算粒度，说它 sample-level 是指最终贡献权重。但是现在的强化学习训练框架里面，GRPO 通常也把原始的公式改成 DAPO 中 token-level 的实现方式。
 {{< /admonition >}}
 
 ## 代码实现

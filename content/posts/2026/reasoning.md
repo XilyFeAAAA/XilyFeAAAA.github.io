@@ -5,10 +5,10 @@ featuredImage: http://img.xilyfe.top/img/20260307124624416.png
 authors:
   - Xilyfe
 series:
-  - LLM
+  - RLHF
 tags:
   - 大模型
-lastmod: 2026-03-17T05:56:26+08:00
+lastmod: 2026-04-08T02:11:02+08:00
 ---
 >本文系统介绍了当前大语言模型推理（Reasoning）能力的核心技术路线，包括推理范式、推理蒸馏以及基于强化学习的推理训练方法，并实现了一套完整的 Reasoning Pipeline。在推理蒸馏阶段，利用 open-thoughts 数据集（由 DeepSeek-R1 生成的高质量推理轨迹）对 Qwen3.5 模型进行监督微调，使模型能够学习显式的 Chain-of-Thought 推理过程，从而获得基础推理能力。在此基础上，通过设计多种奖励函数对模型进行强化学习训练，进一步提升模型的推理能力与输出质量。本文通过完整的工程实践展示了从推理数据构建、蒸馏训练到强化学习优化的全过程，为构建具备推理能力的中小规模语言模型提供了一套可复现的实现方案。
 
@@ -477,7 +477,7 @@ if __name__ == "__main__":
 
 ### 思考
 
-#### 为什么 loss 初试为零，然后不降反升？
+#### 为什么 loss 初值为零？
 
 ![image.png](http://img.xilyfe.top/img/20260310224319018.png)
 
@@ -499,7 +499,7 @@ $$
 \mathcal{L}^{GRPO}(\theta) = \frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \left( \beta\, \mathbb{D}_{KL}\left[\pi_\theta \| \pi_{ref}\right] \right)
 $$
 
-在训练开始模型和 ref model 是一样的，所以我们得到的损失就是从 0 开始，并且随着训练，模型慢慢偏离 ref model 导致 KL 散度上升。或者换句话说：<mark>GRPO 的 loss 仅仅体现了 KL 散度，不能体现模型的训练效果</mark>。那这里又引出了一个问题：如果损失函数只和 KL 散度有关系，那么 GRPO 到底在干啥？
+在训练开始模型和 ref model 是一样的，所以我们得到的损失就是从 0 开始，并且 KL 散度有正有负，所以损失是正数负数或者零都是正常的。或者换句话说：<mark>GRPO 的 loss 仅仅体现了 KL 散度，不能体现模型的训练效果</mark>。那这里又引出了一个问题：如果损失函数只和 KL 散度有关系，那么 GRPO 到底在干啥？
 
 #### GRPO 的损失只与 KL 散度有关，那么它在干什么？
 
@@ -520,8 +520,8 @@ $$
 $$
 \nabla_{\theta} \mathcal{J}_{G R P O} \left(\right. \theta \left.\right) = \frac{1}{G} \sum_{i = 1}^{G} \frac{1}{\left|\right. o_{i} \left|\right.} \sum_{t = 1}^{\left|\right. o_{i} \left|\right.} \hat{A}_{i , t} \nabla_{\theta} log ⁡ \pi_{\theta} \left(\right. o_{i , t} \left|\right. q , o_{i , < t} \left.\right)
 $$
+虽然对 $\hat{A}_{i , t}$ 求和为零，但是 $r_{i,t}$ 的梯度为 $\nabla_{\theta} \log \pi_{\theta}$ 这是非零的，而且每个 token 的 $\nabla_\theta \log \pi_\theta$​ 都不一样，所以乘上 $\hat{A}_i$ 之后加权求和整体梯度不为 0。
 
-虽然对 $\hat{A}_{i , t}$ 求和为零，但是 $r_{i,t}$ 的梯度为 $\nabla_\theta \log \pi_\theta$ 这是非零的，而且每个 token 的 $\nabla_\theta \log \pi_\theta$​ 都不一样，所以乘上 $\hat{A}_i$ 之后加权求和整体梯度不为 0。
 
 >做个总结：GRPO 中采用 on-policy，新旧策略完全相同加上 Advantage 的组内均值恒为 0，导致 loss 初始值为 0。但是损失函数的数值只体现 KL，但优化靠的是梯度。即使 loss 数值只剩 KL 项，梯度依然能提供有效的策略更新信号。更新一步后，模型偏离 ref model → KL 上升 → loss 数值变大，但这正是预期的行为。
 

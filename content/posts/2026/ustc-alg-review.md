@@ -1,11 +1,11 @@
 ---
-title: 算法分析与设计复习
+title: 算法分析与设计
 date: 2026-01-08T11:27:53+08:00
 featuredImage: http://img.xilyfe.top/img/20260113133012452.jpg
 authors:
   - Xilyfe
 series:
-  - 期末复习
+  - 课程笔记
 tags:
   - 算法
   - 复习
