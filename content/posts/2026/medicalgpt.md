@@ -7,7 +7,7 @@ authors:
 series:
   - 项目笔记
 tags: []
-lastmod: 2026-04-09T02:03:36+08:00
+lastmod: 2026-04-09T04:23:24+08:00
 ---
 
 {{< admonition type=info title="Summary">}} 
@@ -1417,3 +1417,9 @@ training_args = DPOConfig(
     loss_weights=[1.0, 0.1],
 )
 ```
+
+实验结果如下：
+
+![image.png](http://img.xilyfe.top/img/20260409153210781.png)
+
+这次实验就成功非常多了，reward chosen 和 reward rejected 都如预期的上升和下降。

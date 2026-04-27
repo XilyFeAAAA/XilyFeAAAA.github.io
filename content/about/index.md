@@ -3,7 +3,7 @@ title: 关于
 date: 2025-12-17T23:07:31+08:00
 hiddenFromHomePage: true
 hiddenFromSearch: true
-lastmod: 2026-03-15T10:43:26+08:00
+lastmod: 2026-04-09T05:42:16+08:00
 ---
 
 ![](http://img.xilyfe.top/img/20260114111243410.jpg)
@@ -20,7 +20,7 @@ lastmod: 2026-03-15T10:43:26+08:00
   - 喜欢 CityPop 等日本流行音乐，具岛直子，当山瞳
   - 喜欢 Lofi-Hihop、Chill-Hiphop 等轻音乐
   - 还有一些欧美流行歌手 SamSmith 的 I've told you now，Isaac Gracie 的 All in my mind ...
-- **运动**：健身新手目前卧推 50KG，偶尔喜欢爬爬山。
+- **运动**：健身新手目前卧推 60KG，偶尔喜欢爬爬山。
 - **书籍**：从小学看网文到现在，玄幻科幻恐怖悬疑都市言情都喜欢，最近正在看 「没钱修什么仙」。
 - **影视**：
 	- 番剧：小时候喜欢看看热血战斗番，现在基本都是恋爱番了，高木同学、总之就是非常可爱等等
@@ -38,16 +38,13 @@ lastmod: 2026-03-15T10:43:26+08:00
 {{< admonition type=summary title="ToBeDone">}} 
 - Currently：
 	- RLHF：
-		- DAPO
-		- 手写 RLHF Pipeline 类似 VeRL
-	- LLM 微调
-		- 阅读 Peft 框架
-	- 数据处理(CS336)：
-		- pipeline
-		- dedup
-		- 质量过滤
-		- toxic filter
+		- 了解 RL 框架怎么使用，阅读代码：VeRL、Slime
+	- Agent：
+		- ReAct、Function Call、Skill、Memory、planing
 - Long Term：
+	- 强化学习进阶：
+		- https://hrl.boyuai.com/chapter/1/%E5%88%9D%E6%8E%A2%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0
+		- 阅读 verl 代码，core_algos 部分
 	- 算法刷题： 
 		- LeetCode
 		- 代码随想录
@@ -56,8 +53,6 @@ lastmod: 2026-03-15T10:43:26+08:00
 		- LangChain，LangGraph，LlamaIndex
 		- 向量数据库
 		- chunking、rerank、embedding召回
-	- Agent：
-		- ReAct、Function Call、Skill、Memory、planing
 	- LLM Evaluation
 		- 工具
 		- 评估基准 GSM8K 等
@@ -67,7 +62,6 @@ lastmod: 2026-03-15T10:43:26+08:00
 		- Unsloth
 	- 预计项目：
 		- Reasoning：Search R1
-		- Medical GPT
 		- Rag+Agent+vLLM：垂直领域客服
 	- 技术报告阅读：
 		- Qwen3.5
@@ -75,7 +69,6 @@ lastmod: 2026-03-15T10:43:26+08:00
 		- YaRN 等
 	- 零碎：
 		- 长上下文优化：RoPE / YaRN / NTK / KVCache管理
-		- 量化部署：AWQ / GPTQ / NF4 + vLLM 集成
 		- MoE 手写
 	- 依旧锻体
 		- 卧推 80KG

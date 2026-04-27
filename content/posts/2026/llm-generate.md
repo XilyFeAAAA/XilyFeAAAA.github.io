@@ -1,5 +1,5 @@
 ---
-title: 模型的 generate 方法
+title: LLM Inference
 date: 2026-02-11T11:19:33+08:00
 featuredImage: http://img.xilyfe.top/img/20260211112140352.png
 authors:
@@ -9,8 +9,9 @@ series:
 tags:
   - 大模型
   - Inference
-lastmod: 2026-03-12T11:30:45+08:00
+lastmod: 2026-04-16T11:22:35+08:00
 ---
+
 在 MiniMind 系列的 eval 部分我们已经学习了如何通过 transformers 库里 GenerateMixin 基类来生成文本，这一章学习一下 `model.generate()` 方法到底是怎么实现的。
 
 {{< link_ref "minimind-eval" >}}

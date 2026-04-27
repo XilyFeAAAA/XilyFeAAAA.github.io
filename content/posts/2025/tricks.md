@@ -4,8 +4,8 @@ date: '2025-10-19T17:59:11+08:00'
 authors: [Xilyfe]
 series: ["Python 技巧"]
 tags: ["Python"]
---- 
-
+lastmod: 2026-04-26T03:30:50+08:00
+---
 
 ## 如何实现给一个类成员函数绑定事件
 
