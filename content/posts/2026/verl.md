@@ -775,6 +775,8 @@ def compute_score(data_source, solution_str, ground_truth, extra_info=None):
         raise NotImplementedError(f"Unknown data_source: {data_source}")
 ```
 
+>老版本的 verl 如果采用 naive manager，那么返回的是单条的 score，类型是 float。如果用新版本的 verl，`self.compute_score()` 返回的可以是字典类型，我们需要用 `score["score"]` 取出来。
+
 #### 5.2.2 reward manager
 
 RewardManager 是包裹 reward function 的执行框架，负责：
