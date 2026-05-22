@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 强化学习
-lastmod: 2026-04-12T10:58:20+08:00
+lastmod: 2026-05-21T10:50:57+08:00
 ---
  ## 1. 入门
 
@@ -445,6 +445,7 @@ G_1   = 0 + γ × G_2
 
 ## 6. KL 散度
 
+### 6.1 三种 KL 散度估计
 
 在 RLHF 中存在 Reward Hacking 这个概念，训练过程中模型可能会朝着 Reward 倾向的方向走捷径。比如 prompt 是 "今天的天气如何"，那么模型会生成天气情况的分析然后再告诉今天的天气，依次来获取更高的 reward。所以我们需要在 loss 中增加一项，避免模型过度学习，或者说让训练后的模型和原模型差距小一些。RLHF 中引入了一个 Ref Model，这个模型就是经过 SFT 训练后冻结的模型。我们用它和新模型计算 KL 散度，来衡量模型相较于原先的变化。KL 散度的计算公式为：
 
@@ -534,7 +535,7 @@ $$
 所以只要 $X$ 和 $Y$ 负相关且相关性的绝对值大于 $c^2Var(Y)$，那么新估计量 $Z$ 的方差就小于旧估计量 $X$ 的方差。
 {{< /admonition >}} 
 
----
+### 6.2 工程近似
 
 因为在 RLHF 里我们根本不可能真正对所有 x 求和，所以我们需要从 $q$ 分布中采样样本 $x_1,x_2,\dots\sim q$，然后用蒙特卡洛方法对 KL 散度进行估计（也就是我们把一个 batch 里面的平均值近似当做它的期望）：
 
@@ -551,3 +552,23 @@ $$
 在 RLHF 的 PPO 中，我们喂一个 prompt 给 actor model，让它正常 generate 输出对应的 response。response 中每一个 token 都有它对应的概率分布，我们把它记为 log_probs。我们把 actor model 生成的"prompt + response" 以 Teacher-Forcing 的方式喂给 ref model，那么它同样能给出 response 中每个 token 的 log_prob 结果，我们记其为 ref_log_probs。把这两个概率分布作差，然后再求对数之和的平均值，就是 KL 散度了。
 
 其次，KL 散度的标准定义应该是：对于单个 token 的 KL 散度是要对 vocab 上 **每一个 token** 的概率分布作差。但是在 RLHF 的实际实现中，**KL 只针对 Actor 实际生成的 token 计算概率差**，也就是计算 `log p_actor(response[t]) − log p_ref(response[t])`。
+
+
+### 6.3 seq-level kl 与 token-level kl
+
+seq-level kl 把整句话当成一个整体，假设我们有序列 $y = (y_1,y_2,\dots,y_T)$，那么整个句子的概率等于每一步条件概率连乘：
+
+$$\pi_\theta(y|x)=\prod_{t=1}^T\pi_\theta(y_t|x,y_{<t})$$
+
+取对数之后即为：
+
+$$\log \pi_\theta(y|x)=\sum_{t=1}^T\log \pi_\theta(y_t|x,y_{<t})$$
+
+然后代入 $J_{\text{OPD}}(\theta) = \mathbb{E}_{x \sim D, y \sim \pi_\theta} \left[ \log \frac{\pi_\theta(y|x)}{q(y|x)} \right]$ 就可以得到 sequence-level kl 散度的数值，这个 signal 是一个**整句层面的单一标量**。它不分配给具体的某个词，而是作为整句话的最终得分，通过梯度回传或者 PPO 等算法，可以把梯度回传给生成这句话的所有 token。
+
+---
+
+token-level kl 在每一个 token 上独立计算梯度并且当做 signal，也就是说每生成一个 token 就可以利用 signal 进行一次更新。假设在第 $t$ 个位置是，学生模型输出一个大小为 `[Vocab_Size]` 的概率分布向量 $\pi_\theta(\cdot)$，教师模型也输出一个 `[Vocab_Size]` 的概率分布向量 $q(\cdot)$。那么这个 token 计算得到的 KL 就是：
+
+$$\text{KL}_t = \sum_{w \in \text{Vocab}} \pi_\theta(w | x, y_{<t}) \log \frac{\pi_\theta(w | x, y_{<t})}{q(w | x, y_{<t})}$$
+我们可以把这个 token 的 kl 当做负奖励。

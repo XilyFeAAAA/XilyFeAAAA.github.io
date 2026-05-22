@@ -5,7 +5,7 @@ featuredImage: http://img.xilyfe.top/img/20260316120049695.png
 authors:
   - Xilyfe
 series:
-  - 推理框架
+  - 训推框架
 tags:
   - Inference
   - 大模型

@@ -5,7 +5,7 @@ featuredImage: http://img.xilyfe.top/img/20260416112324552.png
 authors:
   - Xilyfe
 series:
-  - RLHF
+  - 训推框架
 tags: []
 lastmod: 2026-04-21T04:42:38+08:00
 ---
