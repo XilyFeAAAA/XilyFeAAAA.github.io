@@ -7,7 +7,7 @@ authors:
 series:
   - 训推框架
 tags: []
-lastmod: 2026-04-21T04:42:38+08:00
+lastmod: 2026-05-23T11:06:26+08:00
 ---
 {{< admonition type=info title="Summary">}} 
 这篇文章首先按照以下顺序展开：
@@ -1171,6 +1171,10 @@ async def _handle_generating_state(self, agent_data, sampling_params):
 - user_turns >= max_user_turns
 - 没有工具调用且没有 interaction
 - 模型生成了 EOS token（且 ignore_eos=False）
+
+{{< admonition type=question title="每一轮 rollout 是续写还是重新生成？">}} 
+从 `_handle_generating_state` 的代码来看，verl 在每一轮 rollout 都是用拼凑后完整的 `prompt_ids` 进行 generate。但是实际上 verl 的推理引擎 vLLM 或是 sgLang 内部拥有 **PagedAttention** 和强大的 **Prefix Caching** 机制。它会把已经计算过的 token 的 KV Cache 存下来，下次请求时如果 prefix 相同直接复用，所以效果上接近续写，计算量只增加新 token 部分。
+{{< /admonition >}}
 
 {{< admonition type=question title="为什么不直接用 OpenAI chat API 格式做多轮？">}} 
 
