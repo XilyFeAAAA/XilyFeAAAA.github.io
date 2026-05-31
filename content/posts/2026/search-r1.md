@@ -7,7 +7,7 @@ authors:
 series:
   - 项目笔记
 tags: []
-lastmod: 2026-05-25T01:57:43+08:00
+lastmod: 2026-05-31T07:49:18+08:00
 ---
 ## 1. 背景
 
@@ -533,6 +533,32 @@ new_rollings = DataProto.from_dict({
 
 这里 Search-R1 还会维护每个 trajectory 的 `info_mask`，它的作用是在计算 loss 时让检索结果不参与梯度计算，类似 `attention_mask` 不让 `<PAD>` 参与梯度计算。
 
+#### 3.2.8 存在的问题
+
+Search-R1 的 multi-turn rollout 本质上是把整个对话历史（system prompt + 多轮 `<think>`/`<search>`/`<result>` + 当前生成）拼成一个长序列，再送到 vLLM 继续生成。当这个序列超过 `max_prompt_length` 时，vLLM 默认**从左侧截断** 保留最近的 token：
+
+```python
+max_len = min(self.config.max_prompt_length, effective_len)  
+new_rollings = DataProto.from_dict({  
+    'input_ids': new_input_ids[:, -max_len:],  # 取最右侧，即丢弃最左侧（system prompt + 原始问题）  
+    ...  
+})
+```
+
+这有可能导致 rollout 出现错误：
+1. 生成格式崩坏：system prompt 通常定义了输出格式（比如要用 `<think>`, `<search>`, `<answer>` 等 XML tag）。截掉之后模型就失去了这部分指令，很容易退化回普通对话格式，导致后续的 tool parser 解析失败，或者直接输出 raw text。
+2. 搜索历史丢失：模型看不到前几轮已经搜了什么，会重复发出相同的 `<search>` query，浪费 turns。
+
+所以需要在 swanlab 上监控每一轮 rollout 的长度，如果被截断了很可能训练出问题，需要调整 `max_prompt_length`。但这个问题在训练时不会有影响，因为 Search-R1 rollout 结束后返回的是完整未截断的整个 trajectory：
+
+```python
+def run_llm_loop(self, gen_batch, initial_input_ids: torch.Tensor) -> Tuple[Dict, Dict]:
+	# original_left_side  → 保存初始 prompt 的固定副本（不变）  
+	# original_right_side → 累积所有 responses（从右侧增长）
+	return self._compose_final_output(original_left_side, original_right_side, meta_info)
+```
+
+
 ## 4. 奖励设计
 
 >Search-R1 的灵感来源于 Deepseek-R1，就是单单通过一个 outcome-based reward（最终答案是否正确）让模型学会什么时候搜索、搜什么、如何利用检索结果，而不需要细粒度的 prm。
@@ -668,50 +694,714 @@ def compute_advantage(data: DataProto, adv_estimator, gamma=1.0, lam=1.0, num_re
 ```
 
 
-## 6. RL 算法选择
+## 5. RL 算法选择
 
-### 6.1 PPO vs GRPO 的区别
+### 5.1 PPO &  GRPO
 
-### 6.2 GRPO 的 outcome-level advantage 归一化
+$$
+\begin{align}
+L^{PPO}(\theta) &= \mathbb{E}_t \left[ \min\left( r_t(\theta) \hat{A}_t, \ \text{clip}\left(r_t(\theta), 1-\epsilon, 1+\epsilon\right) \hat{A}_t \right) \right] \\
+L^{\text{GRPO}}(\theta) &= \mathbb{E} \left[ \frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \min\left( r_{i,t}(\theta) \hat{A}_{i,t},\ \text{clip}(r_{i,t}(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_{i,t} \right) - \beta D_{\text{KL}} \right]
+\end{align}
+$$
 
-### 6.3 KL penalty 的作用和配置
 
-### 6.4 adv_estimator 选择对训练稳定性的影响
+观察两个公式我们可以发现，GRPO 和 PPO 的 actor loss 实际上是一个形式，只不过他们两个的优势 advantage 计算方式不同，而且 GRPO 加了一个 KL 惩罚。所以 verl 中二者共用同一个 PPO clipped policy loss：
 
-## 7. 训练流程与架构
+```python
+def compute_policy_loss(old_log_prob, log_prob, advantages, eos_mask, cliprange):
+    negative_approx_kl = log_prob - old_log_prob
+    ratio = torch.exp(negative_approx_kl)
+    ppo_kl = verl_F.masked_mean(-negative_approx_kl, eos_mask)
 
-### 7.1 verl 框架的 actor-critic-ref-rm 四角色设计
+    pg_losses = -advantages * ratio
+    pg_losses2 = -advantages * torch.clamp(ratio, 1.0 - cliprange, 1.0 + cliprange)
 
-### 7.2 Ray 分布式调度
+    pg_loss = verl_F.masked_mean(torch.max(pg_losses, pg_losses2), eos_mask)
+    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses).float(), eos_mask)
+    return pg_loss, pg_clipfrac, ppo_kl
+```
 
-### 7.3 rollout → reward → update 的完整 loop
+>这里可能你会发现一个很奇怪的问题，GRPO 的 policy loss 不是先对每条序列做 token 平均，再对 G 条序列做平均吗？为什么他可以和 token-level 的 PPO 复用一个 policy_loss 计算函数呢？
+>原因我们在 DAPO 的文章里面提到过，GRPO 原始公式的 seq-mean-token-mean 会导致在长 CoT 序列中梯度贡献被稀释，无法学习关键推理步骤。所以 verl 在 GRPO 中就参考 DAPO 把 loss 改成 token-level 了，和 PPO 都用 `compute_policy_loss` 计算 policy loss。
 
-### 7.4 FSDP 并行策略
+### 5.2 core_algos
 
-## 8. 工程细节
+我们回忆一下训练的调用链：
 
-### 8.1 token_level_scores 的写入位置
+```text
+train_ppo.sh / train_grpo.sh
+  ↓
+verl.trainer.main_ppo
+  ↓
+RayPPOTrainer.fit()
+  ↓
+LLMGenerationManager.run_llm_loop()
+  ↓
+actor_rollout_wg.generate_sequences()
+  ↓
+多轮 search rollout 得到完整 responses
+  ↓
+actor_rollout_wg.compute_log_prob()
+  ↓
+ref_policy_wg.compute_ref_log_prob()    可选
+  ↓
+critic_wg.compute_values()              PPO 需要
+  ↓
+reward_fn(batch)
+  ↓
+compute_advantage(...)
+  ├── GAE  → PPO
+  └── GRPO → group outcome advantage
+  ↓
+_create_loss_mask()
+  ↓
+actor_rollout_wg.update_actor()
+  ↓
+DataParallelPPOActor.update_policy()
+  ↓
+core_algos.compute_policy_loss()
+```
 
-### 8.2 多轮 rollout 中 attention_mask 的处理
+由于 verl 中采用的训推分离，推理时需要重新计算 response 的 `log_probs`。PPO 用 critic 计算完 value 和 reward 之后就可以计算 advantage 了。PPO 用的是 GAE 计算优势：
 
-### 8.3 prompt 模板对模型行为的影响
+```python
+def compute_gae_advantage_return(token_level_rewards: torch.Tensor, values: torch.Tensor, eos_mask: torch.Tensor, gamma: torch.Tensor, lam: torch.Tensor):
+    with torch.no_grad():
+        lastgaelam = 0
+        advantages_reversed = []
+        gen_len = token_level_rewards.shape[-1]
 
-### 8.4 训练超参
+        for t in reversed(range(gen_len)):
+            nextvalues = values[:, t + 1] if t < gen_len - 1 else 0.0
+            delta = token_level_rewards[:, t] + gamma * nextvalues - values[:, t]
+            lastgaelam = delta + gamma * lam * lastgaelam
+            advantages_reversed.append(lastgaelam)
+        advantages = torch.stack(advantages_reversed[::-1], dim=1)
 
-## 8. 评估方法
+        returns = advantages + values
+        advantages = verl_F.masked_whiten(advantages, eos_mask)
+    return advantages, returns
+```
 
-### 8.1 在线验证
+GAE 的计算就是一个 反向遍历，在手写 PPO Trainer 那个文章讲过。对于 GRPO 来说它不需要 critic，只要有了 outcome-reward 它就可以计算组内相对优势：
 
-### 8.2 离线评估
+```python
+def compute_grpo_outcome_advantage(
+	token_level_rewards: torch.Tensor,
+	eos_mask: torch.Tensor,
+	index: torch.Tensor,
+	epsilon: float = 1e-6
+):
+    response_length = token_level_rewards.shape[-1]
+    non_zero_mask = (token_level_rewards != 0)
+    scores = (token_level_rewards * non_zero_mask).sum(dim=-1)
 
-### 8.3 指标
+    id2score = defaultdict(list)
+    id2mean = {}
+    id2std = {}
 
-## 9. 消融实验与关键结论
+    with torch.no_grad():
+        bsz = scores.shape[0]
+        for i in range(bsz):
+            id2score[index[i]].append(scores[i])
+        for idx in id2score:
+            if len(id2score[idx]) == 1:
+                id2mean[idx] = torch.tensor(0.0)
+                id2std[idx] = torch.tensor(1.0)
+            elif len(id2score[idx]) > 1:
+                id2mean[idx] = torch.mean(torch.tensor(id2score[idx]))
+                id2std[idx] = torch.std(torch.tensor([id2score[idx]]))
+            else:
+                raise ValueError(f"no score in prompt index: {idx}")
+        for i in range(bsz):
+            scores[i] = (scores[i] - id2mean[index[i]]) / (id2std[index[i]] + epsilon)
+        scores = scores.unsqueeze(-1).tile([1, response_length]) * eos_mask
 
-### 9.1 有无 search 的对比
+    return scores, scores
+```
 
-### 9.2 格式奖励的必要性
+### 5.3 kl penalty
 
-### 9.3多跳 vs 单跳数据混合训练的效果
+verl 中 kl penalty 有两种处理方式。第一种方法就是把 kl penalty 直接加在 reward 里面：
 
-### 9.4 不同基座模型的表现差异
+$$
+r'_t = r_t - \beta \text{KL}_t
+$$
+
+例如用 PPO 训练就会设 `actor_rollout_ref.actor.use_kl_loss = False`，这样就会调用 `apply_kl_penalty` 把 kl penalty 加入 loss：
+
+```python
+def apply_kl_penalty(data: DataProto, kl_ctrl: core_algos.AdaptiveKLController, kl_penalty="kl"):
+    responses = data.batch["responses"]
+    response_length = responses.size(1)
+    token_level_scores = data.batch["token_level_scores"]
+    batch_size = data.batch.batch_size[0]
+    attention_mask = (
+        data.batch["info_mask"]
+        if "info_mask" in data.batch
+        else data.batch["attention_mask"]
+    )
+    response_mask = attention_mask[:, -response_length:]
+
+    # compute kl between ref_policy and current policy
+    if "ref_log_prob" in data.batch.keys():
+        kld = core_algos.kl_penalty(
+            data.batch["old_log_probs"],
+            data.batch["ref_log_prob"],
+            kl_penalty=kl_penalty,
+        )  # (batch_size, response_length)
+        kld = kld * response_mask
+        beta = kl_ctrl.value
+    else:
+        beta = 0
+        kld = torch.zeros_like(response_mask, dtype=torch.float32)
+
+    token_level_rewards = token_level_scores - beta * kld
+
+    current_kl = masked_mean(kld, mask=response_mask, axis=-1)  # average over sequence
+    current_kl = torch.mean(current_kl, dim=0).item()
+
+    # according to https://github.com/huggingface/trl/blob/951ca1841f29114b969b57b26c7d3e80a39f75a0/trl/trainer/ppo_trainer.py#L837
+    kl_ctrl.update(current_kl=current_kl, n_steps=batch_size)
+    data.batch["token_level_rewards"] = token_level_rewards
+
+    metrics = {"critic/kl": current_kl, "critic/kl_coeff": beta}
+
+    return data, metrics
+```
+
+
+第二种方法就是像 GRPO 一样，把 kl penalty 加到 actor loss 里面。当我们在脚本中设置：
+
+```bash
+actor_rollout_ref.actor.use_kl_loss=true
+actor_rollout_ref.actor.kl_loss_coef=0.001
+actor_rollout_ref.actor.kl_loss_type=low_var_kl
+```
+
+训练器不在 reward 中扣 KL：
+
+```python
+batch.batch['token_level_rewards'] = batch.batch['token_level_scores']
+```
+
+而是在 actor loss 中加 kl penalty：
+
+```python
+kld = core_algos.kl_penalty(
+    logprob=log_prob,
+    ref_logprob=ref_log_prob,
+    kl_penalty=self.config.kl_loss_type,
+)
+kl_loss = masked_mean(kld, response_mask)
+policy_loss = policy_loss + kl_loss * self.config.kl_loss_coef
+```
+
+## 6. 训练流程与架构
+
+>verl 的具体细节在 [从零开始学 verl 框架](https://xilyfeaaaa.github.io/posts/verl/) 里面已经介绍过了，这边就整体串联一遍。
+
+首先，veRL 顶层是一个 **single-controller** 的结构。也就是说，整个 PPO/GRPO 训练 step 的逻辑顺序由一个 driver 进程控制。在 Search-R1 里这个 controller 主要就是 `RayPPOTrainer.fit()`。它自己不直接在本进程里跑所有 GPU 计算，而是按流程调用不同的 Ray WorkerGroup：
+
+- `actor_rollout_wg.generate_sequences()`：rollout 生成 trajectory。
+- `ref_policy_wg.compute_ref_log_prob()`：计算 reference policy logprob。
+- `critic_wg.compute_values()`：PPO/GAE 下计算 values。
+- `critic_wg.update_critic()`：更新 critic。
+- `actor_rollout_wg.update_actor()`：更新 actor。
+
+训练循环一开始就是从 dataloader 取一个 batch：
+
+```python
+for epoch in range(self.config.trainer.total_epochs):
+    for batch_dict in self.train_dataloader:
+        batch: DataProto = DataProto.from_single_dict(batch_dict)
+        batch = batch.repeat(
+            repeat_times=self.config.actor_rollout_ref.rollout.n_agent,
+            interleave=True,
+        )
+
+        gen_batch = batch.pop(
+            batch_keys=["input_ids", "attention_mask", "position_ids"]
+        )
+```
+
+取出一个 batch 之后，driver 会调用 `actor_rollout_wg.generate_sequences()` 进行 rollout 生成 trajectory：
+
+```python
+gen_batch_output = self.actor_rollout_wg.generate_sequences(gen_batch)
+batch.non_tensor_batch["uid"] = np.array(
+    [str(uuid.uuid4()) for _ in range(len(batch.batch))],
+    dtype=object,
+)
+batch = batch.repeat(
+    repeat_times=self.config.actor_rollout_ref.rollout.n,
+    interleave=True,
+)
+batch = batch.union(gen_batch_output)
+```
+
+这里的 `actor_rollout_wg` 是一个 Ray WorkerGroup。调用它的方法时，driver 并不是自己执行生成，而是通过 Ray 把任务分发到多个 GPU worker 上。
+
+{{< admonition type=info title="相关概念：Ray、Worker、WorkerGroup、Ray Actor" >}}
+Ray 是一个分布式执行框架。veRL 用 Ray 在多个 GPU 上启动多个远程进程，每个远程进程通常绑定一张 GPU。
+
+在这套代码里可以这么理解：
+
+```text
+Driver / Single Controller
+  └── actor_rollout_wg  （driver 本地的 WorkerGroup 代理）
+        ├── Ray actor rank 0 / GPU 0 / ActorRolloutRefWorker
+        ├── Ray actor rank 1 / GPU 1 / ActorRolloutRefWorker
+        ├── Ray actor rank 2 / GPU 2 / ActorRolloutRefWorker
+        └── Ray actor rank 3 / GPU 3 / ActorRolloutRefWorker
+```
+
+几个概念的关系是：
+
+| 概念 | 在代码里的形态 | 作用 |
+|---|---|---|
+| Driver | `RayPPOTrainer.fit()` 所在进程 | 控制整个 PPO/GRPO step 的逻辑顺序 |
+| WorkerGroup | `RayWorkerGroup` | driver 侧的代理，负责把一次调用分发到多个 worker |
+| Ray actor | Ray 远程 Python 进程 | 真正运行在 GPU 上的进程 |
+| Worker | `ActorRolloutRefWorker` / `CriticWorker` 等 | Ray actor 里面执行模型计算的对象 |
+
+当我们调用 WorkerGroup 的 `generate_sequences()` 方法时，WorkerGroup 会：
+
+1. 根据 worker 数量把 `DataProto` 切成多份。
+2. 把每份数据通过 Ray RPC 发给对应 GPU 上的 worker。
+3. 每个 worker 都执行自己的 `generate_sequences()`。
+4. 最后把每个 worker 的生成结果 concat 起来，返回给 driver。
+{{< /admonition >}}
+
+前面说到，driver 调用 WorkerGroup 以后，每个 GPU 上的 `ActorRolloutRefWorker` 都会执行自己的 `generate_sequences()`：
+
+```python
+@register(dispatch_mode=Dispatch.DP_COMPUTE_PROTO)
+def generate_sequences(self, prompts: DataProto):
+    prompts = prompts.to('cuda')
+    recompute_log_prob = prompts.meta_info.get('recompute_log_prob', True)
+
+    assert self._is_rollout
+
+    if self._is_offload_param:
+        load_fsdp_param_and_grad(
+            module=self.actor_module_fsdp,
+            device_id=torch.cuda.current_device(),
+            load_grad=self._is_offload_grad,
+        )
+
+    prompts.batch = prompts.batch.cuda()
+    prompts.meta_info.update({
+        'eos_token_id': self.tokenizer.eos_token_id,
+        'pad_token_id': self.tokenizer.pad_token_id,
+    })
+
+    with self.rollout_sharding_manager:
+        prompts = self.rollout_sharding_manager.preprocess_data(prompts)
+        output = self.rollout.generate_sequences(prompts=prompts)
+        output = self.rollout_sharding_manager.postprocess_data(output)
+
+    if self._is_actor and recompute_log_prob:
+        old_log_probs = self.actor.compute_log_prob(data=output)
+        output.batch['old_log_probs'] = old_log_probs
+
+    output = output.to('cpu')
+
+    if self._is_offload_param:
+        offload_fsdp_param_and_grad(...)
+
+    torch.cuda.empty_cache()
+    return output
+```
+
+verl 是一个训推分离的框架，训练用的是 FSDP 推理用的是 vLLM，而参数更新发生在 FSDP 的模型上。所以当一个 step 训练结束下个 step 进行 rollout 推理时，verl 需要把 FSDP 模型的权重拷贝到 vLLM 上，保证一致性。由于显存有限，所以 verl 中默认开启 vLLM 和 FSDP 权重的 offload，也就是使用结束自动把模型权重从 GPU 上 offload 到 CPU。所以如果 FSDP 参数之前 offload 到 CPU，就先 load 回 GPU，再进入 sharding manager 里从 FSDP 导出权重并同步给 vLLM，用 vLLM 做 rollout。
+
+{{< admonition type=info title="Hybrid Engine">}} 
+这里详细介绍一下 verl 里面的训推分离机制，前面我们说到 `ActorRolloutRefWorker` 这个 worker 同时负责 actor 训练和推理，它是怎么做到的呢？ `ActorRolloutRefWorker` 有两个很重要的成员变量：
+
+1. `self.actor_module_fsdp`： HuggingFace causal LM 包一层 FSDP。
+2. `self.rollout`：如果用的是 vLLM 进行推理就是一个 vLLMRollout 类，负责推理。
+
+当我们调用 `ActorRolloutRefWorker` 的 `update_actor` 方法时，它就会对 `self.actor_module_fsdp` 进行训练，包括计算 logprobs，计算 policy loss，forward 和 loss backward 等等。当我们调用 `generate_sequence` 方法时就需要 vLLM 了，此时 verl 就会通过 rollout_sharding_manager 从 FSDP `state_dict()` 导出参数给 vLLM，我们用 `self.rollout` 这个 vLLM 对象就可以进行推理了。
+
+```python
+@register(dispatch_mode=Dispatch.DP_COMPUTE_PROTO)
+def generate_sequences(self, prompts: DataProto):
+    prompts = prompts.to('cuda')
+    recompute_log_prob = prompts.meta_info.get('recompute_log_prob', True)
+
+    if self._is_offload_param:
+        load_fsdp_param_and_grad(...)
+
+    prompts.batch = prompts.batch.cuda()
+    prompts.meta_info.update({
+        'eos_token_id': self.tokenizer.eos_token_id,
+        'pad_token_id': self.tokenizer.pad_token_id,
+    })
+
+    with self.rollout_sharding_manager:
+        prompts = self.rollout_sharding_manager.preprocess_data(prompts)
+        output = self.rollout.generate_sequences(prompts=prompts)
+        output = self.rollout_sharding_manager.postprocess_data(output)
+
+    if self._is_actor and recompute_log_prob:
+        old_log_probs = self.actor.compute_log_prob(data=output)
+        output.batch['old_log_probs'] = old_log_probs
+
+    output = output.to('cpu')
+    if self._is_offload_param:
+        offload_fsdp_param_and_grad(...)
+    torch.cuda.empty_cache()
+    return output
+    
+class FSDPVLLMShardingManager(BaseShardingManager):
+	def __enter__(self):
+        log_gpu_memory_usage('Before state_dict() in sharding manager memory', logger=logger)
+        params = self.module.state_dict()
+        log_gpu_memory_usage('After state_dict() in sharding manager memory', logger=logger)
+        # Copy, not share memory
+        load_format = 'hf' if self.full_params else 'dtensor'
+        self.inference_engine.sync_model_weights(params, load_format=load_format)
+        log_gpu_memory_usage('After sync model weights in sharding manager', logger=logger)
+
+        del params
+        torch.cuda.empty_cache()
+        log_gpu_memory_usage('After del state_dict and empty_cache in sharding manager', logger=logger)
+        if self.device_mesh is not None:
+            self.torch_random_states = torch.cuda.get_rng_state()
+            torch.cuda.set_rng_state(self.gen_random_states)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        log_gpu_memory_usage('Before vllm offload in sharding manager', logger=logger)
+        self.inference_engine.offload_model_weights()
+        log_gpu_memory_usage('After vllm offload in sharding manager', logger=logger)
+        
+        self.module.train()
+        torch.cuda.empty_cache()
+        if self.device_mesh is not None:
+            self.gen_random_states = torch.cuda.get_rng_state()
+            torch.cuda.set_rng_state(self.torch_random_states)
+```
+
+从 `fsdp_workers.py` 的代码中可以看到，进入 FSDPVLLMShardingManager 这个上下文管理器之后，会先把 FSDP 的模型权重 copy 到 vLLM 里面。然后才调用 `self.rollout.generate_sequences(prompts=prompts)` 用 vLLM 进行推理。等退出上下文管理器后再把 vLLM 的模型权重 offload 掉，减少显存占用。
+{{< /admonition >}}
+
+如果你深入代码可能会发现一个问题，`actor_rollout_wg.generate_sequences()` 会按 DP 切分 DataProto，但是 vLLM 推理是 TP 切分的啊，所以不应该用 TP 切分吗？假如把 batch 按照 DP 切分为 n 份，每个 worker 持有 $\frac{1}{n}$ 的数据，那他也只拥有一个 GPU 怎么能 TP 并行推理呢？实际上 vLLM 的 TP 不是发生在“一个 worker 内部”，而是发生在“多个 worker 组成的 TP group 之间”。
+
+这里举个例子，假如有 4 个 GPU 并且 TP=2。一开始整个大 batch 被切分为 $\frac{1}{4}$ 给每个 worker，由于 TP=2 所以 4 个 GPU 也会被分为 2 个 TP Group。等进入推理时候，相同 TP Group 的 GPU 会进行 allreduce，这样 GPU0 和 GPU 1 都会得到 $\frac{1}{2}$ batch 的数据，然后他们就可以在组内进行 TP 并行了。
+
+{{< admonition type=question title="TP 和 DP 是什么">}} 
+假如你不了解 TP 和 DP，这里简要补充前置知识。
+1. DP 也就是 Data Parallel 数据并行，把一个大 batch 拆为多个 micro batch 在多个 GPU 上 forward，这是用通信量换时间。
+2. TP 是 Tensor Parallel 张量并行，把一个模型的完整权重拆为多个部分放在多个 GPU 上，这是用通信量换显存。
+
+训练的瓶颈是**梯度同步和参数更新**，batch size 越大越好（减少梯度噪声），DP 天然 scale batch。而推理的瓶颈是 **KV Cache 显存** 和 **单序列的自回归延迟**，长序列的 KV Cache 可能撑爆单卡显存，所以适合用 TP。但是张量并行的通信很重，所以尽可能的减少 TP。
+{{< /admonition >}}
+
+这样我们就成功 rollout 完成了，接下来计算 actor 的 logprobs、update actor 等也是由 ray 统一方法任务，在多个 GPU 上并发进行。
+
+## 7. 工程细节
+
+### 7.1 冷启动
+
+对于参数量小的模型，例如 Qwen2.5-3B，它的 instruction follow 能力是比较差的，即使我们在 system prompt 里面要求按照 `<think>`、`<search>` 等标签输出它可能也会出现问题，导致强化学习根本没办法收敛，组内 reward 都是零。所以 SFT 冷启动就是先用一些标注好的轨迹数据做一轮监督微调，让模型学会基本的标签格式和搜索行为模式。
+
+我用的是 Llama-Factory 做的 sft，具体可以看 LlamaFactory 的 README：
+
+```bash
+llamafactory-cli train examples/train_lora/qwen3_lora_sft.yaml
+llamafactory-cli export examples/merge_lora/qwen3_lora_sft.yaml
+```
+
+```yaml
+### model
+model_name_or_path: Qwen/Qwen3-4B-Instruct-2507
+trust_remote_code: true
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_rank: 8
+lora_target: all
+
+### dataset
+dataset: identity,alpaca_en_demo
+template: qwen3_nothink
+cutoff_len: 2048
+max_samples: 1000
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/qwen3-4b/lora/sft
+logging_steps: 10
+save_steps: 500
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: none  # choices: [none, wandb, tensorboard, swanlab, mlflow]
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 1.0e-4
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true
+ddp_timeout: 180000000
+resume_from_checkpoint: null
+
+### eval
+# eval_dataset: alpaca_en_demo
+# val_size: 0.1
+# per_device_eval_batch_size: 1
+# eval_strategy: steps
+# eval_steps: 500
+
+```
+
+这些参数还是比较基础的，需要注意一下 llamafactory 支持的数据集格式为 sharegpt 或者 alpaca：
+
+```python
+# alpaca
+[
+    {
+        "instruction": "任务指令",
+        "input": "可选的输入上下文",
+        "output": "期望的输出响应"
+    }
+]
+# sharegpt
+[
+    {
+        "conversations": [
+            {
+                "from": "human",
+                "value": "用户说的话"
+            },
+            {
+                "from": "gpt",
+                "value": "助手的回复"
+            },
+            {
+                "from": "human",
+                "value": "用户下一句话"
+            }
+        ],
+        "system": "可选的系统提示词"
+    }
+]
+```
+
+然后使用这些自定义数据集需要我们重写 `dataset_info.json` 文件：
+- 如果数据集是标准的 alpaca 格式，那么只需要定义文件名即可
+
+```json
+{
+  "my_dataset": {
+    "file_name": "my_data.json"
+  }
+}
+```
+
+- 如果是标准的 sharegpt 格式，那么需要指定列名
+
+```json
+{
+  "chat_dataset": {
+    "file_name": "chat.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations"
+    }
+  }
+}
+```
+
+- 如果是 GPT 的 OpenAI messages 格式，我们需要指明各个 tag 的名字
+
+```json
+{
+  "openai_dataset": {
+    "file_name": "openai.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant",
+      "system_tag": "system"
+    }
+  }
+}
+```
+
+### 7.2 state masking
+
+Search-R1 用 state masking 来保证只有模型生成的 token 会参与训练，也就是说我们检索得到的 `<information></information>` 不会计算 kl penalty 或者 loss 进行反向传播。state masking 类似 attention mask，attention mask 是记录哪些 token 是 pad token，而 state masking 就是用 0/1 掩码标记哪些 token 是由模型生成的，接下来看看它的实现逻辑。
+
+首先在 rollout 过程中，Search-R1 会一直维护两个变量：
+
+```python
+original_left_side = {
+    'input_ids': initial_input_ids[:, -self.config.max_start_length:]
+}
+
+original_right_side = {
+    'responses': initial_input_ids[:, []],
+    'responses_with_info_mask': initial_input_ids[:, []]
+}
+```
+
+- `original_left_side` 记录了初始 prompt，在整个 rollout 过程中不变
+- `original_right_side` 中 `responses` 保存完整右侧序列，包括模型输出和搜索返回的信息，`responses_with_info_mask` 把非模型生成的 token 也就是 information 部分填充为 PAD token。
+
+在每一轮 rollout 中都会得到 `cur_responses` 和 `next_obs_ids` 就是这一轮生成的 token 和 search 结果，然后 Search-R1 会用 `_update_right_side` 方法更新 `original_right_side`。等到 rollout 结束，Search-R1 就会用 `_compose_final_output` 方法把这些信息整合为 DataProto，里面包含了 `input_ids` 等信息：
+
+```python
+    def _compose_final_output(self, left_side: Dict, right_side: Dict, meta_info: Dict) -> Tuple[Dict, Dict]:
+        """Compose final generation output."""
+        final_output = right_side.copy()
+        final_output['prompts'] = left_side['input_ids']
+        
+        # Combine input IDs
+        final_output['input_ids'] = torch.cat([
+            left_side['input_ids'],
+            right_side['responses']
+        ], dim=1)
+        
+        # Create attention mask and position ids
+        final_output['attention_mask'] = torch.cat([
+            self.tensor_fn.create_attention_mask(left_side['input_ids']),
+            self.tensor_fn.create_attention_mask(final_output['responses'])
+        ], dim=1)
+        final_output['info_mask'] = torch.cat([
+            self.tensor_fn.create_attention_mask(left_side['input_ids']),
+            self.tensor_fn.create_attention_mask(final_output['responses_with_info_mask'])
+        ], dim=1)
+        
+        final_output['position_ids'] = self.tensor_fn.create_position_ids(
+            final_output['attention_mask']
+        )
+        
+        final_output = DataProto.from_dict(final_output)
+        final_output.meta_info.update(meta_info)
+        
+        return final_output
+```
+
+代码里面的 `info_mask` 就是前面提到的 state masking，非模型生成的 token 用 PAD token 填充了，`create_attention_mask` 这个方法会生成对应的 0/1 mask 张量。
+
+>为什么不能把 `attention_mask` 和 `info_mask` 合在一起呢？
+>因为 `attention_mask` 是在推理中使用的，目的是 transformer 结构中让每个 token 的注意力不浪费在那些无意义的填充字符上，在 softmax 之前对注意力分数进行处理。把注意力分数里那些不希望关注的部分置为一个非常大的负数，这样 softmax 之后它们的注意力权重就会接近于 0。而 `info_mask` 是在计算 loss 的时候用，所以两个不能混在一起。
+
+最后在 update actor 计算 policy loss 时候，Search-R1 会先用 `_create_loss_mask` 把 `info_mask` 截长之后保存到 `loss_mask`：
+
+```python
+    def _create_loss_mask(self, batch, metrics):
+        """Create loss mask for state tokens."""
+        response_length = batch.batch["responses"].shape[-1]
+        response_mask = batch.batch["attention_mask"][:, -response_length:]
+
+        loss_mask = batch.batch["info_mask"][:, -response_length:]
+        batch.batch["loss_mask"] = loss_mask
+
+        metrics.update(
+            {
+                "state_tokens/total": loss_mask.sum().item(),
+                "state_tokens/coverage": (loss_mask.sum() / response_mask.sum()).item(),
+            }
+        )
+
+        return batch, metrics
+
+```
+
+然后计算 loss 时候直接乘上 `loss_mask` 就好了：
+
+```python
+def _compute_loss(self, batch):
+    loss_mask = batch.pop('loss_mask')[:, :-1].reshape(-1).cuda()
+    labels = batch['input_ids'][:, 1:].cuda()
+    with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        output = self.fsdp_model(input_ids=batch['input_ids'],
+                                 attention_mask=batch['attention_mask'],
+                                 position_ids=batch['position_ids'],
+                                 use_cache=False)  # prevent model thinks it it generating
+    logits = output.logits
+    shift_logits = logits[..., :-1, :].contiguous()
+    shift_labels = labels.contiguous()
+    # Flatten the tokens
+    loss_fct = nn.CrossEntropyLoss(reduction='none')
+    shift_logits = shift_logits.view(-1, self.model.config.vocab_size)
+    shift_labels = shift_labels.view(-1)
+    # Enable model parallelism
+    shift_labels = shift_labels.to(shift_logits.device)
+    loss = loss_fct(shift_logits, shift_labels)
+    loss = loss * loss_mask
+```
+
+### 7.3 超参
+
+| 参数                       | 说明                                                                                                                                     |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `n_agent`                | 每个 prompt 采样几个 trajectory，如果设置太小可能导致组内 reward 相同方差为 0 训练失败，如果太大会导致 OOM。                                                                |
+| `temperature`            | GRPO 算法需要保证探索性，这样组内不同 trajectory 不同才会产生方差，促使 RL。                                                                                       |
+| `lr`                     | 学习率一般设置在 1e-6，小于 PT 和 SFT，如果学习率过大可能导致灾难性遗忘或者 reward hack。                                                                              |
+| `critic.lr`              | critic model 的学习率默认是 1e-5 比较小，因为 critic model 是从头开始训练预测 return 的能力。                                                                    |
+| `train_batch_size`       | 每个 step 取出的样本数量，实际上每个 step 训练的样本数还需要乘上 `n_agent`。                                                                                      |
+| `ppo_mini_batch_size`    | 每个 step 训练的样本数量实际为 `train_batch_size * n_agent`，GRPO 会切成 mini-batch，所以有点 off-policy。                                                   |
+| `ppo_micro_batch_size`   | 这个的作用是梯度累计，比如 n 条训练样本但是显存只能放下 m 条，那么就可以通过 $\frac{n}{m}$次梯度累计达到相同效果。                                                                    |
+| `max_turns`              | rollout 的最多轮次，需要在 wandb 里面注意训练中每轮 rollout 还剩下多少 trajectory。如果大量样本 rollout turn 很短，那么可能他们根本没有搜索，如果大量样本达到 max_turn 还没有结束，说明可能陷入了循环哪里出错了。 |
+| `max_prompt_length`      | prompt 的最大长度。                                                                                                                          |
+| `max_response_length`    | 单次生成的最长 token 数量。                                                                                                                      |
+| `topk`<br>               | 检索返回的 document 数量。                                                                                                                     |
+| `gpu_memory_utilization` | vLLM 的 GPU 利用率，由于除了推理框架还有别的部分占用 GPU，所以 vLLM 的 GPU 利用率不好设置，太高容易 OOM 太低效率低。需要根据 batch_size 和 模型大小等多次修改。                                  |
+
+超参设定的几个 tips：
+1. `warmup_ratio` 的默认值为 0.285 会导致大部分时间都在预热（学习率从 0 逐渐提高到 1e-6），实际上 RL 不需要这么长的预热，降低 `warmup_ratio` 到 0.015 提高效率
+2. `max_turens` 默认值为 2 轮，但复杂问题需要多接几轮。加到 4 轮之后显存压力明显增加一因为上下文变长了。所以需要在`max_response_length`和`max_obs_length`上做取舍。根据 Search-R1 提供的公式，在默认配置的情况下增加 2 轮多需要 2000 token。
+
+```python
+max_prompt_length = max_start_length + max_response_length * (max_turns - 1) + max_obs_length * max_turns
+```
+
+{{< admonition type=question title="多个 batch_size 的关系">}} 
+每个 step 都会取 `train_batch_size` 个样本，如果采用 GRPO 那么会对每个 prompt 进行 repeat `n_agent` 次，所以每个 step 实际训练用到的样本总数是 `train_batch_size * n_agent`。由于显存有限没办法一次性训练，所以 verl 会把这些样本拆成大小为 `ppo_mini_batch_size` 的小块。我们都知道让 `batch_size` 适度增大训练效果更好，梯度估计的近似越准、噪声越低，但是它也受到 GPU 显存的限制。所以 verl 把 `ppo_mini_batch_size` 的小块再切成 `ppo_micro_batch_size` 更小块进行梯度累计，在数学层面没有任何影响。
+{{< /admonition >}}
+
+## 8. 评估
+
+假如在配置文件中指定了 `val_only` 那么 Search-R1 会直接复用 `_validate()` 方法进行评估：
+
+```python
+if self.val_reward_fn is not None and self.config.trainer.get(
+    "val_before_train", True
+):
+    val_metrics = self._validate()
+    pprint(f"Initial validation metrics: {val_metrics}")
+    logger.log(data=val_metrics, step=self.global_steps)
+    if self.config.trainer.get("val_only", False):
+        return
+```
+
+Search-R1 原论文里面是用 7 个 QA 数据集对直接回答、CoT、RAG、SFT 等多个方法进行对比进行 exact match 评分，最后结论是：
+1. Search-R1 相较于 RAG 有 24% 的提升。
+2. 模型参数量越大 Search-R1 的提升越明显
+3. GRPO 和 PPO 相比，PPO 效果更好一些后期更稳定。GRPO 收敛更快，但是由于后期组内 reward 都比较高了，方差低梯度小，训练没那么稳定。不过 GRPO 少了 critic model 显存占用少了很多。
+
+## 9. Notes
+
+### 9.1 训练监控
+
+RL 的 loss 曲线没办法反应训练的效果，一方面要看 reward 等参数变化，另一方面需要进行抽样输出，每次打印几条完整轨迹，看看模型的行为模式有没有在变好。
+
+### 9.2 Ray 残留
+
+Ray有一个反复出现的问题。训练跑完或者中途断了之后，再启动就卡住不动，也不报错。后来发现是上一次的Ray进程没清干净，`ray stop--force` 一下就好了。

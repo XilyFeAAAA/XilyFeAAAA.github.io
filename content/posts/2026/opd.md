@@ -7,7 +7,7 @@ authors:
 series:
   - 论文阅读
 tags: []
-lastmod: 2026-05-21T08:06:17+08:00
+lastmod: 2026-05-31T11:58:28+08:00
 ---
 >参考论文：A Survey of On-Policy Distillation for Large Language Models 
 >
@@ -23,37 +23,102 @@ lastmod: 2026-05-21T08:06:17+08:00
 
 理想的后训练方法应该兼具二者之长，既能获得 on-policy 训练的相关性，又能利用 off-policy 蒸馏的密集奖励信号？这就引出了本文的核心—**On-Policy Distillation**。
 
-## 2. 核心实现
+## 2. 公式推导
 
-on-policy distillation 的核心思想是：**从学生模型中采样轨迹，并使用一个高性能的教师模型来为该轨迹中的每一个 token 进行打分**。这里的打分指的不是 llm-as-judge 那种打分，OPD 本质上就是通过采样的方法，优化模型策略 ​$\pi_{\theta}$​ 和教师策略 $\pi_{\text{teacher}}$​ 之间的 reverse KL，用 sequence-level reverse-kl 表达：
-
-$$
-\begin{align}
-J_{\text{OPD}}(\theta) &= \mathbb{E}_{x \sim D}\left[D_{\text{KL}}\left(\pi_\theta(\cdot|x) \,\|\, q(\cdot|x)\right)\right] \\
-&= \mathbb{E}_{x, y \sim \pi_\theta}\left[\log \frac{\pi_\theta(y|x)}{q(y|x)}\right]\\
-&= \mathbb{E}_{x, y \sim \pi_\theta}\left[ \log \pi_\theta(y|x) - \log q(y|x) \right]
-\end{align}
-$$
-
-香农熵的定义是 $\mathcal{H}(P) = -\sum P(y) \log P(y) = -\mathbb{E}_{y \sim P}[\log P(y)]$，利用这个性质，我们可以把公式重新组合，并提取一个负号到外面：
+on-policy distillation 的核心思想是：**从学生模型中采样轨迹，并使用一个高性能的教师模型来为该轨迹中的每一个 token 进行打分**。这里的打分指的不是 llm-as-judge 那种打分，OPD 本质上就是通过采样的方法，优化模型策略 ​$\pi_{\theta}$​ 和教师策略 $\pi_{\text{teacher}}$​ 之间的 reverse KL。也就是说 OPD 的优化目标本质是最小化：
 
 $$
-J_{\text{OPD}}(\theta) = -\mathbb{E}_{x \sim D, y \sim \pi_\theta} \left[ \log q(y|x) + \mathcal{H}(\pi_\theta(y|x)) \right]
+J_{\text{OPD}}(\theta) = \mathbb{E}_{x \sim D} \left[ D_{\text{KL}}(\pi_\theta(\cdot|x) \| q(\cdot|x)) \right]
+= \mathbb{E}_{x, y \sim \pi_\theta} \left[ \log \pi_\theta(y|x) - \log q(y|x) \right]
 $$
 
-在机器学习中，我们的最终目标通常是**最小化**损失函数，或者**最大化**奖励目标。因为 $J_{\text{OPD}}(\theta)$ 是一个需要**最小化**的散度损失，所以最小化 $J_{\text{OPD}}(\theta)$ 就等价于**最大化**去掉负号后的部分。我们定义一个极大化目标 $R_{\text{RL}}(\theta)$：
-
-$$\max_{\theta} \mathbb{E}_{x \sim D, y \sim \pi_\theta} \left[ \log q(y|x) + \mathcal{H}(\pi_\theta(y|x)) \right]$$
-
-现在，我们把标准强化学习中带有熵正则化的标准目标拿出来对比：
-
-$$\max_{\pi} \mathbb{E}_{\tau \sim \pi} \left[ \sum_{t} r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t)) \right]$$
-
-可以看到结构完全一致，所以说 **OPD 本质上是一个有限时域带熵正则的 RL 问题**。
+那按照以往的思路我们有两个办法：直接把 KL 散度取负数当做 loss 进行反向传播，或者对它做 policy gradient，那该怎么选择呢？答案是只能对 reverse KL 做 policy gradient，不能直接反向传播，forward KL 才能反向传播。
 
 ---
 
-接着我们求它的梯度：
+$$
+D_{\mathrm{KL}}(q \| \pi_\theta) = \sum_y q(y) \log \frac{q(y)}{\pi_\theta(y)} = \mathbb{E}_{y \sim q}\bigl[\log q(y) - \log \pi_\theta(y)\bigr]
+$$ Forward KL 的公式如上，可以看到，由于期望是对 $q$ 取的，而 $q$ 不依赖 $\theta$，因此梯度可以直接移入期望内（梯度的期望等于期望的梯度）： 
+
+$$
+\nabla_\theta D_{\mathrm{KL}}(q \| \pi_\theta) = \mathbb{E}_{y \sim q}\bigl[-\nabla_\theta \log \pi_\theta(y)\bigr]
+$$
+
+而我们通过蒙特卡洛估计从 $q$ 中采样一个样本 $y \sim q$，构造损失： $$\hat{J} = -\log \pi_\theta(y)$$ 对应的梯度估计量： $$\hat{g} = -\nabla_\theta \log \pi_\theta(y)$$ 其期望恰好等于真实梯度： $$\mathbb{E}_{y \sim q}[\hat{g}] = \mathbb{E}_{y \sim q}\bigl[-\nabla_\theta \log \pi_\theta(y)\bigr] = \nabla_\theta D_{\mathrm{KL}}(q \| \pi_\theta)$$ 因此 $\hat{g}$ 是**无偏梯度估计量**。
+
+$$
+J(\theta) = D_{\mathrm{KL}}(\pi_\theta \| q) = \sum_y \pi_\theta(y) \log \frac{\pi_\theta(y)}{q(y)} = \mathbb{E}_{y \sim \pi_\theta}\bigl[\log \pi_\theta(y) - \log q(y)\bigr]
+$$
+与 Forward KL 的关键区别在于：Reverse KL 的**期望是对 $\pi_\theta$ 取的，期望内部和下标都依赖 $\theta$**，因此不能简单地将梯度移入期望。
+
+我们定义辅助函数： 
+
+$$
+f_\theta(y) = \log \pi_\theta(y) - \log q(y)
+$$ 
+则目标函数可以写成：
+
+$$
+J(\theta) = \mathbb{E}_{y \sim \pi_\theta}[f_\theta(y)] = \sum_y \pi_\theta(y) f_\theta(y)
+$$ 
+对其求梯度，使用乘积法则展开： 
+
+$$
+\nabla_\theta J(\theta) = \sum_y \nabla_\theta \pi_\theta(y) \cdot f_\theta(y) + \sum_y \pi_\theta(y) \cdot \nabla_\theta f_\theta(y)
+$$
+利用恒等式 $\nabla_\theta \pi_\theta(y) = \pi_\theta(y) \nabla_\theta \log \pi_\theta(y)$，将上式改写为期望形式：
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{y \sim \pi_\theta}\bigl[f_\theta(y) \nabla_\theta \log \pi_\theta(y) + \nabla_\theta f_\theta(y)\bigr]
+$$
+
+由于 $q$ 不依赖 $\theta$，有 $\nabla_\theta f_\theta(y) = \nabla_\theta \log \pi_\theta(y)$，代入得： 
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{y \sim \pi_\theta}\Bigl[\bigl(\log \pi_\theta(y) - \log q(y)\bigr)\nabla_\theta \log \pi_\theta(y) + \nabla_\theta \log \pi_\theta(y)\Bigr]
+$$
+合并同类项： 
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{y \sim \pi_\theta}\Bigl[\bigl(1 + \log \pi_\theta(y) - \log q(y)\bigr)\nabla_\theta \log \pi_\theta(y)\Bigr]
+$$ 
+注意到常数项 $1$ 可以去掉，因为： 
+
+$$
+\mathbb{E}_{y \sim \pi_\theta}\bigl[\nabla_\theta \log \pi_\theta(y)\bigr] = \sum_y \pi_\theta(y) \nabla_\theta \log \pi_\theta(y) = \sum_y \nabla_\theta \pi_\theta(y) = \nabla_\theta \sum_y \pi_\theta(y) = 0
+$$
+
+因此最终得到 **Reverse KL 的梯度公式**： 
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{y \sim \pi_\theta}\Bigl[\bigl(\log \pi_\theta(y) - \log q(y)\bigr)\nabla_\theta \log \pi_\theta(y)\Bigr]
+$$
+
+假如我们和 forward kl 一样，用蒙特卡洛估计从 $\pi_\theta$ 中采样 $y \sim \pi_\theta$，直接将 Reverse KL 用作 PyTorch 中的 loss： 
+
+$$
+\hat{J} = \log \pi_\theta(y) - \log q(y)
+$$
+
+backward 得到的梯度为： 
+
+$$
+\hat{g} = \nabla_\theta \log \pi_\theta(y)
+$$
+其期望为： 
+
+$$
+\mathbb{E}_{y \sim \pi_\theta}[\hat{g}] = \mathbb{E}_{y \sim \pi_\theta}\bigl[\nabla_\theta \log \pi_\theta(y)\bigr] = 0
+$$
+根本原因，在于现有深度学习框架（如 PyTorch）的 `backward()` 默认将**离散采样结果 y 视为常量**，因此只计算了 $\nabla_\theta f_\theta(y)$ 这一项，遗漏了采样分布本身随 $\theta$ 变化所带来的项：
+
+$$f_\theta(y) \cdot \nabla_\theta \log \pi_\theta(y)$$
+
+这一项恰好是 Reverse KL 梯度的主体，被框架自动丢弃了，导致梯度估计有偏，实际上偏差恰好等于真实梯度本身。所以 reverse KL 只能用 policy gradient，不能直接 backward。
+
+---
+
+那现在这个 RL Loss 该怎么设计？接着我们求它的梯度：
 
 $$
 \begin{align}
@@ -76,46 +141,53 @@ $$
 \end{align}
 $$
 
-对每个解码步 ​t，我们令
-- $g_t$ 是学生模型在第 $t$ 步输出当前词时的**梯度向量**：$g_t = \nabla_\theta \log \pi_\theta(y_t | c_t)$
-- $r_t$ 是对数概率相减：$r_t = \log \pi_\theta(y_t | c_t) - \log q(y_t | c_t) = \log \frac{\pi_\theta(y_t | c_t)}{q(y_t | c_t)}$
+自回归模型的序列概率可以分解为 $\log \pi_\theta(y|x) = \sum_{t=1}^T \log \pi_\theta(y_t | c_t)$ 所以：
 
-可以得到 sequence-level 估计器：
+$$
+\log\pi_\theta(y|x) - \log q(y|x) = \sum_{t'=1}^T \underbrace{\left(\log\pi_\theta(y_{t'}|c_{t'}) - \log q(y_{t'}|c_{t'})\right)}_{r_{t'}}= \sum_{t'} r_{t'}
+$$
 
-$$\hat{g}_{\text{seq}} = \sum_{t=1}^{T} \sum_{t'=1}^{T} r_{t'} \cdot g_t$$
+同理，序列的梯度也可以拆开：
 
-当 $t' < t$ 时，$r_{t'}$​ 只依赖于 $t$ 步之前的前缀，而 $\mathbb{E}[g_t | x, y_{<t}] = 0$（所有 token 的梯度期望为零）。因此 $t' < t$ 的项期望为零，可以消去：
+$$
+\nabla_\theta \log\pi_\theta(y|x) = \sum_{t=1}^T \nabla_\theta \log\pi_\theta(y_t|c_t) = \sum_t g_t
+$$
+
+把两个拆开的式子代回：
+
+$$
+\nabla_\theta J = \mathbb{E}_{y \sim \pi_\theta} \left[ \underbrace{\left(\sum_{t'} r_{t'}\right)}_{f(y)} \cdot \underbrace{\left(\sum_t g_t\right)}_{\nabla_\theta \log\pi_\theta(y)} \right] = \mathbb{E}\left[ \sum_t \sum_{t'} r_{t'} \cdot g_t \right]
+$$
+
+这就是 reverse KL sequence-level 的梯度估计器。但是当 $t' < t$ 时，$r_{t'}$​ 只依赖于 $t$ 步之前的前缀，而 $\mathbb{E}[g_t | x, y_{<t}] = 0$（所有 token 的梯度期望为零）。因此 $t' < t$ 的项期望为零，可以消去：
 
 $$
 \mathbb{E}[\hat{g}_{\text{seq}}] = \mathbb{E}\left[\sum_{t=1}^{T} \underbrace{\left(\sum_{t'=t}^{T} r_{t'}\right)}_{\text{Return-to-go：从 t 步往后的累计 log-ratio}} \cdot g_t\right]
 $$
 
-它的物理意义是：你在第 $t$ 步写下的词（梯度为 $g_t$），不仅要对当前这一步的奖励 $r_t$ 负责，还要对**从今往后一直到句尾**的所有奖励（ $r_{t}, r_{t+1}, \dots, r_T$ ）负责。这在强化学习里叫 **Return-to-go（未来累计回报）**。
+它的物理意义是：你在第 $t$ 步写下的词（梯度为 $g_t$），不仅要对当前这一步的奖励 $r_t$ 负责，还要对**从今往后一直到句尾**的所有奖励（ $r_{t}, r_{t+1}, \dots, r_T$ ）负责。这在强化学习里叫 **Return-to-go**。在大模型训练里，另一个很常见的做法是：每个位置只保留当前这一步的即时项：
 
-在大模型训练里，另一个很常见的做法是：每个位置只保留当前这一步的即时项：
+$$\nabla_\theta J = \mathbb{E}\left[ \sum_{t=1}^{T} r_t \cdot g_t \right]$$
 
-$$\hat{g}_{\text{tok}} = \sum_{t=1}^{T} r_t \cdot g_t$$
-
-我们把这种近似称为 token-level OPD，它去掉了对未来奖励的耦合。
-
----
-
-那么选择 token-level OPD 还是 sequence-level OPD 呢？Revisiting On-policy Distillation 这篇文章里面通过实验对比了两种方法。
+我们把这种近似称为 token-level OPD，它去掉了对未来奖励的耦合。那么选择 token-level OPD 还是 sequence-level OPD 呢？Revisiting On-policy Distillation 这篇文章里面通过实验对比了两种方法：
 1. token-level OPD 丢掉了 sequence-level 估计器中的未来奖励耦合项，因此相对 sequence-level 目标一般是有偏的。
 2. token-level 估计器的方差上界随序列长度呈二次增长 $O(T^2)$，而 sequence-level 的方差上界为四次增长 $O(T^4)$
 
 在大模型、智能体后训练这种长时程场景里，回复序列长度可能达到几十万 token，梯度方差是否可控会直接影响训练稳定性。所以经过权衡，**低方差相较于低偏差更重要**，最终采用的是 token-level OPD。
 
----
+所以现在我们已经推导出了：
 
-那现在我们得到了 KL 散度该怎么用呢？OPD 一般是把 -KL 当做 advantage，然后用强化学习传统的 Policy Gradient 公式：
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{x, y \sim \pi_\theta} \left[ \sum_t r_t \cdot g_t \right]
+$$
 
-$$L_{\text{PG}}(\theta) = - \mathbb{E}_{s \sim \rho_{\theta}, a \sim \pi_{\theta}} \left[ \log \pi_{\theta}(a|s) \cdot A^{\pi}(s,a) \right]$$
+对应标准 Policy Gradient 的梯度形式：
 
-或者在 Revisiting OPD 论文的代码实现中，它用的是 PPO 的公式进行更新，也就是：
+$$
+\nabla_\theta J = \mathbb{E}\left[ \sum_t A_t \cdot g_t \right]
+$$
 
-$$L_{\text{CLIP}}(\theta) = - \mathbb{E}_{t} \left[ \min(r_t(\theta)A_t, \, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)A_t) \right]$$
-
+可以得到 $A_t$ 就直接对应 $r_t$，也就是把每个 token 的 reverse KL 当做 policy gradient 的 advantage 就可以了。具体实现中前面加负号是因为我们要**最小化** $J_{\text{OPD}}$，而 Policy Gradient 框架习惯写成**最大化**奖励，所以翻转符号：$A_t = -r_t$。
 
 ## 3. KL 散度
 
