@@ -7,7 +7,7 @@ authors:
 series:
   - 训推框架
 tags: []
-lastmod: 2026-05-23T11:06:26+08:00
+lastmod: 2026-06-01T03:59:24+08:00
 ---
 {{< admonition type=info title="Summary">}} 
 这篇文章首先按照以下顺序展开：
@@ -1554,7 +1554,78 @@ dataset = dataset.map(lambda x: {
 })
 ```
 
-## 6. References
+## 6. New Features
+
+### 6.1 Async Rollout
+
+旧版本的 verl 采用的是 collocate 模式，也就是每个阶段串行执行 rollout、training 然后同步参数。每个阶段都占用全部 GPU，在同一批 GPU 上交替切换状态，通过内存重新切片共享权重。表面上看，这种同步模式所有 GPU 始终在 100% 运转效率很高，但在 agentic 训练中存在两个大问题：
+
+1. 长尾效应：串行的问题在于**必须等整个 batch 全部 rollout 结束才能开始训练**。假设一个 batch 有 512 个样本，其中 500 个样本 5 秒就生成完了，但有 12 个长尾样本需要 60 秒（比如数学推理题生成了很长的 chain-of-thought），那 500 个样本对应的 GPU 已经空闲了 55 秒，在干等那 12 个长尾样本，整个集群被最慢的样本卡住。
+2. offload 开销：collocate 模型为了让 inference 和 training 都在同一个 GPU 上，并且节省内存，每次训练完要把优化器状态换出到内存，推理完再换回 GPU，这种通过 PCIe 总线的带宽开销是非常大的。
+3. 并行策略分割：一般采用训练时 DP 推理时 TP 的策略，但由于 inference 和 training 在同一个 GPU 上，必须在边界处做 **Resharding**，每一次状态的切换都需要网络通信来重组权重，开销很大。
+
+新版本的 verl 提出了两种 Async Rollout 的解决方案。
+
+#### 6.1.1 ppo async rollout
+
+我们回忆一下传统的 synchronous agent loop rollout 是什么流程：
+1. 我们收集好一个 batch 的 sample
+2. 然后把 samples 送入 vLLM 进行 inference
+3. 假如某些 sample 生成结束就 pop 掉，某些 sample 需要调用工具就加入检索结果
+4. 继续把未完成的 samples 送入 vLLM 生成直到全部生成结束
+
+这个传统方案的问题就是，假如某些 sample 和环境交互（调用工具）时间很长，就会拖慢其他 sample 导致 GPU 闲置。ppo async rollout 的策略就是不再用一个线程统一管理一个 batch 的 samples，而是把他们拆为 n 个 `asyncio.task`，每个异步任务各自 rollout，最后再 gather 起来汇聚结果。
+
+```python
+class AgentLoopWorker:
+	async def generate_sequence():
+		# ...
+		tasks = []
+        for i in range(len(batch)):
+            trace_this_sample = i in traced_indices
+            kwargs = {k: v[i] for k, v in batch.non_tensor_batch.items()}
+            tasks.append(
+                asyncio.create_task(
+                    self._run_agent_loop(sampling_params, trajectory_info[i], trace=trace_this_sample, **kwargs)
+                )
+            )
+        outputs = await asyncio.gather(*tasks)
+        output = self._postprocess(
+            outputs, input_non_tensor_batch=batch.non_tensor_batch, validate=batch.meta_info.get("validate", False)
+        )
+        return output
+```
+
+每个 `asyncio.task` 独立控制着 sample 的生命周期，当 sample 需要进行推理时候就向 vLLM/sgLang 里面 `add_request`，由于 continuous batching 推理的效率也很高。当 sample 需要进行 decode 或者与环境交互这些 I/O 操作时候，也不会影响其他 sample。但是这个方案还是没有完全解决 long-tail 问题：由于我们用 `asyncio.gather` 收集整个 batch 的生成结果，早生成的 trajectory 还是得等最慢生成的 trajectory 一起送去训练。
+
+#### 6.1.2 fully async policy
+
+那还有没有效率更高的方法呢？fully async policy 这个方案把 **Inference** 和 **Training** 拆分到独立的 GPU 资源池上，负责 inference 的 GPU 不断从取出数据进行 rollout，然后把生成的 trajectory 送入消息队列里面，每当消息队列里面凑满一个 batch 的 trajectory 负责 training 的 GPU 就开始训练。
+
+![image.png](http://img.xilyfe.top/img/20260601141542076.png)
+
+这个办法完全解决了长尾问题，inference 的 GPU 不断满载的取数据进行推理，training 侧的 GPU 不断从 queue 里面取数据来训练。但好像存在一个问题，每一个 batch 推理到训练结束后，不是应该把训练框架 FSDP 的模型权重同步到推理框架 vLLM 吗？难道 rollout 端不需要等待这个 batch 训练完成再同步权重吗？还是变成彻底的 off-policy呢？
+
+```text
+Rollout 群集: |--- 生成 Batch 1 --|--- 生成 Batch 2 --|--- 生成 Batch 3 --|
+              (使用权重: θ0)       (使用权重: θ0)       (使用权重: θ1)
+                    |                    |                    |
+             [塞入 Queue 1]       [塞入 Queue 2]        [塞入 Queue 3]
+                    |                    |                    |
+Trainer 群集:       |-- 训练 Batch 1 --|-- 训练 Batch 2 --|-- 训练 Batch 3 --|
+                       (θ0 -> θ1)           (θ1 -> θ2)           (θ2 -> θ3)
+                            |                    |
+                            v                    v
+                      [异步广播 θ1]         [异步广播 θ2]
+```
+
+从时间轴可以看到，rollout 集群不会等待新的权重，而是不断地进行 rollout。假如 trainer 集群训练完成了一个 batch，那么 rollout 集群会在这个 batch 推理完成之后进行权重同步。在训推速度大致相同的情况下，这种模式确实会造成 1-2 batch 的 off-policy，可以看到生成 batch 2 的时候用的还是权重 $\theta 0$，但是只要权重差异不是太大 PPO/GRPO 里面的重要性采样都可以缓解这个问题：
+
+$$r_t(\theta) = \frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(a|s)}$$
+
+
+
+## 7. References
 
 - 视频
 	- [verl 源码解读 & 客制化经验分享](https://www.bilibili.com/video/BV1CzbezREua/)

@@ -7,7 +7,7 @@ authors:
 series:
   - 项目笔记
 tags: []
-lastmod: 2026-05-31T07:49:18+08:00
+lastmod: 2026-06-01T04:24:28+08:00
 ---
 ## 1. 背景
 
@@ -369,6 +369,10 @@ for step in range(max_turns):
     # Step 8: 更新右侧累积输出
     original_right_side = update_right_side(original_right_side, responses_ids, next_obs_ids)
 ```
+
+
+>可以注意到新版本 verl 的 AgentData 里面只保存了每个 trajectory 的 `input_ids` 没有保存 `attention_mask`，因为每条 trajectory 是独立的进行推理的，而不是像 Search-R1 AgentLoop 一样拼成一个大 batch 送入 vLLM。
+
 
 #### 3.2.3 数据预处理
 
@@ -1405,3 +1409,16 @@ RL 的 loss 曲线没办法反应训练的效果，一方面要看 reward 等参
 ### 9.2 Ray 残留
 
 Ray有一个反复出现的问题。训练跑完或者中途断了之后，再启动就卡住不动，也不报错。后来发现是上一次的Ray进程没清干净，`ray stop--force` 一下就好了。
+
+
+## 10. 优化 Search-R1
+
+官方仓库实现的 Search-R1 是基于老版本的 verl，所以考虑在新版 verl 上复现 Search-R1，改进方向有以下几点：
+
+1. 新版本 verl 的 AsyncAgentLoop 可以进行 async rollout，减少了 tokenizer decode 操作或者环境交互带来的 GPU 闲置，rollout 效率大幅度提高。
+2. 新版本 verl 的 ToolAgentLoop 实现了 tool agent rollout 的完整流程，从自定义文本协议变成标准的 tool calling，把检索操作变成了一个 tool。
+3. Search-R1 里有 `info_mask` / `state_masking` 这种项目内自定义逻辑。SearchAgent-Zero 直接用新版 verl AgentLoop 的 `response_mask`，非模型生成的 token，padding 和异常处理的 token 都赋值为 0。
+4. 检测异常轨迹（效果待定，感觉有问题）：
+	1. 如果句子长度超过上限，不是进行左截断而是直接把这条 trajectory mask 掉不参与训练
+	2. 如果 tool call turn 超过上限，把这条 trajectory mask 掉
+	3. 如果发现模型生成的 tool call 有问题，例如 json 无法解析/tool call 格式不对/query 过多对象。那么就把这轮 turn 之前的全部 token mask 掉，也就是只保留存在问题的 token。一般 rollout 有问题的句子adv都是负的，那么就是降低这些有问题的 token 的概率。

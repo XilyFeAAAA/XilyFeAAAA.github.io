@@ -253,14 +253,7 @@ theme = "Dolt"
     # 缩略图 URL
     thumbnailUrl = ""
 
-  # DoIt 新增 | 0.2.0 网站分析配置
-  [params.analytics]
-    enable = true
-    # Google Analytics
-    [params.analytics.google]
-      id = "G-4V93QVSNFW"
-      # 是否匿名化用户 IP
-      anonymizeIP = true
+
 
 
 [menu]
@@ -292,12 +285,11 @@ theme = "Dolt"
     title = ""
     weight = 3
   [[menu.main]]
-  [[menu.main]]
-    identifier = "tags"
+    identifier = "footprint"
     pre = ""
     post = ""
-    name = "标签"
-    url = "/tags/"
+    name = "足迹"
+    url = "/footprint/"
     title = ""
     weight = 4
   [[menu.main]]
@@ -306,14 +298,6 @@ theme = "Dolt"
     post = ""
     name = "关于"
     url = "/about/"
-    title = ""
-    weight = 6
-  [[menu.main]]
-    identifier = "footprint"
-    pre = ""
-    post = ""
-    name = "足迹"
-    url = "/footprint/"
     title = ""
     weight = 5
 
