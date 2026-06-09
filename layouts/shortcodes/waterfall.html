@@ -1,0 +1,199 @@
+{{- /*
+Usage:
+{{< waterfall >}}
+/image/a.jpg | optional caption
+/image/b.jpg
+https://example.com/c.jpg | optional caption
+{{< /waterfall >}}
+*/ -}}
+{{- $id := printf "waterfall-%d" now.UnixNano -}}
+{{- $lines := split .Inner "\n" -}}
+{{- $items := slice -}}
+{{- range $lines -}}
+  {{- $line := strings.TrimSpace . -}}
+  {{- if $line -}}
+    {{- $parts := split $line "|" -}}
+    {{- $src := strings.TrimSpace (index $parts 0) -}}
+    {{- $caption := "" -}}
+    {{- if ge (len $parts) 2 -}}
+      {{- $caption = strings.TrimSpace (delimit (after 1 $parts) "|") -}}
+    {{- end -}}
+    {{- if $src -}}
+      {{- if and (not (hasPrefix $src "http://")) (not (hasPrefix $src "https://")) (not (hasPrefix $src "//")) -}}
+        {{- $src = $src | relURL -}}
+      {{- end -}}
+      {{- $items = $items | append (dict "src" $src "caption" $caption) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $items -}}
+<div id="{{ $id }}" class="waterfall-gallery">
+  {{- range $items -}}
+    <figure class="waterfall-gallery__item">
+      <button class="waterfall-gallery__button" type="button" data-waterfall-src="{{ .src | safeURL }}" data-waterfall-caption="{{ .caption }}" aria-label="放大查看图片">
+        <img src="{{ .src | safeURL }}" alt="{{ .caption }}" loading="lazy" decoding="async">
+      </button>
+      {{- with .caption }}<figcaption>{{ . | markdownify }}</figcaption>{{ end -}}
+    </figure>
+  {{- end -}}
+</div>
+{{- end -}}
+
+{{- if not (.Page.Scratch.Get "waterfall_shortcode_css_loaded") -}}
+  {{- .Page.Scratch.Set "waterfall_shortcode_css_loaded" true -}}
+  <style>
+    .waterfall-gallery {
+      column-count: 2;
+      column-gap: 14px;
+      margin: 1.25rem 0;
+    }
+    .waterfall-gallery__item {
+      display: inline-block;
+      width: 100%;
+      margin: 0 0 14px;
+      break-inside: avoid;
+      overflow: hidden;
+      border: 1px solid var(--line, #dce8da);
+      border-radius: 8px;
+      background: var(--panel, #fff);
+      box-shadow: 0 1px 2px rgba(43, 92, 47, .08);
+    }
+    .waterfall-gallery__button {
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: zoom-in;
+    }
+    .waterfall-gallery__item img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 0;
+      transition: transform .18s ease, filter .18s ease;
+    }
+    .waterfall-gallery__button:hover img {
+      transform: scale(1.015);
+      filter: brightness(.96);
+    }
+    .waterfall-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      background: rgba(0, 0, 0, .82);
+    }
+    .waterfall-lightbox.is-open {
+      display: flex;
+    }
+    .waterfall-lightbox__inner {
+      position: relative;
+      max-width: min(1200px, 96vw);
+      max-height: 92vh;
+      text-align: center;
+    }
+    .waterfall-lightbox__image {
+      display: block;
+      max-width: 100%;
+      max-height: 84vh;
+      margin: 0 auto;
+      border-radius: 8px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .45);
+    }
+    .waterfall-lightbox__caption {
+      margin-top: 10px;
+      color: #f2f2f2;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .waterfall-lightbox__close {
+      position: fixed;
+      top: 18px;
+      right: 22px;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 999px;
+      background: rgba(0,0,0,.28);
+      color: #fff;
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 34px;
+    }
+    .waterfall-gallery__item figcaption {
+      padding: 8px 10px;
+      color: var(--muted, #7b857b);
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+    .waterfall-gallery__item figcaption p {
+      margin: 0;
+    }
+    @media (max-width: 900px) {
+      .waterfall-gallery {
+        column-count: 2;
+      }
+    }
+    @media (max-width: 560px) {
+      .waterfall-gallery {
+        column-count: 1;
+      }
+    }
+  </style>
+{{- end -}}
+
+{{- if not (.Page.Scratch.Get "waterfall_shortcode_js_loaded") -}}
+  {{- .Page.Scratch.Set "waterfall_shortcode_js_loaded" true -}}
+  <div class="waterfall-lightbox" data-waterfall-lightbox aria-hidden="true">
+    <button class="waterfall-lightbox__close" type="button" data-waterfall-close aria-label="关闭">×</button>
+    <div class="waterfall-lightbox__inner">
+      <img class="waterfall-lightbox__image" data-waterfall-lightbox-image alt="">
+      <div class="waterfall-lightbox__caption" data-waterfall-lightbox-caption></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var lightbox = document.querySelector('[data-waterfall-lightbox]');
+      if (!lightbox) return;
+      var image = lightbox.querySelector('[data-waterfall-lightbox-image]');
+      var caption = lightbox.querySelector('[data-waterfall-lightbox-caption]');
+      var close = lightbox.querySelector('[data-waterfall-close]');
+
+      function openLightbox(src, text) {
+        image.src = src;
+        image.alt = text || '';
+        caption.textContent = text || '';
+        caption.hidden = !text;
+        lightbox.classList.add('is-open');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden';
+      }
+
+      function closeLightbox() {
+        lightbox.classList.remove('is-open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        image.src = '';
+        document.documentElement.style.overflow = '';
+      }
+
+      document.addEventListener('click', function (event) {
+        var button = event.target.closest && event.target.closest('[data-waterfall-src]');
+        if (button) {
+          openLightbox(button.getAttribute('data-waterfall-src'), button.getAttribute('data-waterfall-caption'));
+          return;
+        }
+        if (event.target === lightbox || event.target === close) closeLightbox();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
+      });
+    })();
+  </script>
+{{- end -}}

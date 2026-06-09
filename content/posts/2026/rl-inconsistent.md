@@ -1,14 +1,14 @@
 ---
 title: RL训推不一致的原因 & 解决方案
 date: 2026-04-26T15:31:35+08:00
-featuredImage: ""
+featuredImage: http://img.xilyfe.top/img/20260609104852216.png
 authors:
   - Xilyfe
 series:
   - 面经
 tags: []
 hiddenFromHomePage: true
-lastmod: 2026-04-27T11:13:51+08:00
+lastmod: 2026-06-09T10:49:28+08:00
 ---
 ## 1. 问题
 

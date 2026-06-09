@@ -1,0 +1,7 @@
+{{- if gt .Paginator.TotalPages 1 -}}
+<nav class="pagination" aria-label="分页">
+  {{- with .Paginator.Prev }}<a class="pagination-link" href="{{ .URL }}">← 新一些</a>{{ end -}}
+  <span class="pagination-current">{{ .Paginator.PageNumber }} / {{ .Paginator.TotalPages }}</span>
+  {{- with .Paginator.Next }}<a class="pagination-link" href="{{ .URL }}">旧一些 →</a>{{ end -}}
+</nav>
+{{- end -}}

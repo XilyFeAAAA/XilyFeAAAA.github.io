@@ -1,0 +1,23 @@
+<aside class="site-sidebar site-sidebar-left">
+  <div class="mobile-bar">
+    <a class="mobile-title" href="{{ .Site.Home.RelPermalink }}">{{ .Site.Title }}</a>
+    <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="left-nav">☰</button>
+  </div>
+  <div class="left-panel" id="left-nav">
+    <a class="brand" href="{{ .Site.Home.RelPermalink }}" aria-label="{{ .Site.Title }}">
+      {{- with .Site.Params.home.profile.avatarURL }}<img class="brand-avatar" src="{{ . | relURL }}" alt="">{{ end -}}
+      <span class="brand-name">{{ .Site.Params.header.title.name | default .Site.Title }}</span>
+    </a>
+
+    <nav class="main-nav" aria-label="主导航">
+      {{- $current := . -}}
+      {{- range .Site.Menus.main -}}
+        {{- $url := .URL | relURL -}}
+        {{- $active := or ($current.IsMenuCurrent "main" .) ($current.HasMenuCurrent "main" .) (eq $current.RelPermalink $url) -}}
+        <a class="nav-link{{ if $active }} is-active{{ end }}" href="{{ $url }}">{{ .Name }}</a>
+      {{- end -}}
+    </nav>
+
+    <button class="theme-toggle" type="button" data-theme-toggle>🌗 主题</button>
+  </div>
+</aside>

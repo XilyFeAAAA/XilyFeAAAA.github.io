@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": 1780398588395,
+  "scopes": {
+    "400::15px|19.5px|霞鹜文楷, \"Segoe UI Variable\", \"Segoe UI Variable Text\", \"Segoe UI\", \"??\", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, \"Segoe UI\", \"Google Sans Flex\", Roboto, \"Inter Variable\", Inter, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", sans-serif|na|1rem|2em": {
+      "widthBucket": 400,
+      "styleSignature": "15px|19.5px|霞鹜文楷, \"Segoe UI Variable\", \"Segoe UI Variable Text\", \"Segoe UI\", \"??\", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, \"Segoe UI\", \"Google Sans Flex\", Roboto, \"Inter Variable\", Inter, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", sans-serif|na|1rem|2em",
+      "updatedAt": 1780398587499,
+      "heights": {
+        "bottom-anchor": 10
+      }
+    }
+  }
+}

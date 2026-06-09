@@ -1,0 +1,21 @@
+{{- $comment := .Site.Params.page.comment -}}
+{{- $giscus := $comment.giscus -}}
+{{- if and .IsPage ($comment.enable | default false) ($giscus.enable | default false) -}}
+<section class="comments" id="comments">
+  <script src="https://giscus.app/client.js"
+    data-repo="{{ $giscus.dataRepo }}"
+    data-repo-id="{{ $giscus.dataRepoId }}"
+    data-category="{{ $giscus.dataCategory }}"
+    data-category-id="{{ $giscus.dataCategoryId }}"
+    data-mapping="{{ $giscus.dataMapping | default "pathname" }}"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin="anonymous"
+    async>
+  </script>
+</section>
+{{- end -}}

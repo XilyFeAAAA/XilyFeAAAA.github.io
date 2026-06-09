@@ -1,0 +1,8 @@
+{{- $pageParams := .Site.Params.page | default dict -}}
+{{- $params := merge $pageParams .Params -}}
+{{- .Scratch.Set "params" $params -}}
+{{- if not .Site.Params.mainSections -}}
+  {{- .Scratch.Set "mainSections" (slice "posts") -}}
+{{- else -}}
+  {{- .Scratch.Set "mainSections" .Site.Params.mainSections -}}
+{{- end -}}

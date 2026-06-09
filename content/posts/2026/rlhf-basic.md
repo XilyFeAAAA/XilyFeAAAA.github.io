@@ -9,7 +9,7 @@ series:
 tags:
   - 大模型
   - 强化学习
-lastmod: 2026-05-21T10:50:57+08:00
+lastmod: 2026-06-06T11:13:32+08:00
 ---
  ## 1. 入门
 
@@ -129,15 +129,29 @@ $$
 V(s) &= \mathbb{E}[G_t\mid S_t=s] \\
      &= \mathbb{E}[R_{t} + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots \mid S_t=s] \\
      &= \mathbb{E}[R_{t} + \gamma (R_{t+1} + \gamma R_{t+2} + \cdots) \mid S_t=s] \\
-     &= \mathbb{E}[R_{t} + \gamma (G_{t+1}) \mid S_t=s] \\
-     &= \mathbb{E}[R_{t} + \gamma V(S_{t+1}) \mid S_t=s] 
+     &= \mathbb{E}[R_{t} + \gamma (G_{t+1}) \mid S_t=s]
 \end{align}
 $$
 
-把上式拆为两个部分，左侧即时奖励的期望就是奖励函数的输出。右侧部分 $\mathbb{E}[\gamma V(S_{t+1}) \mid S_t=s]$ 可以根据状态转移得到：
+把上式拆为两个部分，左侧即时奖励的期望就是奖励函数的输出：
 
 $$
-V(s)=r(s)+\gamma\sum_{s'\in S}p(s'\mid s)V(s')
+\mathbb{E}[R_{t}] = r(s)
+$$
+
+右侧 $\mathbb{E}[\gamma (G_{t+1}) \mid S_t=s]$ 其实就是 $V(S_{t+1})$ 的形式，由于 $S_{t+1}$ 是随机状态，所以我们还得用期望的形式：
+
+$$
+\mathbb{E}[G_{t+1}\mid S_t=s]=\mathbb{E}[V(S_{t+1})\mid S_t=s]
+$$
+
+然后再结合状态转移方程，我们就能得到：
+
+$$
+\begin{align}
+V(s) &= r(s) + \gamma \mathbb{E}[V(S_{t+1})\mid S_t=s] \\ 
+  &=r(s)+\gamma\sum_{s'\in S}p(s'\mid s)V(s')
+\end{align}
 $$
 
 上式就是马尔可夫奖励过程中非常有名的**贝尔曼方程**。
@@ -187,31 +201,6 @@ Q^{\pi}(s, a) = r(s, a) + \gamma \mathbb{E}[V^{\pi}(S_{t+1})\mid S_t=s,A_t=a]
 $$
 
 以上就是 $Q$ 和 $V$ 的相互表达。
-
-#### 2.3.4 贝尔曼期望方程
-
-- 状态价值函数：
-
-$$
-\begin{aligned}
-    V^{\pi}(s) &= \mathbb{E}_{\pi}\left[G_t \mid S_t = s\right] \\[6pt]
-               &= \mathbb{E}_{\pi}\left[R_t + \gamma G_{t+1} \mid S_t = s\right] \\[6pt]
-               &= \mathbb{E}_{\pi}\left[R_t \mid S_t = s\right]  + \mathbb{E}_{\pi}\left[\gamma G_{t+1} \mid S_t = s\right] \\[6pt]
-               &= \sum_{a} \pi(a \mid s)\cdot r(s,a) + \gamma \sum_{a} \pi(a\mid s)\sum_{s' \in S} p(s'\mid s, a)V^{\pi}(s') 
-\end{aligned}
-$$
-
-- 动作价值函数：
-
-$$
-\begin{aligned}
-    Q^{\pi}(s,a) &= \mathbb{E}_{\pi}\left[G_t \mid S_t = s, A=a\right] \\[6pt]
-               &= \mathbb{E}_{\pi}\left[R_t + \gamma G_{t+1} \mid S_t = s,A=a\right] \\[6pt]
-               &= \mathbb{E}_{\pi}\left[R_t \mid S_t = s, A=a\right]  + \mathbb{E}_{\pi}\left[\gamma G_{t+1} \mid S_t = s, A=a\right] \\[6pt]
-               &= r(s,a) + \gamma  \sum_{s' \in S} p(s'\mid s, a) \sum_{a' \in A} \pi(a'\mid s') Q^{\pi}(s',a') \\[6pt]  
-\end{aligned}
-$$
-
 
 ### 2.4 蒙特卡洛方法
 
@@ -297,13 +286,13 @@ $$
 A^\pi(s,a) = r(s,a) + \gamma V^\pi(s') - V^\pi(s)
 $$
 
-接着会神奇的发现，他和 TD 误差的形式基本相同：
+上面是站在**函数视角**推导出来的优势函数，我们实际采样出来得到的优势可以表示为：
 
 $$
-A^\pi(s_t, a_t) \approx \delta_t = R_t + \gamma V(S_{t+1}) - V(S_t)
+A^\pi(s_t, a_t) = R_t + \gamma V(S_{t+1}) - V(S_t) \approx \delta_t
 $$
 
-
+于是我们惊奇的发现，它和 td error 的表达式几乎一样。
 
 {{< admonition type=question title="为什么不用动作价值Q表示状态价值V？">}} 
 因为在优势函数的场景里，**V 比 Q 更容易估计**。回忆一下两者的输入：
@@ -322,23 +311,23 @@ $$
 用 V 表示 Q，再代入，就能把 Q 消掉，只剩 V，计算更简单。
 {{< /admonition >}}
 
-贝尔曼方程代入之后，优势函数变成了只需要状态价值 $V$，但是这个估计只用了**一步**的信息，精度有限。能不能用更多步？由此引出了多步估计：
+前面我们用贝尔曼方程代入之后，用状态价值 $V$ 表示动作价值 $Q$，这样优势函数变成了只需要状态价值 $V$。但是这个估计只用了**一步**的信息，精度有限。能不能用更多步？我们可以用 $V(S_t) = R_t + \gamma V(S_{t+1})$ 不断增加精度。
 
-**1步估计：**
+先展开 $\delta_t, \delta_{t+1}, \delta_{t+2}$​：
 
-$$\hat{A}^{(1)}_t = \delta_t = R_t + \gamma V(S_{t+1}) - V(S_t)$$
+$$
+\begin{align}
+\delta_t &= R_t + \gamma V(S_{t+1}) - V(S_t) \\
+\delta_{t+1} &= R_{t+1} + \gamma V(S_{t+2}) - V(S_{t+1}) \\
+\delta_{t+2} &= R_{t+2} + \gamma V(S_{t+3}) - V(S_{t+2})
+\end{align}
+$$
 
-**2步估计：**
+可以进而得到多步估计的表达式：
 
-$$\hat{A}^{(2)}_t = R_t + \gamma R_{t+1} + \gamma^2 V(S_{t+2}) - V(S_t)$$
-
-**3步估计：**
-
-$$\hat{A}^{(3)}_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \gamma^3 V(S_{t+3}) - V(S_t)$$
-
-**k步估计：**
-
-$$\hat{A}^{(k)}_t = \sum_{l=0}^{k-1} \gamma^l R_{t+l} + \gamma^k V(S_{t+k}) - V(S_t)$$
+$$
+\hat{A}_t^{(k)} = \sum_{l=0}^{k-1} \gamma^l \delta_{t+l}
+$$
 
 多步估计确实减小了误差提高了进度，但是**随机变量越多，叠加在一起，整体的波动就越大**，导致随着 k 增加方差越来越大。
 
@@ -368,25 +357,10 @@ $$
 这个形式非常像之前蒙特卡洛估计的递推式，我们同样可以从后往前计算。当取 $\lambda=0$ 的时候，退化为 1 步 TD，也就是低方差高偏差；当取 $\lambda=1$ 时，就是蒙特卡洛估计，高方差低偏差。所以 λ 是一个在偏差和方差之间的权衡，实践中通常取 $\lambda = 0.95$ 左右，偏向低偏差。
 
 {{< admonition type=question title="GAE 貌似还没有解决 MC 需要生成一整个 trajectory 的问题啊？">}} 
-我们提出 TD Error 的目的，就是解决蒙特卡洛估计需要得到完整 episode。但是 GAE 是对 1 到 ∞ 步的 TD Error 做加权平均，那不也需要等到整个 episode 生成结束吗？那不是又回到蒙特卡洛估计的问题了吗？
+我们提出 TD Error 的目的，就是解决蒙特卡洛估计需要得到完整 trajectory。但是 GAE 是对 1 到 ∞ 步的 TD Error 做加权平均，那不也需要等到整个 episode 生成结束吗？那不是又回到蒙特卡洛估计的问题了吗？
 
-在实际工程实现中，我们不会等到 episode 结束，而是用 truncated rollout。例如 PPO 里面我们会在固定长度里进行 rollout 计算 GAE，此时公式就变成了：
-
-$$
-\hat{A}_t = \sum_{l=0}^{T-t-1} (\gamma \lambda)^l \delta_{t+l}
-$$
-
-最后一个 state 的 $\hat{A}_t$ 会用 $V(S_T)$ 来代替，弥补截断带来的误差。其次我们假设 $\gamma=0.99, \lambda=0.95$，那么 $\gamma\lambda = 0.9405$。50 步之后权重已经不到 5% 了，所以远处的 $\delta$ 贡献几乎可以忽略，所以不需要真的算无穷步。
-
-那为什么蒙特卡洛估计不能这么做呢？蒙特卡洛估计的公式为：
-
-$$
-G_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \ldots
-$$
-
-它的核心在于必须是“真实采样的未来 reward”，所以必须等到整个 trajectory 结束。
+首先，蒙特卡洛估计确实依赖于完整的 trajectory，因为 $G_t = R_t + \gamma R_{t+1} + \ldots$ 依赖的是**真实采样的未来reward**，截断了就不是真实回报了，估计会有系统性偏差，所以在 rollout 时候我们不能因为某个 trajectory 超过了 `max_response_len` 就把它截断。但是 GAE 是可以截断的，因为它的每一项是 $(\gamma\lambda)^l \delta_{t+l}$，权重指数衰减。取 $\gamma=0.99, \lambda=0.95$，则 $\gamma\lambda=0.9405$，50 步后权重已低于 5%，远处的贡献几乎可以忽略。
 {{< /admonition >}}
-
 
 ---
 
@@ -397,7 +371,6 @@ $$
 3. 为了解决这个问题，我们了解了时序差分 TD Error，不用等到终点，走一步之后，用**即时奖励 + 下一状态的估计值**来更新当前状态的估计值：$V(S_t) \leftarrow V(S_t) + \alpha\underbrace{\left[R_t + \gamma V(S_{t+1}) - V(S_t)\right]}_{\text{TD误差}}$。
 4. 但是单步 TD 只看一步，太近视了。 当前奖励 $R_t$​ 只占整个未来的一小部分，估计偏差大的估计偏差比较大。我们又了解了多步 TD：$\hat{A}^{(k)}_t = R_t + \gamma R_{t+1} + \ldots + \gamma^{k-1}R_{t+k-1} + \gamma^k V(S_{t+k}) - V(S_t)$。随着步数增加，偏差是减小了，但是用到的随机变量越多，结果方差大，导致梯度更新不稳定。
 5. 于是我们又学习了广义优势估计 GAE，它对所有步数的 TD Error 进行指数加权，实现了偏差和方差的权衡。
-
 
 ## 5. 大模型中的强化学习
 

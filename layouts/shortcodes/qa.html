@@ -1,0 +1,60 @@
+{{- $q := .Get "q" | default (.Get 0) -}}
+{{- $tag := .Get "tag" | default "" -}}
+{{- $open := .Get "open" | default false -}}
+{{- if $q -}}
+<details class="qa-card"{{ if or (eq $open true) (eq $open "true") }} open{{ end }}>
+  <summary class="qa-card__question">
+    <span class="qa-card__title">{{ $q }}</span>
+    {{- with $tag }}<span class="qa-card__tag">{{ . }}</span>{{ end -}}
+  </summary>
+  <div class="qa-card__content">
+    {{ .Inner | .Page.RenderString }}
+  </div>
+</details>
+{{- end -}}
+
+{{- if not (.Page.Scratch.Get "qa_css_loaded") -}}
+  {{- .Page.Scratch.Set "qa_css_loaded" true -}}
+  <style>
+    .qa-card {
+      margin: .85em 0;
+      border: 1px solid var(--line);
+      border-left: 3px solid #474747;
+      overflow: hidden;
+    }
+    html.dark .qa-card {
+      border-left-color: #aaa;
+    }
+    .qa-card__question {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      list-style: none;
+      background: #F4F4F5;
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    html.dark .qa-card__question {
+      background: #2a2d2e;
+    }
+    .qa-card__tag {
+      flex: 0 0 auto;
+      padding: 1px 6px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+    .qa-card__content {
+      padding: 10px 14px 12px;
+      font-size: 14px;
+    }
+    .qa-card__content > *:first-child { margin-top: 0; }
+    .qa-card__content > *:last-child { margin-bottom: 0; }
+  </style>
+{{- end -}}

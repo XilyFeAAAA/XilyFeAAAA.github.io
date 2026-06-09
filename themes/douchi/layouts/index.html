@@ -1,0 +1,49 @@
+{{ define "main" }}
+{{- $mainSections := .Scratch.Get "mainSections" -}}
+{{- $pages := where .Site.RegularPages "Type" "in" $mainSections -}}
+{{- $pages = where $pages "Params.hiddenfromhomepage" "!=" true -}}
+{{- $paginator := .Paginate $pages 20 -}}
+<section class="home-hero home-about">
+  <h1>关于我</h1>
+  <div class="about-list">
+    <div class="about-item">
+      <span class="about-icon" aria-hidden="true">♙</span>
+      <p>你好，我是 <strong>多辣加香菜/椰果去冰七分甜</strong> <span class="leaf">☘</span></p>
+    </div>
+    <div class="about-item">
+      <span class="about-icon" aria-hidden="true">&lt;/&gt;</span>
+      <p>目前关注的方向是 <strong>LLM</strong>、<strong>强化学习</strong>与 <strong>训练框架</strong>。</p>
+    </div>
+    <div class="about-item">
+      <span class="about-icon" aria-hidden="true">✈</span>
+      <p>没有忌口老板，麻烦辣帮我多加一点。</p>
+    </div>
+  </div>
+</section>
+
+{{- with .Content -}}
+  <section class="home-content prose">{{ . }}</section>
+{{- end -}}
+
+<section class="home-recent">
+  <div class="section-heading">
+    <h1>最近更新 | </h1>
+    <a href="{{ "posts/" | relURL }}">所有文章</a>
+  </div>
+  <ul class="home-recent-list">
+    {{- range $paginator.Pages -}}
+      <li>
+        <a class="home-recent-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
+        {{- with .Params.series -}}
+          {{- range first 1 . }}<a class="home-recent-tax is-series" href="{{ (printf "/series/%s/" (. | urlize)) | relURL }}">{{ . }}</a>{{ end -}}
+        {{- end -}}
+        {{- with .Params.tags -}}
+          {{- range first 2 . }}<a class="home-recent-tax is-tag" href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">{{ . }}</a>{{ end -}}
+        {{- end -}}
+        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      </li>
+    {{- end -}}
+  </ul>
+</section>
+{{ partial "pagination.html" . }}
+{{ end }}

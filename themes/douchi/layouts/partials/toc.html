@@ -1,0 +1,9 @@
+{{- $toc := .TableOfContents -}}
+{{- if and $toc (in $toc "<li>") -}}
+<section class="side-widget toc-widget" id="toc-auto">
+  <h2 class="toc-title">目录</h2>
+  <div class="toc-content" id="toc-content-auto">
+    {{ $toc }}
+  </div>
+</section>
+{{- end -}}

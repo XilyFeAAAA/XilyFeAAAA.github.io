@@ -1,0 +1,16 @@
+<div class="post-meta">
+  {{- if not .Date.IsZero -}}<time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{- end -}}
+  {{- with .Params.categories -}}
+    <span class="meta-sep">|</span>
+    {{- range . }}<a href="{{ (printf "/categories/%s/" (. | urlize)) | relURL }}">{{ . }}</a>{{ end -}}
+  {{- end -}}
+  {{- with .Params.series -}}
+    <span class="meta-sep">|</span>
+    {{- range . }}<a href="{{ (printf "/series/%s/" (. | urlize)) | relURL }}">{{ . }}</a>{{ end -}}
+  {{- end -}}
+  {{- with .Params.tags -}}
+    <span class="meta-sep">|</span>
+    {{- range first 4 . }}<a href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">#{{ . }}</a>{{ end -}}
+  {{- end -}}
+  {{- if .IsPage -}}<span class="meta-sep">|</span><span>{{ .WordCount }} 字</span><span>{{ .ReadingTime }} 分钟</span>{{- end -}}
+</div>

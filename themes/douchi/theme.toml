@@ -1,0 +1,12 @@
+name = "douchi"
+license = "MIT"
+licenselink = ""
+description = "A minimal three-column Hugo theme for 多辣加香菜."
+homepage = "https://github.com/XilyFeAAAA/XilyFeAAAA.github.io"
+tags = ["blog", "minimal", "three-column"]
+features = ["blog", "taxonomy", "dark-mode", "search"]
+min_version = "0.120.0"
+
+[author]
+  name = "Xilyfe"
+  homepage = "https://github.com/XilyFeAAAA"

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": 1780403109955,
+  "scopes": {
+    "0::15px|19.5px|霞鹜文楷, \"Segoe UI Variable\", \"Segoe UI Variable Text\", \"Segoe UI\", \"??\", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, \"Segoe UI\", \"Google Sans Flex\", Roboto, \"Inter Variable\", Inter, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", sans-serif|na|1rem|2em": {
+      "widthBucket": 0,
+      "styleSignature": "15px|19.5px|霞鹜文楷, \"Segoe UI Variable\", \"Segoe UI Variable Text\", \"Segoe UI\", \"??\", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, \"Segoe UI\", \"Google Sans Flex\", Roboto, \"Inter Variable\", Inter, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", sans-serif|na|1rem|2em",
+      "updatedAt": 1780403109955,
+      "heights": {
+        "d8dbed60-fd79-4e50-be02-dc3ee9c19de6": 1,
+        "58fffd5f-1397-4062-ae50-303d90645bc0-slice-0": 1,
+        "54d11398-5fda-4f24-8b2c-a05baf5a4aef": 1,
+        "5b16f2b8-a8e6-475d-bb2e-c7622ef2251c-slice-0": 1,
+        "9b913092-fd30-4fc9-a738-5ba44f780433": 1,
+        "23b2b70a-4f0f-4a3f-ae35-fa2b8791deee-slice-0": 1,
+        "bottom-anchor": 1
+      }
+    },
+    "800::15px|19.5px|霞鹜文楷, \"Segoe UI Variable\", \"Segoe UI Variable Text\", \"Segoe UI\", \"??\", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, \"Segoe UI\", \"Google Sans Flex\", Roboto, \"Inter Variable\", Inter, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", sans-serif|na|1rem|2em": {
+      "widthBucket": 800,
+      "styleSignature": "15px|19.5px|霞鹜文楷, \"Segoe UI Variable\", \"Segoe UI Variable Text\", \"Segoe UI\", \"??\", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, \"Segoe UI\", \"Google Sans Flex\", Roboto, \"Inter Variable\", Inter, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", sans-serif|na|1rem|2em",
+      "updatedAt": 1780403109952,
+      "heights": {
+        "d8dbed60-fd79-4e50-be02-dc3ee9c19de6": 1,
+        "45d0e73d-4ff6-4de1-9599-0c290e0b44a4-slice-0": 132,
+        "bottom-anchor": 1,
+        "query-progress": 40,
+        "58fffd5f-1397-4062-ae50-303d90645bc0-slice-0": 1,
+        "54d11398-5fda-4f24-8b2c-a05baf5a4aef": 1,
+        "72210c4e-24bb-40d3-9c3a-9aae6ff08956-slice-0": 64,
+        "5b16f2b8-a8e6-475d-bb2e-c7622ef2251c-slice-0": 1,
+        "9b913092-fd30-4fc9-a738-5ba44f780433": 1,
+        "3949e89c-3279-4670-bf80-ceb5f5549988-slice-0": 132,
+        "998001d1-82ee-4ae1-a6b4-b102603f30a8-slice-0": 64,
+        "ee712cb7-995f-41ff-bbfb-74634565578f-slice-0": 64,
+        "23b2b70a-4f0f-4a3f-ae35-fa2b8791deee-slice-0": 1
+      }
+    }
+  }
+}

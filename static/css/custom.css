@@ -38,3 +38,377 @@ html {
 }
 .post-preview--excerpt p{display: inline;margin: 0;}.post-preview--image {object-fit:cover;height:auto;width:22%;float:right;}.post-preview--image {border-top-right-radius: 8px!important;border-bottom-right-radius:8px!important;border-top-left-radius:0!important;border-bottom-left-radius:0!important;}
 @media (max-width:550px) {.post-preview {width:95%;height:120px;}.post-preview--meta{padding:15px;}.post-preview--image{height:120px!important;}.post-preview--excerpt{display:none;}.post-preview--middle {line-height:19px;}}.dark .post-preview{background: #3b3d42;}
+
+.home-heatmap {
+  --heatmap-cell: 9px;
+  --heatmap-gap: 2px;
+  --heatmap-text: #586069;
+  --heatmap-empty: #ebedf0;
+  --heatmap-l1: #9be9a8;
+  --heatmap-l2: #40c463;
+  --heatmap-l3: #30a14e;
+  --heatmap-l4: #216e39;
+  max-width: 830px;
+  margin: 1.25rem auto 1.75rem;
+  color: var(--heatmap-text);
+  font-size: 13px;
+}
+
+.home-heatmap__header,
+.home-heatmap__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .5rem;
+}
+
+.home-heatmap__title {
+  margin: 0 0 12px 0 !important;
+  color: #202124;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.home-heatmap__explain {
+  color: #67a46f;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.home-heatmap__explain:hover {
+  text-decoration: underline;
+}
+
+.home-heatmap__scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  margin-top: -90px;
+  padding-top: 90px;
+  padding-bottom: .2rem;
+}
+
+.home-heatmap__months {
+  display: grid;
+  grid-template-columns: 24px repeat(var(--heatmap-weeks), var(--heatmap-cell));
+  column-gap: var(--heatmap-gap);
+  min-width: max-content;
+  height: 1.1rem;
+  margin-bottom: .15rem;
+}
+
+.home-heatmap__month {
+  font-size: 12px;
+  line-height: 1.1rem;
+  white-space: nowrap;
+}
+
+.home-heatmap__body {
+  display: flex;
+  gap: var(--heatmap-gap);
+  min-width: max-content;
+}
+
+.home-heatmap__weekdays {
+  display: grid;
+  grid-template-rows: repeat(7, var(--heatmap-cell));
+  gap: var(--heatmap-gap);
+  width: 24px;
+  flex: 0 0 24px;
+  text-align: right;
+  font-size: 12px;
+  line-height: var(--heatmap-cell);
+}
+
+.home-heatmap__grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, var(--heatmap-cell));
+  grid-auto-columns: var(--heatmap-cell);
+  gap: var(--heatmap-gap);
+}
+
+.home-heatmap__cell {
+  display: inline-block;
+  width: var(--heatmap-cell);
+  height: var(--heatmap-cell);
+  border-radius: 2px;
+  background: var(--heatmap-empty);
+}
+
+.home-heatmap__day {
+  position: relative;
+  width: var(--heatmap-cell);
+  height: var(--heatmap-cell);
+  line-height: 0;
+  outline: none;
+}
+
+.home-heatmap__day--active {
+  cursor: pointer;
+}
+
+.home-heatmap__day--active::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  z-index: 9;
+  width: 240px;
+  height: 14px;
+  transform: translateX(-50%);
+}
+
+.home-heatmap__day--edge-left::before {
+  left: 0;
+  transform: none;
+}
+
+.home-heatmap__day--edge-right::before {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.home-heatmap__day--active:hover .home-heatmap__cell,
+.home-heatmap__day--active:focus .home-heatmap__cell,
+.home-heatmap__day--active:focus-within .home-heatmap__cell {
+  box-shadow: 0 0 0 2px rgba(103, 164, 111, .35);
+}
+
+.home-heatmap__popup {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 10;
+  min-width: 220px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border: 1px solid rgba(103, 164, 111, .45);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .16);
+  color: #6a8f6e;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.home-heatmap__day--edge-left .home-heatmap__popup {
+  left: 0;
+  transform: translate(0, 4px);
+}
+
+.home-heatmap__day--edge-right .home-heatmap__popup {
+  right: 0;
+  left: auto;
+  transform: translate(0, 4px);
+}
+
+.home-heatmap__popup::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid rgba(103, 164, 111, .45);
+  border-bottom: 1px solid rgba(103, 164, 111, .45);
+  background: inherit;
+  transform: translate(-50%, -4px) rotate(45deg);
+}
+
+.home-heatmap__day--edge-left .home-heatmap__popup::after {
+  left: 18px;
+}
+
+.home-heatmap__day--edge-right .home-heatmap__popup::after {
+  right: 18px;
+  left: auto;
+  transform: translate(0, -4px) rotate(45deg);
+}
+
+.home-heatmap__day--active:hover .home-heatmap__popup,
+.home-heatmap__day--active:focus .home-heatmap__popup,
+.home-heatmap__day--active:focus-within .home-heatmap__popup {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.home-heatmap__day--edge-left:hover .home-heatmap__popup,
+.home-heatmap__day--edge-left:focus .home-heatmap__popup,
+.home-heatmap__day--edge-left:focus-within .home-heatmap__popup,
+.home-heatmap__day--edge-right:hover .home-heatmap__popup,
+.home-heatmap__day--edge-right:focus .home-heatmap__popup,
+.home-heatmap__day--edge-right:focus-within .home-heatmap__popup {
+  transform: translate(0, 0);
+}
+
+.home-heatmap__popup-date {
+  margin-bottom: 4px;
+  color: #8a8f98;
+  text-align: center;
+  font-size: 14px;
+}
+
+.home-heatmap__records {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-heatmap__records li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 2px 0;
+  white-space: nowrap;
+}
+
+.home-heatmap__records a {
+  overflow: hidden;
+  color: #6ea675;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+
+.home-heatmap__records a:hover {
+  text-decoration: underline;
+}
+
+.home-heatmap__records span {
+  flex: 0 0 auto;
+  color: #7ba87f;
+}
+
+.heatmap-level-1 { background: var(--heatmap-l1); }
+.heatmap-level-2 { background: var(--heatmap-l2); }
+.heatmap-level-3 { background: var(--heatmap-l3); }
+.heatmap-level-4 { background: var(--heatmap-l4); }
+
+.home-heatmap__footer {
+  flex-wrap: wrap;
+  margin-top: .55rem;
+  margin-bottom: 0;
+}
+
+.home-heatmap__summary strong {
+  font-weight: 600;
+  color: inherit;
+}
+
+.home-heatmap__legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.dark .home-heatmap {
+  --heatmap-text: #adbac7;
+  --heatmap-empty: #2d333b;
+  --heatmap-l1: #0e4429;
+  --heatmap-l2: #006d32;
+  --heatmap-l3: #26a641;
+  --heatmap-l4: #39d353;
+}
+
+.dark .home-heatmap__title {
+  color: #e8ece7;
+}
+
+.dark .home-heatmap__popup {
+  border-color: rgba(57, 211, 83, .35);
+  background: #22272e;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .38);
+  color: #adbac7;
+}
+
+.dark .home-heatmap__popup-date {
+  color: #768390;
+}
+
+.dark .home-heatmap__records a,
+.dark .home-heatmap__records span {
+  color: #8ddb8c;
+}
+
+@media only screen and (min-width: 941px) {
+  .site-shell {
+    width: calc(100vw - 32px);
+    max-width: 1360px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, min(720px, 62vw)) minmax(0, 1fr);
+    gap: clamp(16px, 2vw, 36px);
+    justify-content: center;
+    overflow-x: clip;
+  }
+
+  .site-main {
+    width: 100%;
+    max-width: 720px;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+    justify-self: center;
+  }
+
+  .site-sidebar-left {
+    width: 100%;
+    max-width: 200px;
+    min-width: 0;
+    justify-self: end;
+  }
+
+  .site-sidebar-right {
+    position: sticky;
+    right: auto;
+    width: 100%;
+    max-width: 260px;
+    min-width: 0;
+    justify-self: start;
+  }
+
+  .site-sidebar-right .side-widget,
+  .site-sidebar-right .toc-widget,
+  .site-sidebar-right .search-box {
+    max-width: 100%;
+  }
+
+  main.tw-flex-1 > .page {
+    width: min(54%, 880px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+@media only screen and (min-width: 1320px) {
+  .site-shell {
+    grid-template-columns: 200px minmax(0, 720px) 260px;
+    gap: 36px;
+  }
+
+  .site-sidebar-left {
+    width: 200px;
+  }
+
+  .site-sidebar-right {
+    width: 260px;
+  }
+}
+
+@media (max-width: 550px) {
+  .home-heatmap {
+    width: 95%;
+  }
+
+  .home-heatmap__header,
+  .home-heatmap__footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .35rem;
+  }
+}

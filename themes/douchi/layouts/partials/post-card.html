@@ -1,0 +1,26 @@
+<article class="post-card{{ with .Params.featuredImage }} has-image{{ end }}">
+  {{- with .Params.featuredImage -}}
+    <a class="post-card-image" href="{{ $.RelPermalink }}">
+      <img src="{{ . }}" alt="{{ $.Title }}" loading="lazy" decoding="async">
+    </a>
+  {{- end -}}
+  <div class="post-card-body">
+    <div class="post-card-kicker">
+      {{- with .Params.series -}}
+        {{- range first 1 . }}<a href="{{ (printf "/series/%s/" (. | urlize)) | relURL }}">{{ . }}</a>{{ end -}}
+      {{- else -}}
+        {{- with .Params.categories -}}
+          {{- range first 1 . }}<a href="{{ (printf "/categories/%s/" (. | urlize)) | relURL }}">{{ . }}</a>{{ end -}}
+        {{- end -}}
+      {{- end -}}
+    </div>
+    <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+    <div class="post-card-meta">
+      {{- if not .Date.IsZero -}}
+        <span>📅 {{ .Date.Format "Jan 2, 2006" }}</span>
+      {{- end -}}
+      <span>📖 {{ .ReadingTime }} Min Read</span>
+    </div>
+    <a class="post-card-readmore" href="{{ .RelPermalink }}">READ MORE →</a>
+  </div>
+</article>

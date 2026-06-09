@@ -1,0 +1,15 @@
+{{- $src := .Get "src" | default (.Get 0) -}}
+{{- $alt := .Get "alt" | default (.Get "caption") | default (.Get "title") -}}
+{{- $title := .Get "title" -}}
+{{- $caption := .Get "caption" -}}
+{{- $width := .Get "width" -}}
+{{- $height := .Get "height" -}}
+{{- $class := .Get "class" | default "" -}}
+{{- if $src -}}
+<figure class="shortcode-image article-image-wrap {{ $class }}">
+  <button class="article-image-button" type="button" data-article-image-src="{{ $src | safeURL }}" data-article-image-alt="{{ $alt }}"{{ with $title }} data-article-image-title="{{ . }}"{{ end }} aria-label="放大查看图片">
+    <img class="article-image" src="{{ $src | safeURL }}" alt="{{ $alt }}"{{ with $title }} title="{{ . }}"{{ end }}{{ with $width }} width="{{ . }}"{{ end }}{{ with $height }} height="{{ . }}"{{ end }} loading="lazy" decoding="async">
+  </button>
+  {{- with $caption }}<figcaption class="article-image-caption">{{ . | markdownify }}</figcaption>{{ end -}}
+</figure>
+{{- end -}}

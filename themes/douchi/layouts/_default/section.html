@@ -1,0 +1,16 @@
+{{ define "main" }}
+{{- $paginate := .Site.Params.section.paginate | default 20 -}}
+{{- $paginator := .Paginate .RegularPagesRecursive $paginate -}}
+<section class="list-page section-page">
+  <header class="page-header">
+    <h1>{{ .Title }}</h1>
+    {{- with .Content }}<div class="prose page-description">{{ . }}</div>{{ end -}}
+  </header>
+  <div class="post-list">
+    {{- range $paginator.Pages -}}
+      {{ partial "post-card.html" . }}
+    {{- end -}}
+  </div>
+</section>
+{{ partial "pagination.html" . }}
+{{ end }}

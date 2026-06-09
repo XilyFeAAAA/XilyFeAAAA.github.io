@@ -1,0 +1,7 @@
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    {{- $since := .Site.Params.footer.since | default now.Year -}}
+    <span>© {{ $since }}{{ if ne $since now.Year }}-{{ now.Year }}{{ end }} {{ .Site.Title }}</span>
+    {{- with .Site.Params.footer.license }}<span class="footer-license">{{ . | safeHTML }}</span>{{ end -}}
+  </div>
+</footer>

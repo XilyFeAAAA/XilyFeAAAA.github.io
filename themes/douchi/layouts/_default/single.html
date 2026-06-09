@@ -1,0 +1,28 @@
+{{ define "main" }}
+<article class="article">
+  <header class="article-header">
+    
+    {{- with .Params.featuredImage -}}
+      <img class="article-featured" src="{{ . }}" alt="{{ $.Title }}" loading="eager" decoding="async">
+    {{- end -}}
+    <h1>{{ .Title }}</h1>
+    {{ partial "post-meta.html" . }}
+  </header>
+  <div class="article-content prose">
+    {{ .Content }}
+  </div>
+  {{- $relatedCfg := .Site.Params.page.related -}}
+  {{- if and ($relatedCfg.enable | default false) (not .Params.hiddenFromRelated) -}}
+    {{- $related := .Site.RegularPages.Related . | first ($relatedCfg.count | default 3) -}}
+    {{- with $related -}}
+      <section class="related-posts">
+        <h2>相关文章</h2>
+        <ul>
+          {{- range . }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end -}}
+        </ul>
+      </section>
+    {{- end -}}
+  {{- end -}}
+</article>
+{{ partial "comments.html" . }}
+{{ end }}

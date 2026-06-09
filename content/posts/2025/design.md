@@ -1,12 +1,16 @@
 ---
-title: "Python 设计模式"
-date: '2025-10-19T17:59:11+08:00'
-authors: [Xilyfe]
-series: ["Python 技巧"]
-tags: ["Python", "设计模式"]
---- 
-
-
+title: Python 设计模式
+date: 2025-10-19T17:59:11+08:00
+authors:
+  - Xilyfe
+series:
+  - Python 技巧
+tags:
+  - Python
+  - 设计模式
+lastmod: 2026-06-08T10:29:22+08:00
+featuredImage: http://img.xilyfe.top/img/20260608102600862.png
+---
 ## 单例模式
 
 ### 实现方式

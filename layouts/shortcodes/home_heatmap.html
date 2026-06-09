@@ -1,0 +1,122 @@
+{{- $site := .Page.Site -}}
+{{- $cfg := $site.Params.home.heatmap -}}
+{{- $enable := true -}}
+{{- with $cfg -}}
+  {{- if isset . "enable" -}}
+    {{- $enable = .enable -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $enable -}}
+  {{- $title := $cfg.title | default "写作热力图" -}}
+  {{- $days := int ($cfg.days | default 365) -}}
+  {{- $mainSections := $site.Params.mainSections | default (slice "posts") -}}
+  {{- $pages := where $site.RegularPages "Type" "in" $mainSections -}}
+  {{- if $site.Params.page.hiddenFromHomePage -}}
+    {{- $pages = where $pages "Params.hiddenfromhomepage" false -}}
+  {{- else -}}
+    {{- $pages = where $pages "Params.hiddenfromhomepage" "!=" true -}}
+  {{- end -}}
+
+  {{- $daily := newScratch -}}
+  {{- $totalPosts := 0 -}}
+  {{- $totalWords := 0 -}}
+  {{- range $pages -}}
+    {{- $key := .PublishDate.Format "2006-01-02" -}}
+    {{- $daily.Add (printf "%s.count" $key) 1 -}}
+    {{- $daily.Add (printf "%s.words" $key) .WordCount -}}
+    {{- $totalPosts = add $totalPosts 1 -}}
+    {{- $totalWords = add $totalWords .WordCount -}}
+  {{- end -}}
+
+  {{- $end := now -}}
+  {{- $start := $end.AddDate 0 0 (mul -1 (sub $days 1)) -}}
+  {{- $startWeekday := int $start.Weekday -}}
+  {{- $offset := mod (add $startWeekday 6) 7 -}}
+  {{- $gridStart := $start.AddDate 0 0 (mul -1 $offset) -}}
+  {{- $gridDays := add $days $offset -}}
+  {{- $weeks := div (add $gridDays 6) 7 -}}
+  {{- $totalCells := mul $weeks 7 -}}
+
+  <section class="home-heatmap" aria-labelledby="home-heatmap-title" style="--heatmap-weeks: {{ $weeks }};">
+    <div class="home-heatmap__header">
+      <h2 class="home-heatmap__title" id="home-heatmap-title">{{ $title }}</h2>
+    </div>
+
+    <div class="home-heatmap__scroll" role="img" aria-label="过去 {{ $days }} 天的写作热力图">
+      <div class="home-heatmap__months" aria-hidden="true">
+        <span></span>
+        {{- range $week := seq 0 (sub $weeks 1) -}}
+          {{- $weekDate := $gridStart.AddDate 0 0 (mul $week 7) -}}
+          {{- $prevWeekDate := $weekDate.AddDate 0 0 -7 -}}
+          {{- if or (eq $week 0) (ne ($weekDate.Format "2006-01") ($prevWeekDate.Format "2006-01")) -}}
+            <span class="home-heatmap__month" style="grid-column: {{ add $week 2 }};">{{ $weekDate.Format "1月" }}</span>
+          {{- end -}}
+        {{- end -}}
+      </div>
+
+      <div class="home-heatmap__body">
+        <div class="home-heatmap__weekdays" aria-hidden="true">
+          <span>一</span>
+          <span></span>
+          <span>三</span>
+          <span></span>
+          <span>五</span>
+          <span></span>
+          <span>日</span>
+        </div>
+
+        <div class="home-heatmap__grid">
+          {{- range $i := seq 0 (sub $totalCells 1) -}}
+            {{- $date := $gridStart.AddDate 0 0 $i -}}
+            {{- $key := $date.Format "2006-01-02" -}}
+            {{- $count := $daily.Get (printf "%s.count" $key) | default 0 -}}
+            {{- $words := $daily.Get (printf "%s.words" $key) | default 0 -}}
+            {{- $level := 0 -}}
+            {{- if gt $words 0 -}}
+              {{- if lt $words 1000 -}}
+                {{- $level = 1 -}}
+              {{- else if lt $words 3000 -}}
+                {{- $level = 2 -}}
+              {{- else if lt $words 6000 -}}
+                {{- $level = 3 -}}
+              {{- else -}}
+                {{- $level = 4 -}}
+              {{- end -}}
+            {{- end -}}
+            {{- $label := printf "%s：%d 篇文章，%d 字" ($date.Format "2006-01-02") $count $words -}}
+            {{- $weekIndex := div $i 7 -}}
+            {{- $edgeClass := "" -}}
+            {{- if lt $weekIndex 6 -}}
+              {{- $edgeClass = " home-heatmap__day--edge-left" -}}
+            {{- else if gt $weekIndex (sub $weeks 7) -}}
+              {{- $edgeClass = " home-heatmap__day--edge-right" -}}
+            {{- end -}}
+            {{- if gt $count 0 -}}
+              <div class="home-heatmap__day home-heatmap__day--active{{ $edgeClass }}" tabindex="0" aria-label="{{ $label }}">
+                <span class="home-heatmap__cell heatmap-level-{{ $level }}"></span>
+                <div class="home-heatmap__popup" role="tooltip">
+                  <div class="home-heatmap__popup-date">{{ $date.Format "2006-01-02" }}</div>
+                  <ul class="home-heatmap__records">
+                    {{- range $pages -}}
+                      {{- if eq (.PublishDate.Format "2006-01-02") $key -}}
+                        <li><a href="{{ .RelPermalink }}">{{ .Title }}</a><span>{{ div .WordCount 1000.0 }} 千字</span></li>
+                      {{- end -}}
+                    {{- end -}}
+                  </ul>
+                </div>
+              </div>
+            {{- else -}}
+              <span class="home-heatmap__cell heatmap-level-0" title="{{ $label }}" aria-label="{{ $label }}"></span>
+            {{- end -}}
+          {{- end -}}
+        </div>
+      </div>
+    </div>
+
+    <div class="home-heatmap__footer">
+      <div class="home-heatmap__summary">博文数量： <strong>{{ $totalPosts }}</strong> 篇 | 累计字数： <strong>{{ div $totalWords 10000.0 }}</strong> 万字</div>
+      
+    </div>
+  </section>
+{{- end -}}

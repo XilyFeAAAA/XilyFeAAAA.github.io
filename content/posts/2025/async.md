@@ -1,10 +1,16 @@
 ---
-title: "Python 异步编程"
-date: '2025-10-19T17:59:11+08:00'
-authors: [Xilyfe]
-series: ["Python 技巧"]
-tags: ["Python", "异步", "asyncio"]
---- 
+title: Python 异步编程
+date: 2025-10-19T17:59:11+08:00
+authors:
+  - Xilyfe
+series:
+  - Python 技巧
+tags:
+  - Python
+  - 异步
+  - asyncio
+featuredImage: http://img.xilyfe.top/img/20260608102600862.png
+---
 
 
 ## 事件循环

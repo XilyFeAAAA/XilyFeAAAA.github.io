@@ -1,0 +1,6 @@
+{{- $copy := .Page.Site.Params.page.code.copy | default true -}}
+{{- $result := transform.HighlightCodeBlock . -}}
+<div class="code-block">
+  {{- if $copy }}<button class="code-copy" type="button">复制</button>{{ end -}}
+  <pre><code class="chroma language-{{ .Type }}">{{ $result.Inner }}</code></pre>
+</div>

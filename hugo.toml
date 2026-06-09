@@ -8,7 +8,7 @@ hasCJKLanguage = true
 title = "多辣加香菜"
 
 # 更改使用 Hugo 构建网站时使用的默认主题
-theme = "Dolt"
+theme = "douchi"
 
 [params]
   # DoIt 主题版本
@@ -81,6 +81,11 @@ theme = "Dolt"
     enable = true
     # special amount of posts in each home posts page
     paginate = 10
+
+  [params.home.heatmap]
+    enable = true
+    title = "博文统计"
+    days = 365
 
   # 页面头部导航栏配置
   [params.header]
@@ -263,7 +268,7 @@ theme = "Dolt"
     pre = ""
     # 你可以在名称 (允许 HTML 格式) 之后添加其他信息, 例如图标
     post = ""
-    name = "所有文章"
+    name = "文章 | POST"
     url = "/posts/"
     # 当你将鼠标悬停在此菜单链接上时, 将显示的标题
     title = ""
@@ -272,7 +277,7 @@ theme = "Dolt"
     identifier = "series"
     pre = ""
     post = ""
-    name = "系列"
+    name = "系列 | SERIES"
     url = "/series/"
     title = ""
     weight = 2
@@ -280,7 +285,7 @@ theme = "Dolt"
     identifier = "essays"
     pre = ""
     post = ""
-    name = "生活"
+    name = "生活 | LIFE"
     url = "/categories/life/"
     title = ""
     weight = 3
@@ -288,7 +293,7 @@ theme = "Dolt"
     identifier = "footprint"
     pre = ""
     post = ""
-    name = "足迹"
+    name = "足迹 | FOOTPRINT"
     url = "/footprint/"
     title = ""
     weight = 4
@@ -296,7 +301,7 @@ theme = "Dolt"
     identifier = "about"
     pre = ""
     post = ""
-    name = "关于"
+    name = "关于 | ABOUT"
     url = "/about/"
     title = ""
     weight = 5

@@ -215,6 +215,8 @@ $$
 L = \left(\frac{\alpha_A}{\alpha_A+\alpha_B}\right)^8 \times \left(\frac{\alpha_B}{\alpha_A+\alpha_B}\right)^4 \times \left(\frac{\alpha_A}{\alpha_A+\alpha_C}\right)^3 \times \left(\frac{\alpha_C}{\alpha_A+\alpha_C}\right)^5
 $$
 
+>最大似然估计的思路是：找一组参数值，使得"看到这批数据"的概率最大。也就是找到模型的参数，使得预估的分数最贴近真实的分数。
+
 然后我们求对数得到：
 
 $$
@@ -226,6 +228,8 @@ $$
 $$
 \text{Loss} = - \mathbb{E}_{(\alpha_x, \alpha_y) \sim D} \left[ \ln \frac{\alpha_x}{\alpha_x + \alpha_y} \right]
 $$
+
+>期望形式是针对**随机抽一条数据**的，所以不需要考虑前面的系数。
 
 在 RLHF 中，BT 用于从人类偏好数据学习奖励函数 $r(x, y)$。给定一对偏好：$y_w$​ 优于 $y_l$，建模概率：
 

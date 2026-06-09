@@ -1,0 +1,15 @@
+{{ define "main" }}
+<section class="taxonomy-page">
+  <header class="page-header">
+    <h1>{{ .Title }}</h1>
+    {{- with .Content }}<div class="prose page-description">{{ . }}</div>{{ end -}}
+  </header>
+  <div class="taxonomy-list">
+    {{- range .Data.Terms.Alphabetical -}}
+      <a class="taxonomy-item" href="{{ .Page.RelPermalink }}"><span>{{ .Page.Title }}</span><small>{{ .Count }}</small></a>
+    {{- else -}}
+      <p class="empty-state">暂无条目。</p>
+    {{- end -}}
+  </div>
+</section>
+{{ end }}

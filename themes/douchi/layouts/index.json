@@ -1,0 +1,16 @@
+{{- $items := slice -}}
+{{- $contentLength := .Site.Params.search.contentLength | default 4000 -}}
+{{- range .Site.RegularPages -}}
+  {{- if ne .Params.hiddenFromSearch true -}}
+    {{- $items = $items | append (dict
+      "title" .Title
+      "permalink" .RelPermalink
+      "summary" (.Summary | plainify)
+      "content" (.Plain | truncate $contentLength)
+      "date" (.Date.Format "2006-01-02")
+      "tags" (.Params.tags | default slice)
+      "categories" (.Params.categories | default slice)
+    ) -}}
+  {{- end -}}
+{{- end -}}
+{{- $items | jsonify -}}

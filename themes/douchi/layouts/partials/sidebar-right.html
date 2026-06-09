@@ -1,0 +1,48 @@
+<aside class="site-sidebar site-sidebar-right">
+  <section class="side-widget sidebar-controls">
+    {{- if .Site.Params.search.enable -}}
+      <div class="search-box">
+        <input id="site-search" type="search" autocomplete="off" placeholder="{{ .Site.Params.search.placeholder | default "搜索" }}">
+        <div id="search-results" class="search-results" hidden></div>
+      </div>
+    {{- end -}}
+  </section>
+  {{- if .IsPage -}}
+    {{- with .Params.series -}}
+      {{- $seriesName := index . 0 -}}
+      {{- $seriesPages := where $.Site.RegularPages "Params.series" "intersect" (slice $seriesName) -}}
+      {{- if $seriesPages -}}
+        <section class="side-widget series-nav-widget">
+          <h2><a href="{{ (printf "/series/%s/" ($seriesName | urlize)) | relURL }}">{{ $seriesName }}</a></h2>
+          <ul class="series-nav-list">
+            {{- range $seriesPages.ByDate -}}
+              <li class="{{ if eq .RelPermalink $.RelPermalink }}is-current{{ end }}">
+                <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+              </li>
+            {{- end -}}
+          </ul>
+        </section>
+      {{- end -}}
+    {{- end -}}
+    {{- if and .TableOfContents (.Site.Params.page.toc.enable | default true) -}}
+      {{- partial "toc.html" . -}}
+    {{- end -}}
+  {{- else -}}
+    <section class="side-widget">
+      <h2>Series</h2>
+      <div class="term-cloud term-cloud-series">
+        {{- range $name, $taxonomy := .Site.Taxonomies.series -}}
+          <a href="{{ (printf "/series/%s/" ($name | urlize)) | relURL }}">{{ $name }} <span>[{{ len $taxonomy }}]</span></a>
+        {{- end -}}
+      </div>
+    </section>
+    <section class="side-widget">
+      <h2>Tags</h2>
+      <div class="term-cloud">
+        {{- range $name, $taxonomy := .Site.Taxonomies.tags -}}
+          <a href="{{ (printf "/tags/%s/" ($name | urlize)) | relURL }}">{{ $name }} <span>[{{ len $taxonomy }}]</span></a>
+        {{- end -}}
+      </div>
+    </section>
+  {{- end -}}
+</aside>

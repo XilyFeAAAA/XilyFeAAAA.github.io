@@ -1,0 +1,35 @@
+{{- partial "init.html" . -}}
+<!doctype html>
+<html lang="{{ .Site.Language.LanguageCode | default .Site.LanguageCode | default "zh-CN" }}">
+  <head>
+    {{- partial "head.html" . -}}
+  </head>
+  <body>
+    <script>
+      (function () {
+        var saved = localStorage.getItem('douchi-theme');
+        var mode = saved || '{{ .Site.Params.defaultTheme | default "auto" }}';
+        var dark = mode === 'dark' || (mode === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
+    <div class="site-shell">
+      {{- partial "sidebar-left.html" . -}}
+      <main class="site-main" id="main">
+        {{- block "main" . }}{{ end -}}
+      </main>
+      {{- partial "sidebar-right.html" . -}}
+    </div>
+    <div class="article-lightbox" data-article-lightbox aria-hidden="true">
+      <button class="article-lightbox__close" type="button" data-article-lightbox-close aria-label="关闭">×</button>
+      <div class="article-lightbox__inner">
+        <img class="article-lightbox__image" data-article-lightbox-image alt="">
+        <div class="article-lightbox__caption" data-article-lightbox-caption hidden></div>
+      </div>
+    </div>
+    {{- partial "footer.html" . -}}
+    {{- partial "math.html" . -}}
+    {{- $js := resources.Get "js/main.js" | minify | fingerprint -}}
+    <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+  </body>
+</html>
