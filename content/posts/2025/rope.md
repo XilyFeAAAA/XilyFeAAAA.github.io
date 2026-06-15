@@ -1,13 +1,16 @@
 ---
-title: "RoPE"
-date: '2025-11-28T16:23:11+08:00'
-authors: [Xilyfe]
-series: ["LLM"]
-tags: ["大模型", "Transformer"]
+title: RoPE
+date: 2025-11-28T16:23:11+08:00
+authors:
+  - Xilyfe
+series:
+  - LLM
+tags:
+  - 大模型
+  - Transformer
 lastmod: 2026-06-08T03:10:29+08:00
+featuredImage: http://img.xilyfe.top/img/20260614201718124.png
 ---
- 
-
 ## 作用
 
 RoPE 相对于正余弦位置编码和可学习位置编码，更能够表达**相对位置信息**，便于模型捕捉序列中元素之间的关系，还便于模型泛化到更长的序列，支持超长文本推理。

@@ -290,13 +290,21 @@ theme = "douchi"
     title = ""
     weight = 3
   [[menu.main]]
+    identifier = "ukiyoe"
+    pre = ""
+    post = ""
+    name = "浮世绘 | UKIYOE"
+    url = "/ukiyoe/"
+    title = ""
+    weight = 4
+  [[menu.main]]
     identifier = "footprint"
     pre = ""
     post = ""
     name = "足迹 | FOOTPRINT"
     url = "/footprint/"
     title = ""
-    weight = 4
+    weight = 5
   [[menu.main]]
     identifier = "about"
     pre = ""
@@ -304,7 +312,7 @@ theme = "douchi"
     name = "关于 | ABOUT"
     url = "/about/"
     title = ""
-    weight = 5
+    weight = 6
 
 
 # Hugo 解析文档的配置

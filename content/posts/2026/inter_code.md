@@ -7,7 +7,7 @@ authors:
 series:
   - 面经
 tags: []
-lastmod: 2026-06-09T11:34:48+08:00
+lastmod: 2026-06-11T11:28:42+08:00
 ---
 >准备 2026 暑假 LLM 算法实习ing
 
@@ -488,14 +488,16 @@ def compute_gae_adv(rewards, values, gamma, lam):
 	advantages = []
 	with torch.no_grad():
 		for t in reversed(range(gen_len)):
-			nextvalue = values[: t + 1] if t < gen_len - 1 else 0.0
-			delta = rewards[:, t] + gamma * nextvalue - values[: t]
+			nextvalue = values[:, t + 1] if t < gen_len - 1 else 0.0
+			delta = rewards[:, t] + gamma * nextvalue - values[:, t]
 			adv_t = delta + gamma * lam * adv_t
 			advantages.append(adv_t)
 	advantages = torch.stack(advantages[::-1], dim=1)
 	returns = advantages + values
 	return advantages, returns
 ```
+
+>这里可能会有点疑惑：PPO 里面 reward model 估计的不是 seq-level 的 reward 吗，公式里面应该需要的是 token-level reward 吧。实际像 verl 的框架会把 seq-level 的 reward 放在 \[B,T] 张量里面最后一个 token 位置上，然后随着 gae 就可以向前传播了。
 
 #### Loss
 

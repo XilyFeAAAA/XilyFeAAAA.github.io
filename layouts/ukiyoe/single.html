@@ -1,0 +1,55 @@
+{{ define "main" }}
+{{- $cover := .Params.cover | default .Params.featuredImage -}}
+{{- $backdrop := .Params.backdrop | default $cover -}}
+{{- $score := .Params.scoreText | default .Params.score -}}
+{{- $recordDate := .Params.recordDate | default (.Date.Format "2006-01-02") -}}
+{{- $recordType := .Params.recordTypeLabel | default .Params.recordType -}}
+<article class="ukiyoe-detail">
+  <header class="ukiyoe-hero{{ with $backdrop }} has-backdrop{{ end }}"{{ with $backdrop }} style="background-image: url('{{ . }}');"{{ end }}>
+    <div class="ukiyoe-hero__content">
+      <a class="ukiyoe-back" href="{{ .CurrentSection.RelPermalink }}">← 返回浮世绘</a>
+      <p class="ukiyoe-eyebrow">{{ $recordType | default "浮世绘" }}</p>
+      <h1>{{ .Title }}</h1>
+      <div class="ukiyoe-hero__meta">
+        {{- with $score }}<span class="ukiyoe-rating">★ {{ . }}</span>{{ end -}}
+        {{- with .Params.year }}<span>{{ . }}</span>{{ end -}}
+        {{- with $recordType }}<span>{{ . }}</span>{{ end -}}
+        {{- with $recordDate }}<span>{{ . }}</span>{{ end -}}
+      </div>
+      {{- with .Params.summary }}<p class="ukiyoe-hero__summary">{{ . }}</p>{{ end -}}
+      <div class="ukiyoe-hero__actions">
+        {{- with .Params.externalUrl }}<a class="ukiyoe-button" href="{{ . }}" target="_blank" rel="noopener noreferrer">查看来源</a>{{ end -}}
+      </div>
+    </div>
+  </header>
+
+  <section class="ukiyoe-info" aria-label="条目信息">
+    {{- with .Params.creator }}
+      <div><span>创作者</span><strong>{{ . }}</strong></div>
+    {{- end -}}
+    {{- with .Params.director }}
+      <div><span>导演</span><strong>{{ . }}</strong></div>
+    {{- end -}}
+    {{- with .Params.author }}
+      <div><span>作者</span><strong>{{ . }}</strong></div>
+    {{- end -}}
+    {{- with .Params.countries }}
+      <div><span>地区</span><strong>{{ delimit . " / " }}</strong></div>
+    {{- end -}}
+    {{- with .Params.genres }}
+      <div><span>类型</span><strong>{{ delimit . " / " }}</strong></div>
+    {{- end -}}
+  </section>
+
+  {{- with .Params.tags -}}
+    <div class="ukiyoe-detail__chips" aria-label="标签">
+      {{- range . }}<span class="ukiyoe-chip">{{ . }}</span>{{ end -}}
+    </div>
+  {{- end -}}
+
+  <div class="ukiyoe-detail__content prose">
+    {{ .Content }}
+  </div>
+</article>
+{{ partial "comments.html" . }}
+{{ end }}

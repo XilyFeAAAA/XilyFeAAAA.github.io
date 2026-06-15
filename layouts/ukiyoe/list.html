@@ -1,0 +1,86 @@
+{{ define "main" }}
+{{- $pages := .RegularPagesRecursive.ByDate.Reverse -}}
+<section class="ukiyoe-page" data-ukiyoe-page>
+  <header class="ukiyoe-header">
+    <div>
+      <p class="ukiyoe-eyebrow">UKIYOE</p>
+      <h1>影视 <span>|</span> Watching</h1>
+      {{- with .Content }}<div class="prose ukiyoe-description">{{ . }}</div>{{ end -}}
+    </div>
+    <div class="ukiyoe-header__tools" aria-hidden="true">
+      <span>☰</span>
+      <span>↕</span>
+      <span>⌕</span>
+    </div>
+  </header>
+
+  <nav class="ukiyoe-tabs" aria-label="浮世绘筛选">
+    <button class="ukiyoe-tab is-active" type="button" data-ukiyoe-filter="all" aria-pressed="true">▦ 最近看过</button>
+    <button class="ukiyoe-tab" type="button" data-ukiyoe-filter="movie" aria-pressed="false">▥ 电影</button>
+    <button class="ukiyoe-tab" type="button" data-ukiyoe-filter="book" aria-pressed="false">▥ 书籍</button>
+    <button class="ukiyoe-tab" type="button" data-ukiyoe-filter="drama" aria-pressed="false">▥ 剧集</button>
+    <button class="ukiyoe-tab" type="button" data-ukiyoe-filter="anime" aria-pressed="false">▥ 动画</button>
+  </nav>
+
+  <div class="ukiyoe-toolbar" aria-hidden="true">
+    <span>↓ 打分日期</span>
+    <span>＋ 筛选</span>
+  </div>
+
+  <div class="ukiyoe-grid" data-ukiyoe-grid>
+    {{- range $pages -}}
+      {{ partial "ukiyoe-card.html" . }}
+    {{- end -}}
+  </div>
+
+  <p class="ukiyoe-empty" data-ukiyoe-empty hidden>这个筛选下还没有记录。</p>
+</section>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-ukiyoe-page]');
+  if (!root) return;
+
+  var tabs = Array.prototype.slice.call(root.querySelectorAll('[data-ukiyoe-filter]'));
+  var cards = Array.prototype.slice.call(root.querySelectorAll('[data-ukiyoe-card]'));
+  var empty = root.querySelector('[data-ukiyoe-empty]');
+
+  function setFilter(filter, updateHash) {
+    var visible = 0;
+
+    tabs.forEach(function (tab) {
+      var active = tab.getAttribute('data-ukiyoe-filter') === filter;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    cards.forEach(function (card) {
+      var type = card.getAttribute('data-ukiyoe-type');
+      var show = filter === 'all' || type === filter;
+      card.hidden = !show;
+      if (show) visible += 1;
+    });
+
+    if (empty) empty.hidden = visible !== 0;
+
+    if (updateHash) {
+      if (filter === 'all') {
+        history.replaceState(null, '', location.pathname + location.search);
+      } else {
+        history.replaceState(null, '', '#' + filter);
+      }
+    }
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      setFilter(tab.getAttribute('data-ukiyoe-filter') || 'all', true);
+    });
+  });
+
+  var initial = (location.hash || '').replace('#', '');
+  var known = tabs.some(function (tab) { return tab.getAttribute('data-ukiyoe-filter') === initial; });
+  setFilter(known ? initial : 'all', false);
+})();
+</script>
+{{ end }}

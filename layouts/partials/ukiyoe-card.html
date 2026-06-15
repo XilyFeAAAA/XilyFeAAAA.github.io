@@ -1,0 +1,29 @@
+{{- $cover := .Params.cover | default .Params.featuredImage -}}
+{{- $score := .Params.scoreText | default .Params.score -}}
+{{- $recordDate := .Params.recordDate | default (.Date.Format "2006年1月2日") -}}
+{{- $recordType := .Params.recordType | default "other" -}}
+{{- $recordTypeLabel := .Params.recordTypeLabel | default $recordType -}}
+{{- $summary := .Params.summary | default (.Summary | plainify | truncate 96) -}}
+<article class="ukiyoe-card" data-ukiyoe-card data-ukiyoe-type="{{ $recordType }}">
+  <a class="ukiyoe-card__cover" href="{{ .RelPermalink }}" aria-label="查看 {{ .Title }}">
+    {{- with $cover -}}
+      <img src="{{ . }}" alt="{{ $.Title }}" loading="lazy" decoding="async">
+    {{- else -}}
+      <span class="ukiyoe-card__placeholder" aria-hidden="true">{{ substr .Title 0 1 }}</span>
+    {{- end -}}
+  </a>
+  <div class="ukiyoe-card__body">
+    <h2 class="ukiyoe-card__title"><a href="{{ .RelPermalink }}"><span aria-hidden="true">▥</span>{{ .Title }}</a></h2>
+    {{- with $score }}<div class="ukiyoe-card__score">{{ . }}</div>{{ end -}}
+    {{- with $summary }}<p class="ukiyoe-card__summary">{{ . }}</p>{{ end -}}
+    <div class="ukiyoe-card__meta">
+      <time datetime="{{ $recordDate }}">{{ $recordDate }}</time>
+    </div>
+    <div class="ukiyoe-card__chips" aria-label="类型标签">
+      <span class="ukiyoe-chip">{{ $recordTypeLabel }}</span>
+      {{- range first 3 (.Params.genres | default .Params.tags) -}}
+        <span class="ukiyoe-chip">{{ . }}</span>
+      {{- end -}}
+    </div>
+  </div>
+</article>

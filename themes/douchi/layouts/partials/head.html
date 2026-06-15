@@ -20,4 +20,4 @@
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 {{- $syntax := resources.Get "css/syntax.css" | minify | fingerprint -}}
 <link rel="stylesheet" href="{{ $syntax.RelPermalink }}" integrity="{{ $syntax.Data.Integrity }}">
-<link rel="stylesheet" href="{{ "css/custom.css" | relURL }}">
+<link rel="stylesheet" href="{{ "css/custom.css" | relURL }}?v=monochrome-20260611">

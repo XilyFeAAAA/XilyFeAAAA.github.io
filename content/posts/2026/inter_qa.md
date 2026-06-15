@@ -7,7 +7,7 @@ authors:
 series:
   - 面经
 tags: []
-lastmod: 2026-06-09T11:32:27+08:00
+lastmod: 2026-06-15T12:06:19+08:00
 ---
 >准备 2026 暑假 LLM 算法实习ing
 
@@ -370,8 +370,7 @@ log("loss/normal_tokens", normal_loss)
 {{< /qa >}}
 
 {{< qa q="left or right padding" >}}
-首先结论是：训练阶段倾向 right padding，推理阶段倾向 left padding。
-1. 
+首先结论是：训练阶段无所谓，推理阶段倾向 left padding。在 inference 的时候 next token prediction 会取 `logits` 的最后一个 token，也就是 `next_token_logits = outputs.logits[:, -1, :]`。假如我们进行 right padding，那么模型 generate 的第一个 token 就是取 PAD token 对应的 `logits` 向量。问题在于：PAD token 的 embedding 是随机初始化的，模型从来没有学过"PAD 位置之后应该生成什么"，所以这时候生成的 next token 是随机无意义的，就会导致接下去生成的 token 都出现问题。
 {{< /qa >}}
 
 {{< qa q="多轮对话微调" >}}
@@ -449,39 +448,251 @@ sft 的过拟合并不像传统深度学习一样，通过调整训练 epoch、�
 
 ## RLHF
 
-### rl 比 sft 好在哪
+{{< qa q="rl 和 sft 区别" >}}
+{{< /qa >}}
 
-### 重要性采样
+{{< qa q="credit assignment" >}}
+{{< /qa >}}
 
-### KL divergence
+{{< qa q="rl 数据和 sft 数据需要有重合吗" >}}
+{{< /qa >}}
 
-### Policy Gradient
-
-### 蒙特卡洛估计
-
-### 广义优势估计
+### Monte Carlo
 
 ### TD Error
 
+### GAE
+
+### KL Divergence
+
+f-散度的提出是为了解决 **两个分布到底有多么不同** 这样一个问题，由于分布是曲线没法相减，所以需要一种把"两条曲线的差异"压缩成一个数的方法，这就是**散度**。f-散度的核心思路：在每个点 x 处，看 P 和 Q 的密度之比 $r(x)=\frac{p(x)}{q(x)}$。如果 $r(x) = 1$ 处处成立，两个分布完全一样散度应该是 0。如果 $r$ 偏离 1，说明有差异应该被惩罚。用一个**凸函数** $f(r)$ 来做这个惩罚，然后对全空间积分（以 Q 为权重）。选不同的 $f$，就得到不同的散度：
+
+$$
+D_f(P \| Q) = \int q(x) f\left( \frac{p(x)}{q(x)} \right) dx
+$$
+
+我们在大模型训练中常见的 KL 散度就是 $f(r)=r\log r$ 形状的 f-散度：
+
+$$
+D_{KL}(P \| Q) = \int p(x) \log \frac{p(x)}{q(x)}  dx
+$$
+
+KL 散度理论上是用概率分布的积分定义的，但现实中我们只有**有限的样本数据**，没法精确计算，所以需要用样本来**近似估算**——这个近似方法就叫"估计器"。
+
+>一个优秀的估计器通常需要考量两个核心指标：
+>1. **偏置**：估计器的数学期望是否等于真实值？如果相等，就是**无偏估计**；如果不等，就是**有偏估计**。  
+>2. **方差**：不同批次的样本算出来的估计值，上下波动大不大？方差太大会导致强化学习的梯度震荡，训练崩盘。
+
+#### 三种估计器
+
+{{< admonition type=info title="">}} 
+在推导之前证明一个大前提：对于任何从 $q(x)$ 中采样的比率 $r = \frac{p(x)}{q(x)}$，它的数学期望永远为 1。
+
+首先，我们要明确**数学期望的定义**。对于任何从分布 $q(x)$ 中采样出来的随机变量 $f(x)$，它的数学期望就是把所有可能的 $x$ 对应的函数值 $f(x)$，乘以它在 $q(x)$ 中的概率密度，然后全空间积分：
+
+$$\mathbb{E}_{x \sim q}[f(x)] = \int q(x) \cdot f(x) \, dx$$
+
+现在，我们把 $f(x) = r = \frac{p(x)}{q(x)}$ 代入这个定义公式中：
+
+$$\mathbb{E}_{x \sim q}\left[ \frac{p(x)}{q(x)} \right] = \int q(x) \cdot \frac{p(x)}{q(x)} \, dx$$
+
+注意到积分符号内部的 $q(x)$ 了吗？分子和分母上各有一个 $q(x)$，它们可以**直接约掉（消去）**：
+
+$$= \int p(x) \, dx$$
+
+根据概率论的基本公理，**任何一个合法的概率密度函数，它在全空间的积分（总概率）必须严格等于 1**。因为 $p(x)$ 是一个合法的概率分布，所以：
+
+$$\int p(x) \, dx = 1$$
+
+{{< /admonition >}}
+
+k1 估计器是最直接的推导，既然我们要计算 $\mathbb{E}_{x \sim q} [-\log r]$，那么直接脱掉期望符号，用单样本的函数值作为估计：
+
+$$
+k_1 = \log \frac{q(x)}{p(x)} = -\log \frac{p(x)}{q(x)} = -\log r
+$$
+
+虽然 $\mathbb{E}[k_1]$ 严格等于真实 KL（**绝对无偏**），但是它的**方差极大**。因为当某个样本下 $q(x) < p(x)$ 时，$k_1$ 会变成负数。尽管理论上整体 KL 散度永远 $\ge 0$，但 $k_1$ 单个样本却频繁在正负之间剧烈摆动，这在代码里做强化学习策略裁剪（Clip）或加惩罚项时，会带来巨大的不稳定因素。
+
+---
+
+在强化学习中，由于我们往往会限制新旧策略不能离得太远，因此可以假设 $p \approx q$，这意味着比率 $r \approx 1$。 我们可以利用泰勒展开，在 $r = 1$ 处对函数进行逼近：
+
+$$
+-\log r \approx f(1) + f'(1)(r-1) + \frac{1}{2}f''(1)(r-1)^2 = -(r-1) + \frac{1}{2}(r-1)^2
+$$
+
+接着，我们在期望意义下看待这个公式。因为上面提到了 $\mathbb{E}_{x \sim q}[r - 1] = 0$，所以线性项 $-(r-1)$ 在求期望时直接归零了。因此：
+
+$$
+\mathbb{E}[-\log r] \approx \mathbb{E}\left[ \frac{1}{2}(r-1)^2 \right]
+$$
+
+同时，我们知道当 $r \approx 1$ 时，由一阶展开可知 $\log r \approx r - 1$。我们将这个关系代入上式，用 $(\log r)^2$ 替换掉 $(r-1)^2$，就得到了 $k_2$：
+
+$$
+k_2 = \frac{1}{2}(\log r)^2 = \frac{1}{2}\left(\log \frac{p(x)}{q(x)}\right)^2
+$$
+
+因为带有平方，**$k_2 \ge 0$ 恒成立**，完美避开了 $k_1$ 产生负数导致的剧烈摆动，方差极小。但它是截断泰勒展开的产物，所以是**有偏估计**。
+
+---
+
+k3 估计器的思路是设计一个估计器，**既像 $k_1$ 一样严格无偏，又像 $k_2$ 一样恒大于 0 且方差极小？** 为此，他引入了统计学中大名鼎鼎的**控制变量技术**：在无偏估计器 $k_1$ 上，加上一个**期望值严格为 0 的项**，利用它们之间的负相关性来抵消波动。前面我们已经证明了 $\mathbb{E}_{x \sim q}[r - 1] = 0$。那么我们直接把这一项无条件加到 $k_1$ 里面去：
+
+$$
+k_3 = k_1 + (r - 1) = -\log r + r - 1 = r - 1 - \log r
+$$
+
+![image.png](http://img.xilyfe.top/img/20260614194511569.png)
+
+k3 的方差问题根源在于 $r-1$ 这一项：当 $r=\pi_{\theta}/\pi_{ref}$ 很大时（即训练策略对某个 token 分配远高于参考模型的概率)，$r一1$ 按 $r 线性增长，而 $k1=-\log r$ 只是对数增长。结果就是：KL 大时，k3 的方差比 k1 高出几个数量级。
+
+#### 前向/反向 KL 散度
+
+KL 散度是不对称，$D_{K L} \left(\right. P \parallel Q \left.\right) \neq D_{K L} \left(\right. Q \parallel P \left.\right)$，所以"哪个在前哪个在后"非常重要。$D_{KL}(P \| Q) = \int p(x) \log \frac{p(x)}{q(x)}  dx$ 从 KL 散度公式可以观察到，传统 KL 散度也就是 Forward KL 是从分布 $p(x)$ 里面采样，而 $D_{KL}(Q \| P)$  称作 Reverse KL 反向 KL 散度，他从分布 $q(x)$ 采样。
+
+1. 从分布 $p(x)$ 中采样意味着：我们需要能获得 $p(x)$ 的数据。所以我们在做 OPD 时候必须反向 KL 散度，OPD 规定了 trajectory 必须从学生模型 $q(x)$ 采样。
+2. FKL 偏向于把概率质量"摊开"，覆盖两个峰之间的低概率谷地，生成的内容是所有 teacher 模式的**模糊平均**。
+3. RKL 中 student 只需要找到 teacher 的**某一个高概率模式**，集中概率质量进去。
+
+#### 惩罚系数
+
+DAPO、VAPO、MiniMax CISPO 主张完全去掉 KL 散度项，原因是对于这些关注 reasoning RL 的工作：
+- 奖励目标本身就是远离 SFT 分布，模型要学会"反思"、"aha moment"，分布必然大幅漂移，KL会阻碍学习。
+- RL有可验证 reward(比如 rule-based、math/code verifier)，Reward Hacking 风险小，没有必要用 KL 散度。
+- 资源上节约 reference model 显存和 forward 计算，训练效率提升明显。
+
+DeepSeek GRPO/Kimi/GLM 保留 KL 散度项，原因是对于基座模型来说，统一 RL stage 里混了 alignment 和 general task 多种任务，很多都是经典 RLHF 里 reward hacking 的高触发场景，KL 能必要的防护。但是这些工作都在 KL 上进行了精细化：
+- DeepSeek V3.2为例子，进行了以下几个调整：
+	- 不同领域适用不同 KL 系数（per-domain）：数学场景（Reasoning主导）系数接近 0，通用对齐保留系数。
+	- 修正KL估计器。
+- Kimi K1.5/K2 也使用了 KL 强度动态调整。
+
+### Importance Sampling
+
+重要性采样 IS 的核心思想是用一个分布 $q \left(\right. x \left.\right)$ 采样的数据去估计另一个分布 $p \left(\right. x \left.\right)$ 下的期望，只需要乘以一个修正比率：
+
+$$
+\begin{align*}
+\mathbb{E}_{x \sim p}[f(x)] = \int f(x) p(x) dx = \int f(x) \frac{p(x)}{q(x)} q(x) dx = \mathbb{E}_{x \sim q}\left[ f(x) \cdot \frac{p(x)}{q(x)} \right]
+\end{align*}
+$$
+
+- $p \left(\right. x \left.\right)$ 是真正想估计期望的分布（目标策略）
+- $q \left(\right. x \left.\right)$ 是实际用来采样的分布（行为策略）
+- $\frac{p \left(\right. r \left.\right)}{q \left(\right. x \left.\right)}$ 就是重要性比率
+
+
+
 ### PPO
+
+![image.png](http://img.xilyfe.top/img/20260611223048584.png)
+
+{{< qa q="PPO 公式是怎么得到的" >}}
+我们在强化学习里的终极目标，是让动作带来的**期望回报最高**，也就是说我们希望最大化：
+
+$$
+J(\theta) = \mathbb{E}_{\tau\sim\pi_\theta}\left[\sum_t \gamma^t r_t\right]
+$$
+
+**策略梯度定理**告诉我们，这个目标函数的梯度可以写成:
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{(s,a)\sim\pi_\theta}\left[\nabla_\theta\log\pi_\theta(a|s)\cdot Q^{\pi_\theta}(s,a)\right]
+$$
+
+为了减小估计的方差，在实践中我们通常用优势函数 $A^{\pi_\theta}(s,a)$ 代替状态动作价值函数 $Q(s,a)$，这不会改变梯度的期望值。于是梯度写为
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{s \sim d^\pi, a \sim \pi_\theta} \left[ \nabla_\theta \log \pi_\theta(a|s) \cdot A^{\pi_\theta}(s,a) \right]
+$$
+
+注意上式的期望是在**当前策略 $\pi_\theta$** 下取的，advantage 也是 $\pi_\theta$​ 下的 $A^{\pi_\theta}$​。但我们实际拥有的 rollout 数据是用  $\pi_{old}$​ 采样、用 $\pi_{old}$​ 算出来的 $A^{\pi_{old}}$​，所以需要做重要性采样把分布换到 $\pi_{old}$:
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{a\sim\pi_{old}}\left[\frac{\pi_\theta(a|s)}{\pi_{old}(a|s)}\nabla_\theta \log\pi_\theta(a|s)\cdot A(s,a)\right]
+$$
+
+**这里是一个近似而非严格等式**——只有在 $\pi_\theta$ 与 $\pi_{old}$​ 足够接近时，用 $\pi_{old}$ 下采样的轨迹和 $A^{\pi_{old}}$​ 去估计 $\pi_\theta$ 下的真实梯度才是可靠的。这一点很重要,它正是 PPO 后续引入 clip 机制的根本原因:clip 通过限制 $\pi_\theta/\pi_{old}$ 的比值范围,把更新约束在这个近似成立的"信任区域"内,防止单次更新让 $\pi_\theta$​ 跑得离 $\pi_{old}$ 太远导致上式近似失效。
+
+那么我们找到一个函数 $L(\theta)$，只要使得 $\nabla_\theta L(\theta)$ 恰好等于上面这个式子，对 $L(\theta)$ 进行梯度上升（或者说对 $-L(\theta)$ 进行梯度下降）就等价于对 $J(\theta)$ 进行梯度上升，让 $J(\theta)$ 变大，也就是我们强化学习的优化目标：
+
+$$
+L(\theta) = \mathbb{E}_{a\sim\pi_{old}}\left[\frac{\pi_\theta(a|s)}{\pi_{old}(a|s)} A(s,a)\right]
+$$
+
+这就是 PPO 的 surrogate loss，再加上 clip 操作来约束信任区间，就构成了完整的 PPO 目标函数。
+{{< /qa >}}
+
+{{< qa q="公式里面 min 和 clip 的组合" >}}
+min+clip 的组合是起到了一个**熔断机制**，我们已经可以通过 clip 限制单次更新的幅度了，但是万一策略的更新幅度还是太大了，我们需要停止策略的参数更新。观察公式，假如优势 advantage 大于 0，若 $r_t>1+\epsilon$，那么最小值函数会取右边被 clip 的部分，此时 loss 中就只剩常量了不产生任何梯度则停止参数更新，同理优势小于 0 且 $r_t<1-\epsilon$ 也是。那为什么我们不用管 Adv 大于 0 且 r 小于 0.8 的情况？或者 Adv 小于 0 且 r 大于 1.2 的情况？Adv 大于 0 的情况说明当前策略是好的，如果 r 小于 0.8 说明：这个策略是好的，旧模型偏向这个策略，但是新模型不怎么偏向这个策略了，那我们肯定希望能尽可能朝现在这个方向来更新参数，强化新策略做出这个选择的概率。
+{{< /qa >}}
+
+{{< qa q="PPO 和 DPO 对 reward 的要求有什么不同" >}}
+- PPO 的 reward 要能对每个 token 或每个 response 给出相对精确的分值，用于计算 advantage。对 reward 的绝对值和方差都比较敏感。
+- DPO 的 reward 只需要能区分好坏（排序能力），是 point-wise 打分后做比较，不需要特别精确的绝对值，容忍度更高。
+{{< /qa >}}
+
+{{< qa q="critic model 重要吗" >}}
+- 在 PPO 训练中，critic model 用来估计 baseline，计算advantage = reward - value，减少policy gradient的方差，训练更稳定。没有好的critic，PPO的训练信号噪声很大。
+- GRPO 等方法用组内 reward 均值做 baseline，避免了单独训练critic的成本，同时在reasoning任务上效果接近甚至更好。
+{{< /qa >}}
+
+{{< qa q="PPO 训练的指标" >}}
+1. KL 散度：太大可能存在 reward hacking 风险，太小可能没有充分更新
+2. policy loss/critic loss
+3. entropy：出现 collapse 多样性消失，reward hacking
+{{< /qa >}}
+
+{{< qa q="Reward Model 训练的指标" >}}
+1. auc：chosen > rejected 的 排序准确率
+2. chosen 和 rejected 的 reward margin：margin 大说明很自信
+3. ood：RM 在没见过的分布上的表现
+4. reward distribution：reward 方差是不是太大或者太小，太大容易训练不稳定，太小缺乏梯度信号。
+{{< /qa >}}
+
+{{< qa q="Reward model 训练时候碰到的问题" >}}
+1. 标注数据不足与偏差：如果偏好数据主要来自单一群体或话题，模型在其他领域的表现会较差，甚至带有该群体的主观偏见。奖励模型可能过度偏好训练集中常见的回答风格（如过度详细或倾向某种语气）。例如医疗助手训练后，reward model 对长回复都评为高分，导致 PPO 之后容易长篇大论。解决方案是：**扩充多样化数据**、**在训练时加入字数正则项**。
+2. 过拟合泛化能力差：过拟合往往由数据匮乏和模型容量过高共同导致。大模型微调出的奖励模型有能力记忆训练集中偏好对比的细节，当标注数据有限或包含噪声时，模型可能学习到伪相关特征（如特定词频、长度等）作为判断依据，削弱了真正偏好信号的泛化。解决方案是：**正则化**、**根据验证集曲线早停**、**缩小模型参数**。
+3. reward hacking：解决方案是 **设计对抗样本加入训练**、**KL 散度限制模型差异**，**设计针对性的正则项例如长度正则**。
+4. 正负样本 margin 小：缺乏 hard negative sample。
+5. 分布偏移：RLHF 模型在奖励模型的打分中表现极佳，但人工质检觉得输出空洞或跑偏，未真正提升体验。解决方案是：**加大 KL 损失权重**、**定期迭代映入新样本修正偏差**、**拆分多个目标奖励**。例如客服模型很礼貌但是专业性很差，把回复正确率和礼物拆为两个 reward model 加权组合。
+{{< /qa >}}
+
+{{< qa q="PPO 是 off-policy 还是 on-policy，有什么区别" >}}
+PPO 理论上是 on-policy，每次训练的轨迹是从模型自身采样的。但是在实践工程上为了提高数据利用率（`ppo_epochs`）或者受限于显存需要梯度累计，就会导致变成 off-policy，数据是从前几个版本的模型上 rollout 的，这就需要 PPO 公式里面的 **重要性采样** 来修正。
+{{< /qa >}}
+
+{{< qa q="为什么用 actor-critic 而不是纯 critic" >}}
+Actor-Critic 的核心原因是：Critic 只能评估状态或动作的好坏（V/Q），但无法直接生成可学习的策略更新方向；而Actor负责输出可微的策略分布 π(a|s)，将 Critic 提供的优势信号 $A(s,a)=Q−V$ 转化为参数更新的梯度 $\nabla_\theta \log \pi_\theta(a|s) \cdot A^{\pi_\theta}(s,a)$，从而实现“评价→改进”的闭环。仅有Critic 在高维或连续动作空间中会面临 argmax 困难、不可微以及无法高效表示策略分布的问题，因此需要 Actor 来承载策略表示，使 Critic 的评分能够转化为稳定可优化的参数更新方向。
+{{< /qa >}}
 
 ### DPO
 
+![image.png](http://img.xilyfe.top/img/20260611223633880.png)
+
+{{< qa q="DPO 的 chosen 和 reject 的 loss 同时下降是因为什么" >}}
+{{< /qa >}}
+
+{{< qa q="DPO 训练为什么会导致输出变长" >}}
+{{< /qa >}}
+
 ### GRPO
 
-### DAPO
+{{< qa q="不同 RL 场景怎么设计 reward" >}}
+{{< /qa >}}
 
-### GSPO
+{{< qa q="GRPO 的优势为什么要减 baseline，一定要除 std 吗" >}}
+{{< /qa >}}
 
-### agentic rl 的 credit assignment
+{{< qa q="GRPO 为什么加上 KL 散度，KL 散度怎么计算，为什么 DAPO、GSPO 又去掉了KL散度？" >}}
+{{< /qa >}}
 
-### RLHF 训练的指标
 
->如何判断 early stop
 
 ### 熵崩塌
 
-### RL数据和SFT数据需要有重合吗？
 
 ## 分布式训练
 
