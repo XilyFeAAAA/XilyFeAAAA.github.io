@@ -363,10 +363,8 @@ theme = "douchi"
   priority = 0.5
 
 # Permalinks 配置
-[Permalinks]
-  # posts = ":year/:month/:contentbasename"
-  posts = "posts/:contentbasename"
-
+[permalinks]
+  posts = "/posts/:contentbasename/"
 # 隐私信息配置
 [privacy]
   [privacy.x]
