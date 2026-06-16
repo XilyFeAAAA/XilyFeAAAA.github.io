@@ -4,8 +4,8 @@ date: 2026-06-05T22:00:00+08:00
 recordDate: 2026-06-05
 recordType: drama
 recordTypeLabel: 剧集
-score: 7.2
-scoreText: "7.2"
+score: 6.5
+scoreText: "6.5"
 cover: http://img.xilyfe.top/img/20260610235305882.png
 featuredImage: http://img.xilyfe.top/img/20260610235305882.png
 summary: 就是用暴力打学生打老师，把所有人打服。
@@ -41,4 +41,6 @@ http://img.xilyfe.top/img/20260610235813945.jpg | 吃饭时候看到血突然喷
 http://img.xilyfe.top/img/20260610235840014.jpg | 真的很想吐槽谁从高楼摔下来还能这么安详
 
 {{< /waterfall >}}
+
+>后续评分从 7.2 改成 6.5，感觉剧情有点没啥意思了，给男主的颜值和打戏一点分。
 

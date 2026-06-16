@@ -7,7 +7,7 @@ authors:
 series:
   - 课程笔记
 tags: []
-lastmod: 2026-06-15T08:17:30+08:00
+lastmod: 2026-06-16T06:58:43+08:00
 ---
 ## 生成函数
 
@@ -236,6 +236,8 @@ $\frac{k!}{k_1!k_2!\dots k_m!}$ 就是所求的排列数了。
 
 ### 课后题
 
+#### 25秋课后题
+
 ![image.png](http://img.xilyfe.top/img/20260615150032371.png)
 
 {{< admonition type=info title="Q1">}} 
@@ -245,7 +247,7 @@ $\frac{k!}{k_1!k_2!\dots k_m!}$ 就是所求的排列数了。
 3. **方程转化**：    
 
 $$
-y_1 + y_2 + \dots + y_k = (x_1 + 1) + (x_2 + 1) + \dots + (x_k + 1)== (x_1 + x_2 + \dots + x_k) + k = n + k
+y_1 + y_2 + \dots + y_k = (x_1 + 1) + (x_2 + 1) + \dots + (x_k + 1) = (x_1 + x_2 + \dots + x_k) + k = n + k
 $$
 
 因此，每一个非负整数解 $(x_1, \dots, x_k)$ 都唯一对应一组方程 $y_1 + \dots + y_k = n+k$ 的正整数解 $(y_1, \dots, y_k)$，且满足 $y_1 \le \dots \le y_k$。这建立了两组解之间的一一映射（双射），故其解的个数相等，即 $a_n^k = b_{n+k}^k$。
@@ -381,3 +383,143 @@ G(x) &= -\frac{\ln(1-x)}{x}
 \end{align}
 $$
 {{< /admonition >}}
+
+#### 课件习题
+
+![image.png](http://img.xilyfe.top/img/20260616110200023.png)
+
+{{< admonition type=info title="Q1">}} 
+$$
+\begin{aligned}
+A(x)&=\sum_{n=0}^{\infty}a_nx^n
+=\sum_{n=0}^{\infty}n(n+2)x^n\\
+&=\sum_{n=0}^{\infty}n^2x^n+2\sum_{n=0}^{\infty}nx^n\\[4pt]
+P(x)&=\sum_{n=0}^{\infty}nx^n\\
+\sum_{n=0}^{\infty}x^n&=\frac1{1-x}\\
+\sum_{n=1}^{\infty}nx^{n-1}&=\frac1{(1-x)^2}\\
+P(x)&=\frac{x}{(1-x)^2}\\[4pt]
+Q(x)&=\sum_{n=0}^{\infty}n^2x^n=xP'(x)\\
+P'(x)&=\frac{d}{dx}\left(\frac{x}{(1-x)^2}\right)
+=\frac{1+x}{(1-x)^3}\\
+Q(x)&=\frac{x(1+x)}{(1-x)^3}
+=\frac{x+x^2}{(1-x)^3}\\[4pt]
+A(x)&=\frac{x+x^2}{(1-x)^3}
++\frac{2x}{(1-x)^2}\\
+&=\frac{x+x^2+2x(1-x)}{(1-x)^3}\\
+&=\frac{3x-x^2}{(1-x)^3}
+\end{aligned}
+$$
+{{< /admonition >}}
+
+{{< admonition type=info title="Q2">}} 
+1. 求 $1 \cdot 3 + 2 \cdot 4 + \dots + n(n+2)$ 的和式，可以看做求数列 $b_n=\sum_{i=0}^n a_i$ 生成函数 $S(x)=\sum b_n$ 的系数
+2. 根据性质 3 可以得到 $\{b_n\}$ 的生成函数为 $S(x)=\frac{A(x)}{1-x}=\frac{3x-x^2}{(1-x)^4}= 3 \cdot \frac{x}{(1-x)^4} - \frac{x^2}{(1-x)^4}$
+3. 根据广义二项式定理把分母拆开 $\frac{1}{(1-x)^4} = (1-x)^{-4} = \sum_{k=0}^\infty \binom{k+4-1}{k}x^k = \sum_{k=0}^\infty \binom{k+3}{3}x^k$
+4. 第一项有了 $x$ 所以对应 $x_{n-1}$ 的系数 $\dbinom{n+2}{2}$，第二项有了 $x^2$ 所以对应 $x^{n-2}$ 的系数 $\dbinom{n+1}{1}$
+5. 那么 $x^n$ 的系数就是 $[x^n]S(x) = 3\binom{n+2}{3} - \binom{n+1}{3}$
+
+>1. $(1-x)^{-n} = \sum_{k=0}^\infty \binom{k+n-1}{k} x^k = 1 + \binom{n}{1}x + \binom{n+1}{2}x^2 + \dots$
+>2. $\binom{n}{r} = \binom{n}{n-r}$
+
+{{< /admonition >}}
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260616110224237.png)
+
+{{< admonition type=info title="Q1">}} 
+1. 参考之前的思路，把 $a$ 和 $b$ 看做一个整体，它对应的多项式就是 $1+2^2*\frac{x^2}{2!}+2^4*\frac{x^4}{4!}+\dots$。需要注意这题是排列问题，所以 $a$ 和 $b$ 两个字母长度为 $k$ 的排列数为 $2^k$。
+2. 对于剩下字母没有要求 $1+x+\frac{x^2}{2!}+\dots=e^x$
+3. 得到乘积为 $(1+2^2*\frac{x^2}{2!}+2^4*\frac{x^4}{4!}+\dots)e^{3x}=(1+\frac{(2x)^2}{2!}+\frac{(2x)^4}{4!}+\dots)e^{3x}=\dfrac{e^{2x}+e^{-2x}}{2} * e^{3x}= \frac{1}{2}(e^{5x} + e^x)$
+4. 然后再展开 $\frac{1}{2}(1+5x+\frac{(5x)^2}{2!}+\dots) + \frac{1}{2}(1+x+\frac{x^2}{2!}+\dots)$
+5. 可以知道 $\frac{x^n}{n!}$ 的系数为 $\frac{5^n+1}{2*n!}$
+{{< /admonition >}}
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260616110239746.png)
+
+{{< admonition type=info title="Q1">}} 
+1. 先算第一个方程的非整数解，对于单个 $x$ 的多项式为 $1+x+x^2+\dots=\frac{1}{1-x}$
+2. 乘积就是 $\frac{1}{(1-x)^7}$，然后我们需要 $x^{13}$ 前面的系数
+3. 根据二项式展开得到系数为 $\binom{19}{13}$
+4. 同理计算第二个方程的非负整数解为 $\binom{19}{6}$
+5. 根据二项式系数的性质得到两个相等。
+{{< /admonition >}}
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260616110344930.png)
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260616110402400.png)
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260616110416774.png)
+
+{{< admonition type=info title="Q1">}} 
+1. 1g 砝码的多项式为 $1+x+x^2+x^3$
+2. 2g 砝码的多项式为 $1+x^2+x^4+x^6+x^8$
+3. 4g 砝码的多项式为 $1+x^4+x^8$
+4. 连乘起来得到 $1+x+2x^2+2x^3+3x^4+3x^5+4x^6+4x^7+5x^8+5x^9+5x^{10}+5x^{11}+4x^{12}+4x^{13}+3x^{14}+3x^{15}+2x^{16}+2x^{17}+x^{18}+x^{19}$
+5. 指数为重量，系数为方案数
+{{< /admonition >}}
+
+---
+
+![image.png](http://img.xilyfe.top/img/20260616110443207.png)
+
+{{< admonition type=info title="Q1">}} 
+就是分情况讨论，最大的正整数是不是 $m$ 就好了。
+{{< /admonition >}}
+
+## 递推关系
+
+### 定义
+
+>递推关系就是根据前几项定义当前项的规律，找到**通项公式**。
+
+例如 Hanoi 塔这个经典例子，我们假设将 $n$ 个圆盘从 A 移到 C，设最少需要 $T_n$ 步。
+- 那么将上面 $n-1$ 个圆盘从 A 移到 B 需要 $T_{n-1}$ 步
+- 将最大盘从 A 移到 C 需要 $1$ 步
+- 将 B 上 $n-1$ 个圆盘移到 C 需要 $T_{n-1}$ 步
+
+就能得到递推关系 $T_n = 2T_{n-1} + 1$，根据这个递推关系我们就能找到通项公式：$T_n=2^n-1$。接下来研究的就是：**如何根据递推关系得到通项公式**。
+
+### 常系数线性齐次
+
+- **一般形式**：$a_n + c_1a_{n-1} + c_2a_{n-2} + \dots + c_ka_{n-k} = 0$
+- **解法**：令 $a_n = x^n$ 代入，即可导出它的**特征方程**：$x^k + c_1x^{k-1} + c_2x^{k-2} + \dots + c_k = 0$
+- **通解**：
+	- 特征方程有 $k$ 个互不相同的根 $q_1, q_2, \dots, q_k$，那么通解可以直接写为 $a_n = \lambda_1 q_1^n + \lambda_2 q_2^n + \dots + \lambda_k q_k^n$
+	- 若某个根 $q_1$ 是 $m$ 重根，它贡献的项为 $(\lambda_0 + \lambda_1 n + \lambda_2 n^2 + \dots + \lambda_{m-1} n^{m-1}) q_1^n$
+
+**例**：求解 $a_n = a_{n-1} + a_{n-2}$，初始条件 $a_0 = 0, a_1 = 1$。
+1. 写出特征方程 $x^2-x-1=0$
+2. 计算特征根 $q_1 = \frac{1 + \sqrt{5}}{2}, \quad q_2 = \frac{1 - \sqrt{5}}{2}$
+3. 通解写为 $a_n = \lambda_1 \left(\frac{1 + \sqrt{5}}{2}\right)^n + \lambda_2 \left(\frac{1 - \sqrt{5}}{2}\right)^n$
+4. 代入初始条件解得 $\lambda_1 = \frac{1}{\sqrt{5}}, \lambda_2 = -\frac{1}{\sqrt{5}}$
+5. 通项公式为 $a_n = \frac{1}{\sqrt{5}} \left[ \left(\frac{1 + \sqrt{5}}{2}\right)^n - \left(\frac{1 - \sqrt{5}}{2}\right)^n \right]$
+
+### 常系数线性非齐次
+
+- **一般形式**：$a_n + c_1a_{n-1} + \dots + c_ka_{n-k} = f(n)$
+- **解法**：
+	- 非齐次项是常数 $f(n)=m$，左移一位就可以把常数项消掉。原式：$a_n - 3a_{n-1} = 5$ 左移一步：$a_{n+1} - 3a_n = 5$，两式相减就能得到**常系数线性齐次** $a_{n+1​}−4a_n​+3a_{n−1}​=0$。
+	- 非齐次项是 $P_k(n) \cdot \lambda^n$ 的形式，那么它会为最终的特征方程贡献一个**额外的辅助根 $x = \lambda$**，其重数为 $k + 1$。比如 $a_{n+1}-2a_n=n^2$，它可以看做 $a_{n+1}-2a_n=n^2\times 1^n$，所以辅助根为 $\lambda=1$，通解就是 $a_n=\lambda_1 2^n + (\lambda_2+\lambda_3 n)1^n$。
+	- 非齐次项是指数 $f(n)=m^n$，可以通过乘 $m$ 加上左移的操作把非齐次项消掉。例如 $a_n​−3a_{n−1}​=3^n$，左移可以得到 $a_{n+1}-3a_n=3^{n+1}$，乘 $3$ 可以得到 $3a_n​−9a_{n−1}​=3^{n+1}$，把 ①-② 就能得到 $a_{n+1}-6a_n+9a_{n-1}=0$ 然后按照线性齐次的方法解决。
+
+### 递推关系和生成函数
+
+>如何用生成函数求递推关系的通项公式
+
+**例**：用生成函数法再次求解方程：$a_n - 2a_{n-1} = 3^n$ ($n \ge 1$)，已知 $a_0 = 1$。
+
+1. 两侧同乘 $x^n$ 得到 $a_nx^n - 2a_{n-1}x^n=3^nx^n$
+2. 两侧同时求和 $\sum_{n=1}^{\infty} a_n x^n - 2 \sum_{n=1}^{\infty} a_{n-1} x^n = \sum_{n=1}^{\infty} (3x)^n$
+3. 改写成 $\sum_0^{\infty}a_nx^n=A(x)$ 的形式 $(A(x) - a_0) - 2x A(x) = \frac{3x}{1-3x}$
+4. 然后代入 $a_0=1$ 就能得到 $A(x) = \frac{1}{(1-2x)(1-3x)} = \frac{3}{1-3x} - \frac{2}{1-2x}$
+5. 应用几何级数展开公式得到 $A(x) = 3 \sum_{n=0}^{\infty} (3x)^n - 2 \sum_{n=0}^{\infty} (2x)^n = \sum_{n=0}^{\infty} \left( 3^{n+1} - 2^{n+1} \right) x^n$
+6. 所以得到 $a_n = 3^{n+1} - 2^{n+1}$
