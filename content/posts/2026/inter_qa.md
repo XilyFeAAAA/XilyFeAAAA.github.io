@@ -451,17 +451,95 @@ sft 的过拟合并不像传统深度学习一样，通过调整训练 epoch、�
 {{< qa q="rl 和 sft 区别" >}}
 {{< /qa >}}
 
-{{< qa q="credit assignment" >}}
-{{< /qa >}}
-
-{{< qa q="rl 数据和 sft 数据需要有重合吗" >}}
-{{< /qa >}}
-
 ### Monte Carlo
+
+>LLM 的 RLHF 中我们需要 critic model 来进行状态价值 $V(S_t)$ 的预测，但是无法知道真实值。Monte Carlo、TD Error 和 GAE 采用不同方法估计一个策略的长期收益也就是 $V_t$，它们各自在**偏差和方差做了不同的权衡**。
+
+Monte Carlo 想要估计的是状态价值 $V(S_t)$，它用 $G_t$ 来直接作为状态价值 $V(S_t)$ 的目标值：
+
+$$
+G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
+$$
+
+状态价值 $V(S_t)$ 是 $t$ 时刻的状态价值是后续状态奖励的折扣求和。
+
+- 它的优点就是无偏差，因为 $G_t$ 是完全使用真实发生的奖励算出来的，没有包含任何主观的猜想，所以它的期望值完全等于真正的价值。
+- 缺点是它的方差很大，每一步的随机性会随着时间步累乘，这个在强化学习训练中很忌讳。其次就是必须等整个序列采样结束才能计算。
 
 ### TD Error
 
+TD Error 的思路是：当你从 $S_t$ 走到 $S_{t+1}$ 时，对未来收益的预估相对于上一时刻更近了一步，因为你知道了 $S_{t+1}$ 时刻的实际奖励。TD Error 用 TD Target 当做状态价值函数 $V(S_t)$ 的真实值：
+
+$$
+TD_t = R_{t+1} + \gamma V(S_{t+1})
+$$
+
+然后 TD Error 也就是 TD 误差即为真实值与预测值的差距：
+
+$$
+\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)
+$$
+
+- 优点是低方差， 每一小步就更新一次，只包含了一步的随机性，后面的长远未来被 $V(S_{t+1})$ 这个平滑的期望值代替了，因此波动极小。
+- 缺点是有偏差，神经网络 $V$ 在训练初期通常是瞎猜的。用一个不准的预判去更新另一个预判，会引入不可避免的偏差，甚至可能导致训练不稳定。
+
 ### GAE
+
+在现代策略梯度算法（如 PPO、TRPO）中，我们通常不直接使用价值 $V$，而是使用**优势函数** $A(S, A) = Q(S, A) - V(S)$，用来衡量某个动作比平均表现好多少。通过贝尔曼方程，我们可以用状态价值 $V$ 表示动作价值 $Q$：
+
+$$
+Q^{\pi} \left(\right. s , a \left.\right) = r \left(\right. s , a \left.\right) + \gamma V^{\pi} \left(\right. s^{'} \left.\right)
+$$
+
+得到优势函数：
+
+$$
+A^{\pi} \left(\right. s_{t} , a_{t} \left.\right) = R_{t} + \gamma V \left(\right. S_{t + 1} \left.\right) - V \left(\right. S_{t} \left.\right) \approx \delta_{t}
+$$
+
+会发现它就是 TD Error，但是 TD Error 偏差太大，容易陷入局部最优的问题。于是我们用 $V \left(\right. S_{t} \left.\right) = R_{t} + \gamma V \left(\right. S_{t + 1} \left.\right)$ 不断展开从而增加精度，就能得到多步 TD Error：
+
+$$
+\begin{array}{c} \delta_{t} & = R_{t} + \gamma V \left(\right. S_{t + 1} \left.\right) - V \left(\right. S_{t} \left.\right) \\ \delta_{t + 1} & = R_{t + 1} + \gamma V \left(\right. S_{t + 2} \left.\right) - V \left(\right. S_{t + 1} \left.\right) \\ \delta_{t + 2} & = R_{t + 2} + \gamma V \left(\right. S_{t + 3} \left.\right) - V \left(\right. S_{t + 2} \left.\right) \end{array}
+$$
+
+进而可以用多步 TD Error 来表示优势 $\hat{A}_{t}^{\left(\right. k \left.\right)} = \sum_{l = 0}^{k - 1} \gamma^{l} \delta_{t + l}$。多步估计确实减小了误差提高了进度，但是**随机变量越多，叠加在一起，整体的波动就越大**，导致随着 $k$ 增加方差越来越大。GAE 的思路是：**对所有步数的估计取加权平均，步数越多权重越小**。引入参数 $\lambda \in \left[0 , 1 \right]$，权重是 $\left(\right. 1 - \lambda \left.\right) \lambda^{k - 1}$：
+
+$$
+\hat{A}^{\text{GAE}}_t = (1-\lambda)\left[\hat{A}^{(1)}_t + \lambda\hat{A}^{(2)}_t + \lambda^2\hat{A}^{(3)}_t + \ldots\right]
+$$
+
+这个式子可以进一步化简得到：
+
+$$
+\begin{align}
+\hat{A}^{\text{GAE}}_t &= \sum_{l=0}^{\infty}(\gamma\lambda)^l \delta_{t+l} \\
+	                   &= \delta_t + \gamma\lambda\delta_{t+1} + (\gamma\lambda)^2\delta_{t+2} + \ldots \\
+	                   &= \delta_t + \gamma\lambda \hat{A}^{\text{GAE}}_{t+1}
+\end{align}
+$$
+
+### Bradly-Terry
+
+BT 模型假设每个对象有一个隐含的分数，通常用 $r$ 表示。当比较两个对象 $i$ 和 $j$ 时，$i$ 优于 $j$ 的概率计算公式为：
+
+$$
+P(i > j) = \frac{\exp{r_i}}{\exp{r_i} + \exp{r_j}} = \frac{1}{1 + \exp{(r_j - r_i)}}=\sigma(r_i - r_j)
+$$
+
+>BT 模型要求分数都为正数，所以对 $r$ 套一个指数。
+
+为了让我们的模型预测的分值 $r$ 尽可能符合现实，我们需要最大化观测到这些结果的总概率。假设每对比较都是独立的，我们可以写出**似然函数**：
+
+$$L = \prod_{(i, j) \in \mathcal{D}} P(i \succ j) = \prod_{(i, j) \in \mathcal{D}} \sigma(r_i - r_j)$$
+
+我们的目标是找到一组参数，使得 $L$ 最大。在深度学习和最优化中，我们更习惯**最小化一个损失函数**，而不是最大化一个连乘的概率（连乘容易导致浮点数下溢，且求导困难）。因此，我们对似然函数 $L$ 取**负对数**，把连乘变成连加，就得到了最终的损失函数：
+
+$$\mathcal{L} = -\ln L = -\sum_{(i, j) \in \mathcal{D}} \ln \sigma(r_i - r_j)$$
+
+这就是经典的 **Bradley-Terry 损失函数**：
+
+$$\mathcal{L}_{RM} = -E_{(x, y_w, y_l) \sim \mathcal{D}} \left[ \ln \sigma(r(x, y_w) - r(x, y_l)) \right]$$
 
 ### KL Divergence
 
@@ -494,15 +572,12 @@ $$\mathbb{E}_{x \sim q}[f(x)] = \int q(x) \cdot f(x) \, dx$$
 
 现在，我们把 $f(x) = r = \frac{p(x)}{q(x)}$ 代入这个定义公式中：
 
-$$\mathbb{E}_{x \sim q}\left[ \frac{p(x)}{q(x)} \right] = \int q(x) \cdot \frac{p(x)}{q(x)} \, dx$$
+$$\mathbb{E}_{x \sim q}\left[ \frac{p(x)}{q(x)} \right] = \int q(x) \cdot \frac{p(x)}{q(x)} \, dx= \int p(x) \, dx$$
 
-注意到积分符号内部的 $q(x)$ 了吗？分子和分母上各有一个 $q(x)$，它们可以**直接约掉（消去）**：
 
-$$= \int p(x) \, dx$$
+根据概率论的基本公理，**任何一个合法的概率密度函数，它在全空间的积分必须严格等于 1**。因为 $p(x)$ 是一个合法的概率分布，所以：
 
-根据概率论的基本公理，**任何一个合法的概率密度函数，它在全空间的积分（总概率）必须严格等于 1**。因为 $p(x)$ 是一个合法的概率分布，所以：
-
-$$\int p(x) \, dx = 1$$
+$$\mathbb{E}_{x \sim q}\left[ \frac{p(x)}{q(x)} \right]=\int p(x) \, dx = 1$$
 
 {{< /admonition >}}
 
@@ -568,6 +643,13 @@ DeepSeek GRPO/Kimi/GLM 保留 KL 散度项，原因是对于基座模型来说�
 	- 不同领域适用不同 KL 系数（per-domain）：数学场景（Reasoning主导）系数接近 0，通用对齐保留系数。
 	- 修正KL估计器。
 - Kimi K1.5/K2 也使用了 KL 强度动态调整。
+
+{{< qa q="KL 散度和交叉熵、MLE的关系" >}}
+$$
+KL(P\|Q) = \sum P(x)\log\frac{P(x)}{Q(x)} = \underbrace{-\sum P(x)\log Q(x)}_{\text{交叉熵} H(P,Q)} - \underbrace{\left(-\sum P(x)\log P(x)\right)}_{\text{熵} H(P)}
+$$
+
+{{< /qa >}}
 
 ### Importance Sampling
 
@@ -673,43 +755,218 @@ Actor-Critic 的核心原因是：Critic 只能评估状态或动作的好坏（
 ![image.png](http://img.xilyfe.top/img/20260611223633880.png)
 
 {{< qa q="DPO 的 chosen 和 reject 的 loss 同时下降是因为什么" >}}
+DPO 的损失函数为：
+
+$$
+\mathcal{L}_{\text{DPO}}= -\mathbb{E}_{(x,y_w,y_l)\sim\mathcal{D}}\Bigg[\log\sigma\left(\beta\log\frac{\pi_\theta(y_w|x)}{\pi_{\rm ref}(y_w|x)} - \beta\log\frac{\pi_\theta(y_l|x)}{\pi_{\rm ref}(y_l|x)}\right)\Bigg]
+$$
+
+实际上，从上式可以看出，要让总的 loss 下降，优化偏好数据对的概率有多种情况，比如偏好-非偏好答案概率都下降/都上升，偏好答案概率上升-非偏好答案概率下降等，所以在 loss 下降的情况下，不一定是偏好答案概率上升-非偏好答案概率下降导致的，还可能是二者的概率都下降的情况。其次 Bradly-Terry 模型本身就存在优化不确定的问题，它只关心两个对象谁好谁坏。所以一般情况下 DPO 训练都更关心 **chosen reward 和 rejected reward 的 margin**。
+
+单纯的关心 reward margin 也存在一个问题，**概率是守恒的，margin 只盯着两个点，没管剩下的概率质量去哪了**。$\pi_\theta(\cdot|x)$ 是整个输出空间上的一个分布，总和恒为 1。如果 $\pi_\theta(y_w|x)$ 被大幅压低，这部分概率质量必然要流向分布里的某个地方——DPO 的 loss 完全没有约束这部分质量流向哪里，它只比较了 $y_w$ 和 $y_l$​ 这两个特定的点。Princeton 那篇研究 "likelihood displacement" 的论文把这个现象的后果讲得很直白：这种 displacement 可能是灾难性的，会把概率质量从 preferred response 转移到含义完全相反的 response 上去——比如训练模型偏好"No"而不是"Never"，结果反而大幅推高了"Yes"的概率。
+
+DPO-P 的做法是在 loss 里面加一个 chosen response 的 sft 损失项。给 chosen 的绝对似然加一个锚，不让它相对reference model掉太多，这样不管 margin 怎么变化，chosen 本身的概率底线是被保护的，displacement 没有空间发生。
 {{< /qa >}}
 
 {{< qa q="DPO 训练为什么会导致输出变长" >}}
+原因：
+
+1. 从隐式奖励来看，DPO 的隐式奖励为 $r=\beta\log{\frac{\pi}{\pi_{ref}}}=\beta \sum_{t=1}^{|y|}[\log{\pi_{ref}(y_t|x,y_{<t})} - \log{\pi_\theta(y_t|x,y_{<t})}]$。可以看到这个奖励是逐 token 对 log-ratio 求和，也就是说当 $|y_w| > |y_l|$ 时，即使每个 token 的 log-ratio 差异很小，累计效应也会让 $r_\theta(x,y_w)$ 系统性大于 $r_\theta(x,y_l)$。
+2. 相比于上面来自 DPO 算法建模的固有偏差，训练数据中存在长度偏置也是造成 DPO 长度偏移的又一个原因。这种偏置源于 rm 固有的长度偏好，导致大多数偏好回复显著长于不偏好的回复。在统计数据中，不管是人工标注还是 GPT-4 标注都偏爱长回复。
+
+解决方案有两种：
+
+第一个是 SimPO。它去掉了 ref model，并且用长度归一化的平均 log-likelihood 作为隐式奖励：$r(x,y)=\frac{\beta}{|y|}\log{\pi_\theta(y,x)=\frac{\beta}{|y|}\sum_{t=1}^{|y|}\log{\pi_\theta(y_t|x, y_{<t})}}$。代入得到 SimPO 的损失函数为：
+
+$$
+\mathcal{L}_{SimPO}=-\mathbb{E}\left[\log{\sigma(\frac{\beta}{|y_w|}\log{\pi_\theta(y_w,x)} - \frac{\beta}{|y_l|}\log{\pi_\theta(y_l,x)} - \gamma)}\right]
+$$
+
+1. 除以 $|y|$ 对 token 的 log-ratio 进行归一化，消除了 DPO 的长度偏置。
+2. 减去了 reward margin $\gamma$，强制要求 chosen 和 rejected 有一定区分度。
+
+---
+
+第二个方案是类似 R-DPO 的方法，加入长度差惩罚：
+
+$$
+L_{\mathrm{R\text{-}DPO}}=-\mathbb E\left[\log \sigma\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\mathrm{ref}}(y_w|x)}-\beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\mathrm{ref}}(y_l|x)}+\alpha |y_w|-\alpha |y_l|\right)\right]
+$$
+
+R-DPO 通过 logit 偏置改变样本的梯度权重，降低长 chosen 样本梯度/提高短 chosen 样本梯度。
+
+>长度差惩罚加在 loss 里面求导之后不会之间消去吗，为什么可以对梯度有影响？
+>因为 length margin penalty 在 $\log\sigma(\cdot)$ 里面，所以对 $L=-\log\sigma(z)$ 求导之后 $\nabla_\theta L=(\sigma(z)-1)\nabla_\theta z$  会受到影响。
+
+---
+
+第三个方案就是偏好数据建模的时候对长度去偏（De-Bias），其中可能涉及到多模型投票、Prompt Engineering等多种方法等混合。类似的方法：
+- LIFT-DPO 将长度约束指令融入通用指令数据集，并拒绝超出指定长度限制的 chosen 回复。
+- SamPO 从 chosen 和 rejected 的 token 中按相同数量随机下采样，确保参与梯度计算的 token 数相等。
+
 {{< /qa >}}
 
 ### GRPO
 
+$$
+\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E} \left[ \frac{1}{G} \sum_{i=1}^{G}  \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \min\left( r_{i,t}(\theta) \hat{A}_{i,t},\ \text{clip}(r_{i,t}(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_{i,t} \right)  - \beta D_{\text{KL}} \right]
+$$
+
+GRPO 是对 PPO 算法的变形：
+1. 把 PPO 的 token-mean loss 变成了 seq-mean-token-mean loss
+2. PPO 的优势是通过 TD Error 和 GAE 算的，GRPO 省去了 critic model，用组内的平均值和方差计算相对优势
+3. PPO 把 KL 加在 reward 里面，而 GRPO 把 KL 加在 loss 里面当正则项。
+
 {{< qa q="不同 RL 场景怎么设计 reward" >}}
+1. 数学/代码/SQL/tool call：这些可验证结果的场景可以用 rule-based reward
+2. 通用对话：reward model 打分
+3. 长 CoT：ORM + PRM
+4. 安全对其：多 reward 加权
 {{< /qa >}}
 
-{{< qa q="GRPO 的优势为什么要减 baseline，一定要除 std 吗" >}}
+{{< qa q="GRPO 的优势为什么要减 baseline" >}}
+1. 可以降低梯度估计的方差
+	- 如果直接用原始奖励值 $r_i$ 代替 $A_i$，因为 $r_i$ 通常永远是正数，这会导致**策略梯度的方差极大**，模型训练极不稳定，甚至不收敛。
+	- 减去一个与当前 Action 无关的 Baseline，在数学上完全不改变梯度的期望值，但能**显著降低方差**。
+2. 从**绝对好坏变成相对优势**，和 PPO 的 advantage 减去 critic model 预估的 value 一样。
+
+>策略梯度的更新公式为 $g = \frac{1}{N} \sum_{i=1}^N \nabla_\theta \log \pi_\theta(a_i|s) \cdot r_i$，如果所有 $r_i$ 都是很大的正数，梯度更新会尝试把这组采样里的**所有动作的概率都往上推**。  但是，概率的总和永远只能是 $1$，这就会导致模型的参数空间发生剧烈的改变：所有的梯度向量都指向相同的正方向，彼此严重抵消，只有微弱的相对分量在起作用。
+
+{{< /qa >}}
+
+{{< qa q="GRPO 的优势为什么要除 std" >}}
+1. 强化学习不同任务的 reward 定义不同，**奖励的尺度也不相同**。有的 $[-3,3]$ 有的 $[0,1]$，如果不除以 std，advantage 的绝对大小会完全受制于 reward 的尺度。
+2. 大模型在训练的不同阶段，**组内得分的分布是动态变化的**。训练后期当模型收敛，生成的回答都非常好，分差极小，如果不除 std 的话 advantage 只有 $\pm 0.001$，梯度接近于 0，模型就会停止进化。
+{{< /qa >}}
+
+
+{{< qa q="为什么 GRPO 的 KL 是 loss 正则项，而 PPO 是加在 reward 里" >}}
+1. GRPO 用组内相对优势替代了 PPO critic model 的细粒度 reward，如果直接把 KL 加在 GRPO 的 advantage 上会导致语义出现变化，例如某个 response 的优势的 $0.2$ 加上 KL 之后优势变成 $-0.3$ 了。而 PPO 的 critic model 要同时学会预测"未来还能拿到多少任务reward"和"未来还要扣多少KL惩罚"，它预测的 value 已经是考虑 KL 以后的数值了，不存在这个问题。
+2. 在 PPO 中 KL 加在 token level 的 reward 上。因为有 critic 网络通过贝尔曼方程在时间步上进行前向递推，模型能够通过 GAE 明确知道是哪一个特定的 Token 导致了过大的 KL 漂移。而 GRPO 如果粗暴地将全序列 kl 累加到 seq-level reward 中，无法引导模型去学习序列内部的 token level 的演变关系。
 {{< /qa >}}
 
 {{< qa q="GRPO 为什么加上 KL 散度，KL 散度怎么计算，为什么 DAPO、GSPO 又去掉了KL散度？" >}}
+GRPO 在 loss 中加入了 KL 当做正则项，目的是：
+- 防止 policy 偏离 reference model 太远，避免 reward hacking
+- 保持语言流畅性（ref model是SFT后的模型，有基本语言能力）
+- 正则化作用，稳定训练
+
+但是 DAPO 和 GSPO 认为：
+- **DAPO**：认为 token-level KL 惩罚会抑制模型生成长链 CoT 的能力，导致模型倾向于生成短 response 以减小 KL，去掉后模型能更自由地探索长推理链，用 clip+entropy bonus 代替 KL 约束。
+- **GSPO**：从理论上证明group-level的约束比token-level KL更合理。
 {{< /qa >}}
 
+{{< qa q="RL training 和 test-time scaling 各自是如何 explore 的" >}}
+- RL  Training
+	1. 提高 temperature 增加采样的多样性
+	2. topP/topK 增加采样多样性
+	3. Entropy bonus：在 loss 项里面加 token-mean 的熵当做正则项 $\beta H(\pi)$
+- Test-time Scaling
+	1. Best-of-N：采样N个response，用verifier选最优
+	2. Beam Search：维护多条候选链，逐步扩展
+	3. Sequential revision：让模型自我反思和修正（Reflection）
+{{< /qa >}}
 
-
-### 熵崩塌
+{{< qa q="熵崩塌的解决方案" >}}
+1. DAPO 的解决方案 **clip-higher**。熵崩塌主要源于：在 $r_{t} \left(\right. \theta \left.\right) > 1 + \epsilon$ 的情况下，旧策略的概率本来就不高，还限制了更新幅度的上限，抑制了低概率 token 的增长。Clip-Higher 采用非对称裁剪机制，解耦上下裁剪的范围：上裁剪阈值 $\epsilon_{h i g h} = 0.28$：放宽低概率Token的探索限制。下裁剪阈值 $\epsilon_{l o w} = 0.2$：抑制高概率Token的过度利用。
+2. 适当降低 KL 的系数 $\beta$，允许模型单次更新变化更大一些。
+3. Entropy bonus：在 loss 项里面加 token-mean 的熵当做正则项 $\beta H(\pi)$
+4. 动态 rollout 温度：随训练收敛提高采样温度，防止采样分布过于尖锐。
+{{< /qa >}}
 
 
 ## 分布式训练
 
 ### Data Parallel
 
+>DP 和 DDP 的应用场景一般是 **单卡能够装下模型，并且要提高 `batch_size`**。
+
+Data Parallel 的思路是 **每个 GPU 上都放有完整的模型参数**，把数据按 `batch_size` 维度进行切分，然后传输到不同 GPU 上进行前向传播、反向传播，然后计算梯度传回 GPU-0。GPU-0 会负责对所有梯度进行平均，然后在 GPU-0 上进行更新模型。之后 GPU-0 会把更新后的新参数传给其他 GPU 进行更新。
+
+它的缺点在于数据的传输量太大了，并且都集中在 GPU-0 上压力太大了。假设参数量为 $\Psi$ 节点数量为 $N$，那么 GPU-0 需要传入梯度 $\left(\right. N - 1 \left.\right) \Psi$，传出参数量为 $\left(\right. N - 1 \left.\right) \Psi$。其他 GPU 传出梯度量为 $\Psi$ 传入参数为 $\Psi$。
+
+### Distributed Data Parallel
+
+![](https://img.xilyfe.top/img/20260202233932894.png)
+
+>DDP 采用了 Ring-AllReduce 这种集群通信方式，来解决 DP 通讯量大的问题。
+
+首先 PyTorch 会把模型内的参数按照倒序排列（因为是反向传播求梯度，顺序和代码是相反的），然后将参数依次放在桶里。每个参数都会挂一个监听器，当参数求得梯度之后监听器被触发，此时检查桶内参数是不是全都计算好梯度了。假如每个 GPU 的同一个桶都装满了，也就是说对应的梯度就计算好了，就会对桶内参数的梯度用 Ring-AllReduce 进行同步。当全部桶都同步完整，各个 GPU 的模型就应该同步了，此时就可以调用优化器对参数进行更新。
+
+假设参数量为 $\Psi$ 节点数量为 $N$，那么对于每个 GPU 有：
+
+- Scatter-Reduce 阶段传入/传出：$\left(\right. N - 1 \left.\right) \frac{\Psi}{N} \approx \Psi$
+- AllGather 阶段传入/传出：$\left(\right. N - 1 \left.\right) \frac{\Psi}{N} \approx \Psi$
+
+可以看到每个 GPU 的通讯量和节点数量是无关的，相比 DP 节省了大量通讯资源和时间。
+
 ### Tensor Parallel
 
+ >DP 和 DDP 它们的思路是 **用显存冗余换吞吐量**。每张 GPU**都有完整模型**，但是只**处理不同的数据**，它的本质是**复制模型 → 并行处理数据 → 最后通过 AllReduce 同步梯度**，代价是模型被复制 $N$ 份，占用 **$N$ 倍显存**。张量并行 Tensor Parallel 的思路正好相反是 **用通信换显存**。现在的大模型参数量巨大一张卡很可能放不下，所以把模型拆到多卡，每张 GPU **只有部分模型**，但是**处理完整的数据**，最后进行合并。
+
+Tensor Parallel 分为列拆分和行拆分两种，顾名思义就是把参数矩阵按列拆分开和按行拆分开，放在不同的 GPU 上。
+
+![image.png](http://img.xilyfe.top/img/20260623141456509.png)
+
+对矩阵进行列切分，得到的输出为 $Y = \left[ Y_{1} \mid Y_{2} \mid . . . \mid Y_{p} \right]$，输出被切分了，每卡只有一部分。它的优点就是各个 GPU 之间不需要通信，计算完全独立。比如我们把线性层之后要接一个激活函数，各个 GPU 计算得到中间值的一部分之后，可以直接计算激活函数的值。但如果下一层需要完整的 $Y$ 那么仍然需要 AllGather 通信。
+
+---
+
+![](https://img.xilyfe.top/img/20260317125901490.png)
+
+把矩阵按列切分，$X$ 也需要切分，每个 GPU 计算的都是 **部分贡献**，最终需要对他们进行求和才能得到完整的 $Y = \sum Y_{i}$，所以必须通过 AllReduce 进行通信。但优点是它的输出是完整的，下一层可以直接使用。
+
+---
+
+一般情况下，列切分和行切分都是同时使用的。例如再一个 MLP 层中，我们需要进行 $y=W_2(\sigma(W_1x))$ 的变化：
+- 假如我们两层都采用行拆分，那么每一层都需要一次 AllGather 开销太大了
+- 假如我们两层都采用列拆分，我们按照 `X → A → Y → B → Z` 的流程。第一层我们把 $A$ 矩阵切分为 $A_{1}$ 和 $A_{2}$，得到 GPU1 上有 $Y_{1} = X \cdot A_{1}$，GPU2 上有 $Y_{2} = X \cdot A_{2}$，目前还是正常的。但是第二层就有问题了，此时 GPU1 上有 $Y_{1}$，GPU2 上有 $Y_{2}$，然后我们把 $B$ 矩阵按照列切分，GPU1 上有 $Z_{1} = Y_{1} \cdot B_{1}$，GPU2 上有 $Z_{2} = Y_{2} \cdot B_{2}$，他们各自少了 $Y_{2}$ 和 $Y_{1}$，每个 GPU 只算了一半的贡献。也就是说，用列拆分还是需要两次 AllGather。
+- 如果我们采用先列拆分再行拆分的方式，那么第一层计算后，两个 GPU 在第二层都会正好得到需要的列切分过的输入 $Y_1$ 和 $Y_2$，最终只需要一次 AllGather。
 ### Deepspeed Zero
 
+不管是 DP 还是 DDP，每个 GPU 都保存了完整的模型参数，中间激活值以及优化器状态，这里面优化器状态占用的显存最大。我们拿 AdamW 举例，一共需要：
+1. FP16 的参数、梯度（模型参数）
+2. FP32 的梯度、一阶动量、二阶动量、Master Weight（优化器状态）
+
+而 DeepSpeed ZeRO 的 ZeRO 含义是 Zero Redundancy Optimizer，其核心思想是 **消除冗余存储的优化器状态**，每个 GPU 中优化器状态是相同的，因此可以通过将优化器状态按离输出的位置关系进行分块，拆分到不同 GPU 上，实现零冗余。DeepSpeed 分为三个阶段，ZeRO-1 仅分区优化器状态，ZeRO-2 加入了梯度，ZeRO-3 加入了模型的参数。
+
+![](https://img.xilyfe.top/img/20260204160715456.png)
+
+>- 深蓝色代表优化器状态
+>- 浅蓝色代表参数和梯度
+
+ZeRO-1 的运行流程是这样的：
+1. 每个 GPU 都存储了完整的模型参数，所以可以分别独立的进行前向传播，计算得到 loss
+2. 反向传播时，每个 GPU 都从后向前计算出每一层参数的梯度
+3. 这时候 GPU-1 和 GPU-2 把计算出来的 **前三层梯度** AllGather 传给 GPU-0。这时候 GPU-0 就可以计算平均梯度，并且它有前三层的优化器状态，就可以对前三层进行更新。然后再用 AllGather 把前三层更新后的参数广播给 GPU-1 和 GPU-2，中三层和后三层的参数也是如此更新。
+
+假设参数量为 $\Psi$ 节点数量为 $N$，那么对于每个 GPU 有：
+- 梯度收集阶段传入/传出：$(N-1)\frac{\Psi}{N}\approx\Psi$ 
+- 参数广播阶段传入/传出：$(N-1)\frac{\Psi}{N}\approx\Psi$ 
+
+所以 ZeRO-1 最终总传入/传出参数量为 $2\Psi$ 和 DDP 通讯量相同，但是每一个 GPU 上占用的显存量大幅度减少了。
+
+
+{{< qa q="在 LLM 训练时，如果不小心多 All Reduce 了几次 loss，会发生什么" >}}
+{{< /qa >}}
 
 ## 训练
 
-### 参数量计算
+{{< qa q="参数量计算" >}}
+{{< /qa >}}
 
-### 显存计算
+{{< qa q="显存计算" >}}
+{{< /qa >}}
 
-### 训练出现 NaN 的原因
+{{< qa q="训练出现 NaN 的原因" >}}
+{{< /qa >}}
 
->lr,除0，log，clamp
+{{< qa q="参数量计算" >}}
+{{< /qa >}}
 
+
+## 项目
+
+### MedicalGPT
+
+### Search-R1
