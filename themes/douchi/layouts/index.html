@@ -2,6 +2,8 @@
 {{- $mainSections := .Scratch.Get "mainSections" -}}
 {{- $pages := where .Site.RegularPages "Type" "in" $mainSections -}}
 {{- $pages = where $pages "Params.hiddenfromhomepage" "!=" true -}}
+{{- $life := where $pages "Params.categories" "intersect" (slice "thoughts") -}}
+{{- $pages = complement $life $pages -}}
 {{- $paginator := .Paginate $pages 20 -}}
 <section class="home-hero home-about">
   <h1>关于我</h1>

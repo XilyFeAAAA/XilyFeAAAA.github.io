@@ -27,39 +27,6 @@ Transformer 的核心是用 **Self-Attention + FFN** 替代 RNN/CNN，实现�
 
 >让 Image-2 根据我的手稿生成了一个手绘风格示意图，感觉还可以。
 
-### Attention
-
-$$
-\text{Attention}(Q,K,V)=\text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V 
-$$
-
-{{< qa q="softmax 数值不稳定" >}}
-$$
-\text{softmax}(x_i) = \frac{e^{x_i - m}}{\sum_{j=1}^{n} e^{x_j - m}}
-$$
-数值稳定的 Softmax，减去最大值防止溢出。
-{{< /qa >}}
-
-{{< qa q="softmax 里面缩放点积的作用" >}}
-softmax 的数值越大，最大值与其他值差距越悬殊，softmax 越接近 one-hot。对 $QK^T$ 缩放点积使得输入始终保持在 softmax 的**线性敏感区间**，梯度不消失。
-{{< /qa >}}
-
-{{< qa q="自注意力的时间复杂度" >}}
-1. 计算 $QK^T$ 是 $(n \times d_k) \cdot (d_k \times n)$ 的矩阵乘法，计算 $QK^T$ 的每个元素 $A_{ij}$ 需要 $A_{ij}=Q_i\cdot K_j$ 进行点积，所以 $n^2$ 个元素每个 $d_k$ 次计算，一共 $O(n^2d_k)$
-2. softmax 操作 $O(n^2)$
-3. 计算 $AV$ 是 $(n \times n)(n \times d_v)$ 的矩阵乘法，一共 $O(n^2d_v)$
-4. 合计 $O(n^2 d)$
-{{< /qa >}}
-
-{{< qa q="如何实现并行计算的" >}}
-attention 把 Q/K/V 矩阵的 $d_{model}$ 拆为 $\text{num\_heads} * d_k$ 维度，通过矩阵乘法就可以并行的计算不同注意力头，最后再拼接到一起。
-{{< /qa >}}
-
-{{< qa q="有哪些减少 attention 计算量的方法" >}}
-1. FlashAttention：注意力计算的时间复杂度依然是 $O(n^2d)$，但是它通过分块读取和 online softmax 降低了显存访问开销，把显存访问复杂度从 $O(n^2)$ 降到了 $O(nd)$。
-2. KVCache：在生成下一个 token 时，只需要计算当前 token 的 query、key、value。之前的 key/value 被缓存，直接拼接使用，避免重复计算整个历史序列的 attention，从而提高**推理阶段**的速度。
-3. MQA/GQA：减少 K 和 V 矩阵注意力头，减小计算量。
-{{< /qa >}}
 
 ### KVCache
 
@@ -149,6 +116,44 @@ $$
 
 一方面 RMSNorm 发现去掉均值 $\mu$ 之后影响不大，减少这一步计算可以大幅度节省时间。另一方面是去掉均值可以减少信息损失，让训练更稳定。
 
+### Q&As
+
+
+{{< qa q="softmax 数值不稳定" >}}
+$$
+\text{softmax}(x_i) = \frac{e^{x_i - m}}{\sum_{j=1}^{n} e^{x_j - m}}
+$$
+数值稳定的 Softmax，减去最大值防止溢出。
+{{< /qa >}}
+
+{{< qa q="softmax 里面缩放点积的作用" >}}
+softmax 的数值越大，最大值与其他值差距越悬殊，softmax 越接近 one-hot。对 $QK^T$ 缩放点积使得输入始终保持在 softmax 的**线性敏感区间**，梯度不消失。
+{{< /qa >}}
+
+{{< qa q="自注意力的时间复杂度" >}}
+1. 计算 $QK^T$ 是 $(n \times d_k) \cdot (d_k \times n)$ 的矩阵乘法，计算 $QK^T$ 的每个元素 $A_{ij}$ 需要 $A_{ij}=Q_i\cdot K_j$ 进行点积，所以 $n^2$ 个元素每个 $d_k$ 次计算，一共 $O(n^2d_k)$
+2. softmax 操作 $O(n^2)$
+3. 计算 $AV$ 是 $(n \times n)(n \times d_v)$ 的矩阵乘法，一共 $O(n^2d_v)$
+4. 合计 $O(n^2 d)$
+{{< /qa >}}
+
+{{< qa q="如何实现并行计算的" >}}
+attention 把 Q/K/V 矩阵的 $d_{model}$ 拆为 $\text{num\_heads} * d_k$ 维度，通过矩阵乘法就可以并行的计算不同注意力头，最后再拼接到一起。
+{{< /qa >}}
+
+{{< qa q="在计算 attention 时有什么节省显存资源的策略吗？" >}}
+1. 混合精度 BF16/FP16
+2. Sparse Attention：限制每个 token 只关注部分 token
+3. Flash Attention：前向传播时候没有保存中间激活值，在反向传播时候重新计算
+{{< /qa >}}
+
+{{< qa q="有哪些减少 attention 计算量的方法" >}}
+1. FlashAttention：注意力计算的时间复杂度依然是 $O(n^2d)$，但是它通过分块读取和 online softmax 降低了显存访问开销，把显存访问复杂度从 $O(n^2)$ 降到了 $O(nd)$。
+2. KVCache：在生成下一个 token 时，只需要计算当前 token 的 query、key、value。之前的 key/value 被缓存，直接拼接使用，避免重复计算整个历史序列的 attention，从而提高**推理阶段**的速度。
+3. MQA/GQA：减少 K 和 V 矩阵注意力头，减小计算量。
+{{< /qa >}}
+
+
 {{< qa q="为什么 LLM 不适合用 BatchNorm">}}
 - 每条数据的长度不相同，在 batch 维度计算均值和方差不稳定。
 - batch 大小不够大，显存有限情况下 `micro_batch` 可能为 1。
@@ -216,8 +221,17 @@ optimizer.step()
 3. SwiGLU 是门控版的 GeLU，它可以控制哪些特征保留，哪些特征抑制。SwiGLU 的非线性表达能力最强，同时可以提高表达能力。
 {{< /qa >}}
 
+{{< qa q="梯度检查点" >}}
+
+![image.png](http://img.xilyfe.top/img/20260629194509255.png)
+
+如图可以发现，**反向传播必须用到前向传播中产生的中间激活值**。梯度检查点的核心思路是 **以计算换显存**：前向传播时只保留少量"检查点"激活，其余激活用完即丢。反向传播需要某个激活时，从最近的检查点**重新跑一次局部前向**来复原它。
+{{< /qa >}}
+
 
 ## LoRA
+
+### 原理
 
 $$
 W_{update} = W + \Delta W
@@ -245,6 +259,8 @@ class LoRA(nn.Module):
 	def forward(self, x):
 		return self.B(self.A(x)) * self.alpha / self.rank
 ```
+
+### Q&As
 
 {{< qa q="LoRA 加在哪些模块上" >}}
 最初的 LoRA 论文主要作用于 attention 的 $W_q$ 和 $W_k$。但后来的实践表明，将 LoRA 应用于所有的线性层，包括 MLP，通常能获得更好的效果，尽管这会增加一些参数量。
@@ -277,7 +293,7 @@ LoRA 没法同时满足多任务并发和零推理延迟。如果希望零推理
 
 ## SFT
 
-### how
+### 原理
 
 sft 就是让模型在收集的 trajectory 上做 off-policy 的 teacher-forcing 训练。我们把 `labels[:, :t-1]` 喂给模型让它进行 next token prediction，然后用预测的 token 和 `labels[:, t]` 计算交叉熵损失以此优化模型。
 
@@ -361,7 +377,8 @@ log("loss/special_tokens", special_token_loss)
 log("loss/normal_tokens", normal_loss)
 ```
 
----
+
+### Q&As
 
 {{< qa q="各种各样的 mask" >}}
 1. attention mask 负责的只是 PAD token，在计算注意力的时候不注意到 PAD token。
@@ -447,10 +464,6 @@ sft 的过拟合并不像传统深度学习一样，通过调整训练 epoch、�
 {{< /qa >}}
 
 ## RLHF
-
-{{< qa q="rl 和 sft 区别" >}}
-{{< /qa >}}
-
 ### Monte Carlo
 
 >LLM 的 RLHF 中我们需要 critic model 来进行状态价值 $V(S_t)$ 的预测，但是无法知道真实值。Monte Carlo、TD Error 和 GAE 采用不同方法估计一个策略的长期收益也就是 $V_t$，它们各自在**偏差和方差做了不同的权衡**。
@@ -644,12 +657,6 @@ DeepSeek GRPO/Kimi/GLM 保留 KL 散度项，原因是对于基座模型来说�
 	- 修正KL估计器。
 - Kimi K1.5/K2 也使用了 KL 强度动态调整。
 
-{{< qa q="KL 散度和交叉熵、MLE的关系" >}}
-$$
-KL(P\|Q) = \sum P(x)\log\frac{P(x)}{Q(x)} = \underbrace{-\sum P(x)\log Q(x)}_{\text{交叉熵} H(P,Q)} - \underbrace{\left(-\sum P(x)\log P(x)\right)}_{\text{熵} H(P)}
-$$
-
-{{< /qa >}}
 
 ### Importance Sampling
 
@@ -670,6 +677,92 @@ $$
 ### PPO
 
 ![image.png](http://img.xilyfe.top/img/20260611223048584.png)
+
+
+### DPO
+
+![image.png](http://img.xilyfe.top/img/20260611223633880.png)
+
+
+### GRPO
+
+$$
+\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E} \left[ \frac{1}{G} \sum_{i=1}^{G}  \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \min\left( r_{i,t}(\theta) \hat{A}_{i,t},\ \text{clip}(r_{i,t}(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_{i,t} \right)  - \beta D_{\text{KL}} \right]
+$$
+
+GRPO 是对 PPO 算法的变形：
+1. 把 PPO 的 token-mean loss 变成了 seq-mean-token-mean loss
+2. PPO 的优势是通过 TD Error 和 GAE 算的，GRPO 省去了 critic model，用组内的平均值和方差计算相对优势
+3. PPO 把 KL 加在 reward 里面，而 GRPO 把 KL 加在 loss 里面当正则项。
+### Q&As
+
+{{< qa q="KL 散度和交叉熵、MLE的关系" >}}
+假设我们有一组真实世界的数据集 $D = \{x_1, x_2, \dots, x_N\}$，那么根据经验分布可以得到：
+
+$$
+P(x) = \frac{1}{N} \sum_{i=1}^N \delta(x - x_i)
+$$
+
+然后我们进一步拆解 KL 散度，可以得到：
+
+$$
+KL(P\|Q) = \sum P(x)\log\frac{P(x)}{Q(x)} = \underbrace{-\sum P(x)\log Q(x)}_{\text{交叉熵} H(P,Q)} - \underbrace{\left(-\sum P(x)\log P(x)\right)}_{\text{熵} H(P)}
+$$
+因为后半部分信息熵 $\sum_{x} P(x) \log P(x)$ 完全由已知的数据集决定，里面没有模型的参数 $\theta$。所以在对 $\theta$ 求极小化的时候，这一项可以直接当作常数无视掉。因此，我们得到了第一个等价关系：**最小化 KL 散度在优化过程中等价于最小化交叉熵**
+
+$$
+\arg\min_{\theta} D_{KL}(P \parallel P_{\theta}) \iff \arg\min_{\theta} \left( - \sum_{x} P(x) \log P_{\theta}(x) \right)
+$$
+
+然后我们把经验分布代入：
+
+$$
+\begin{align}
+- \sum_{x} P_{data}(x) \log P_{\theta}(x) &= - \sum_{x} \left( \frac{1}{N} \sum_{i=1}^N \mathbb{I}(x = x_i) \right) \log P_{\theta}(x) \\
+&= - \frac{1}{N} \sum_{i=1}^N \left( \sum_{x} \mathbb{I}(x = x_i) \log P_{\theta}(x) \right) \\
+&= - \frac{1}{N} \sum_{i=1}^N \log P_{\theta}(x_i)
+\end{align}
+$$
+
+因此可以发现：**最大似然估计本质上等价于最小化数据的经验分布与模型分布之间的 KL 散度**
+
+$$
+\min_{\theta} D_{KL}(P \parallel P_{\theta}) \iff \min_{\theta} \left( - \frac{1}{N} \sum_{i=1}^N \log P_{\theta}(x_i) \right)
+$$
+
+{{< /qa >}}
+
+{{< qa q="RL 能不能拓宽模型的能力边界？" >}}
+	首先我认为模型的能力边界取决于 **模型的知识覆盖**，所以这部分能力一般只能由 pretraining 来提高。而 RL 做的事情是 **优化搜索策略**，以 passk 测试举例。RL 训练后 pass@1 提高但 pass@k 而不如 base model，说明 RL 更像是把 base model 已经"内含"的能力提取/放大出来，让高概率路径更容易被采样到，而不是让模型学会全新的推理模式——本质是**分布 sharpening**，而非能力扩展。
+{{< /qa >}}
+
+{{< qa q="如何 scale RL 训练边界？" >}}
+- **数据/任务规模化**：扩大 prompt 多样性和难度覆盖，类似预训练的 scaling law 思路，但 RL 数据构造成本更高,需要 verifier/reward model 配合
+- **Rollout 规模化**“：增大每个 prompt 的采样数，更多样本才能估计出更准的 advantage，同时增加发现稀有正确路径的概率
+- **计算基础设施 scaling**：多机多卡分布式训练，async rollout 生成和训练解耦，避免同步等待浪费算力
+- **课程学习**：从简单任务逐步过渡到难任务，避免 reward 过于稀疏导致训练早期完全学不到东西
+- **Reward 设计的可扩展性**：从单一 ORM 扩展到 PRM，或结合 rule-based verifier + reward model 混合，让 reward 信号能覆盖更复杂任务
+{{< /qa >}}
+
+{{< qa q="LLM 推理能力是在哪一个训练阶段产生的？" >}}
+主流观点认为：**推理能力的"种子"在预训练阶段就已经存在**，后续阶段是激发/强化，而非从零创造：
+- **预训练阶段**：海量文本中天然包含大量推理模式（数学证明、代码逻辑、因果论证等），模型通过 ntp 隐式学到了这些模式的统计规律，这是推理能力的**知识基础**
+- **SFT 阶段**：通过高质量 CoT 数据，让模型学会"以推理链的形式组织输出"这个**行为模式**——即让模型知道"应该这样表达推理过程"，更多是格式/习惯层面的教学
+- **RL 阶段(如 GRPO/PPO)**：通过 reward 信号强化那些**能导向正确答案**的推理路径,抑制错误路径的概率
+{{< /qa >}}
+
+{{< qa q="Rejection Sampling 是什么" >}}
+拒绝采样和重要性采样一样，都是"用一个分布的样本去处理另一个分布"的技术，核心动机都是**目标分布难以直接采样/优化**。在 LLM RL 里都用于处理 **off-policy** 问题，即用旧策略生成的数据，来服务新策略。
+
+- Importance Sampling 是给每个样本一个**连续权重** $w=\frac{p(x)}{q(x)}$，样本全部保留只是加权，一般用于**梯度估计**的无偏修正
+- Rejection Sampling 根据一定概率接受或者拒绝样本，拒绝的样本直接丢弃，不参与后续计算，拒绝的样本白白生成了，浪费算力。一般用于**数据构造/筛选**,产出的是干净数据集，再喂给标准 SFT/RL。
+
+假设你想让一个 LLM 更擅长解数学题，可以拿一批带标准答案的数学题 {$\{(q_i, a_i^*)\}$​，$a_i^*$ 是已知的正确答案。对每道题 $q_i$​,用当前 LLM以较高 temperature采样 $N$ 个候选解答，然后用 rm 或者规则验证器等方式 **接受/拒绝**，最后用过滤后的干净数据做标准 SFT。
+
+>rejection sampling 的本质是通过 SFT loss 在筛选出的正确样本上做梯度下降，直接提高 $\pi_\theta$ 对这些正确解答序列的似然，重塑模型的输出分布，让它更集中在正确答案(以及正确的推理路径)上。
+
+{{< /qa >}}
+
 
 {{< qa q="PPO 公式是怎么得到的" >}}
 我们在强化学习里的终极目标，是让动作带来的**期望回报最高**，也就是说我们希望最大化：
@@ -750,10 +843,6 @@ PPO 理论上是 on-policy，每次训练的轨迹是从模型自身采样的。
 Actor-Critic 的核心原因是：Critic 只能评估状态或动作的好坏（V/Q），但无法直接生成可学习的策略更新方向；而Actor负责输出可微的策略分布 π(a|s)，将 Critic 提供的优势信号 $A(s,a)=Q−V$ 转化为参数更新的梯度 $\nabla_\theta \log \pi_\theta(a|s) \cdot A^{\pi_\theta}(s,a)$，从而实现“评价→改进”的闭环。仅有Critic 在高维或连续动作空间中会面临 argmax 困难、不可微以及无法高效表示策略分布的问题，因此需要 Actor 来承载策略表示，使 Critic 的评分能够转化为稳定可优化的参数更新方向。
 {{< /qa >}}
 
-### DPO
-
-![image.png](http://img.xilyfe.top/img/20260611223633880.png)
-
 {{< qa q="DPO 的 chosen 和 reject 的 loss 同时下降是因为什么" >}}
 DPO 的损失函数为：
 
@@ -806,16 +895,6 @@ R-DPO 通过 logit 偏置改变样本的梯度权重，降低长 chosen 样本�
 
 {{< /qa >}}
 
-### GRPO
-
-$$
-\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E} \left[ \frac{1}{G} \sum_{i=1}^{G}  \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \min\left( r_{i,t}(\theta) \hat{A}_{i,t},\ \text{clip}(r_{i,t}(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_{i,t} \right)  - \beta D_{\text{KL}} \right]
-$$
-
-GRPO 是对 PPO 算法的变形：
-1. 把 PPO 的 token-mean loss 变成了 seq-mean-token-mean loss
-2. PPO 的优势是通过 TD Error 和 GAE 算的，GRPO 省去了 critic model，用组内的平均值和方差计算相对优势
-3. PPO 把 KL 加在 reward 里面，而 GRPO 把 KL 加在 loss 里面当正则项。
 
 {{< qa q="不同 RL 场景怎么设计 reward" >}}
 1. 数学/代码/SQL/tool call：这些可验证结果的场景可以用 rule-based reward
@@ -874,6 +953,24 @@ GRPO 在 loss 中加入了 KL 当做正则项，目的是：
 4. 动态 rollout 温度：随训练收敛提高采样温度，防止采样分布过于尖锐。
 {{< /qa >}}
 
+## On-Policy Distillation
+
+### Q&As
+
+
+{{< qa q="OPD 相比传统 RL/SFT 的改进及应用" >}}
+**相比 SFT**：
+- SFT 用 forward KL，是 mode-covering，容易学到"平均化"的行为，且完全依赖静态数据集，存在 exposure bias，训练时用 teacher forcing，推理时自回归生成，分布不一致。
+- OPD 是 on-policy 采样（用学生模型自己的 rollout），用 teacher 模型的 logprobs 作为监督信号，直接优化 reverse KL 或类似目标，让学生在**自己会犯错的地方**接受矫正，而不是在教师的静态轨迹上模仿。
+
+**相比传统 RL**：
+- 传统 RL 依赖 reward model 或 rule-based verifier 提供**稀疏**信号
+- OPD 用 teacher 模型提供**每个 token 位置**的密集监督信号，不需要设计复杂 reward，梯度信号更稠密，训练更稳定，样本效率更高
+{{< /qa >}}
+
+{{< qa q="student 模型和 teacher 模型的 tokenizer 不一致" >}}
+student 和 teacher 模型的 eos token 不同，例如 student 的 eos token 是 <|endoftext|>，teacher的 eos token 是 <|im_end|>。这会导致计算 loss 的时候，student 生成 <|endoftext|> 的概率被大幅压低，但由于 teacher 模型的 <|im_end|> 不在 student 的 top-k 支撑集，student 模型学不到 teacher 的停止方法，就导致无限重复了。
+{{< /qa >}}
 
 ## 分布式训练
 
@@ -928,7 +1025,22 @@ Tensor Parallel 分为列拆分和行拆分两种，顾名思义就是把参数�
 1. FP16 的参数、梯度（模型参数）
 2. FP32 的梯度、一阶动量、二阶动量、Master Weight（优化器状态）
 
-而 DeepSpeed ZeRO 的 ZeRO 含义是 Zero Redundancy Optimizer，其核心思想是 **消除冗余存储的优化器状态**，每个 GPU 中优化器状态是相同的，因此可以通过将优化器状态按离输出的位置关系进行分块，拆分到不同 GPU 上，实现零冗余。DeepSpeed 分为三个阶段，ZeRO-1 仅分区优化器状态，ZeRO-2 加入了梯度，ZeRO-3 加入了模型的参数。
+而 DeepSpeed ZeRO 的 ZeRO 含义是 Zero Redundancy Optimizer，其核心思想是 **消除冗余存储的优化器状态**。大模型在传统数据并行下需要每个GPU 存完整参数、梯度、优化器状态。ZeRO 的解决方法是把**参数、梯度、优化器状态**分成 $N$ 份，每个 GPU 只存 $\frac{1}{N}$。为了用这些分片数据计算，**ZeRO 需要付出通信的代价**，ZeRO 需要通过 AIl-Gather 和 Reduce-Scatter 在 GPU 间频繁传递数据。
+
+#### AllGather
+![image.png](http://img.xilyfe.top/img/20260629181824533.png)
+
+#### ReduceScatter
+
+- **AllGather**：每个 GPU 都有对应的 shard，节点按逻辑环依次发送和接收数据块，例如节点 1 发送块 1 →节点2，同时接收节点 4 的块 4。经过 N-1 轮，所有节点通过拼接累积数据块完成全局同步。
+
+![image.png](http://img.xilyfe.top/img/20260629183133126.png)
+
+- **Reduce-Scatter**：先把所有人的数据**归约**（求和/平均），再把结果**切碎分发**，每人只留一片。
+
+>两个操作的**总通信量完全相同**，都是 `(N-1)/N × 数据总量 × GPU数`，只是流向不同：Reduce-Scatter 是"多合一再分发"，AllGather 是"各出一份再广播"。
+
+#### ZeRO-1
 
 ![](https://img.xilyfe.top/img/20260204160715456.png)
 
@@ -938,30 +1050,154 @@ Tensor Parallel 分为列拆分和行拆分两种，顾名思义就是把参数�
 ZeRO-1 的运行流程是这样的：
 1. 每个 GPU 都存储了完整的模型参数，所以可以分别独立的进行前向传播，计算得到 loss
 2. 反向传播时，每个 GPU 都从后向前计算出每一层参数的梯度
-3. 这时候 GPU-1 和 GPU-2 把计算出来的 **前三层梯度** AllGather 传给 GPU-0。这时候 GPU-0 就可以计算平均梯度，并且它有前三层的优化器状态，就可以对前三层进行更新。然后再用 AllGather 把前三层更新后的参数广播给 GPU-1 和 GPU-2，中三层和后三层的参数也是如此更新。
+3. 这时候 GPU-1 和 GPU-2 把计算出来的 **前三层梯度** ReduceScatter 传给 GPU-0。这时候 GPU-0 就可以计算平均梯度，并且它有前三层的优化器状态，就可以对前三层进行更新。然后再用 AllGather 把前三层更新后的参数广播给 GPU-1 和 GPU-2，中三层和后三层的参数也是如此更新。
 
 假设参数量为 $\Psi$ 节点数量为 $N$，那么对于每个 GPU 有：
 - 梯度收集阶段传入/传出：$(N-1)\frac{\Psi}{N}\approx\Psi$ 
-- 参数广播阶段传入/传出：$(N-1)\frac{\Psi}{N}\approx\Psi$ 
+- 参数收集阶段传入/传出：$(N-1)\frac{\Psi}{N}\approx\Psi$ 
 
 所以 ZeRO-1 最终总传入/传出参数量为 $2\Psi$ 和 DDP 通讯量相同，但是每一个 GPU 上占用的显存量大幅度减少了。
 
+#### ZeRO-2
 
-{{< qa q="在 LLM 训练时，如果不小心多 All Reduce 了几次 loss，会发生什么" >}}
+![](https://img.xilyfe.top/img/20260204170258315.png)
+
+DeepSpeed ZeRO-2 相对于 ZeRO- 1 的核心优化在于进一步分区了梯度从而显著降低显存占用，想法很简单：每个 GPU 只负责更新对应的参数，那么只需要保存这部分参数的梯度就好了。训练过程如下：
+1. 由于每个 GPU 都存储了完整的模型参数，所以可以分别独立的进行前向传播，计算得到 loss
+2. 反向传播时，每个 GPU 都从后向前计算出每一层参数的梯度
+3. 然后 GPU-0 和 GPU-1 计算出最后一层参数的梯度，它们会把这些梯度放到一个 bucket 里面，再传给 GPU-2。当 GPU-2 计算得到最后一层的平均梯度，GPU-0 和 GPU-1 就把这些梯度删除，因为不是自己需要的，以此减少了显存占用。倒数第二、三层也是如何，计算得到梯度再传给 GPU-2 计算平均梯度，然后自己再把不需要的这部分梯度删除。而 GPU-2 得到了后三层平均梯度，就可以更新自己对应的优化器状态，再更新参数。
+4. 最后三个 GPU 再 AllGather 分别传递自己更新好的参数，使得每个 GPU 上的模型保存一致。
+
+#### ZeRO-3
+
+![](https://img.xilyfe.top/img/20260204173843936.png)
+
+DeepSpeed ZeRO-3 又进一步分区了模型的参数，在前向传播时候通过其他 GPU 来广播自己所缺的那一部分参数。
+
+假设参数量为 $\Psi$ 节点数量为 $N$，那么对于每个 GPU 有：
+
+- 参数广播阶段传入/传出：$\left(\right. N - 1 \left.\right) \frac{\Psi}{N} \approx \Psi$
+- 梯度广播阶段传入/传出：$\left(\right. N - 1 \left.\right) \frac{\Psi}{N} \approx \Psi$
+- 参数收集阶段传入/传出：$\left(\right. N - 1 \left.\right) \frac{\Psi}{N} \approx \Psi$
+
+>为什么 ZeRO-3 的通信量不是 $4\Psi$？前向传播 AllGather 一次参数，反向传播计算梯度时候还要 AllGather一次参数，然后计算完梯度需要 Reduce Scatter，然后把更新完的参数再 AllGather。
+>**ZeRO-3 的参数在 optimizer step 之后依然保持分片状态**，不需要重新广播给所有卡。每张卡只更新自己持有的那段参数分片（fp32 master weight → 转回 fp16），更新完就结束了。下一个 iteration 的 forward 需要用参数时，再按层做 AllGather——这个通信已经算在「下一步的 forward Ψ」里，而不是当前 step 的额外开销。
+
+### Q&As
+
+{{< qa q="在 LLM 训练时，如果不小心多 AllReduce 了几次 loss，会发生什么" >}}
+正常流程是 forward → backward → AllReduce梯度 → optimizer step。每次 AllReduce是对梯度做 **sum/mean聚合**，多做一次相当于梯度被**重复累加**，效果等价于**梯度被放大N倍**，后果就等效学习率增加，会导致训练不稳定，梯度爆炸，参数更新幅度异常大，严重时直接 NaN。
+{{< /qa >}}
+
+{{< qa q="ZeRO 在进行并行计算时，这个 GPU 怎么拿到别的 GPU 上的参数？" >}}
+以 ZeRO-3 举例，在前向传播时候：
+- 当前 layer 的参数被切分在 $N$ 块卡上，每块卡只持有 $\frac{1}{N}$​ 的参数
+- 执行 **AllGather**：每块卡把自己持有的参数 shard 广播给所有其他卡
+- 所有卡拼到完整参数后执行前向计算
+- 计算完成后**立刻丢弃**刚才 gather 来的参数
+
+然后反向传播时候：
+- 执行 **AllGather**：每块卡把自己持有的参数 shard 广播给所有其他卡
+- 所有卡分别进行反向传播，计算对应参数 shard 的梯度
+- 所有卡 Reduce Scatter，这样每个 GPU 就能得到对应 shard 的完整梯度
+- 每个 GPU 更新自己对应的那部分参数 shard
+{{< /qa >}}
+
+{{< qa q="有 4 块卡，数据被切成了 4 份，每个卡上有一份数据，设一次通信量是 $x$，如果要实现一次 AllReduce 操作，需要多少通信量？" >}}
+**Ring-AllReduce分两个阶段：**
+
+| 阶段     | 操作             | 每块卡发送量                     |
+| ------ | -------------- | -------------------------- |
+| 第一阶段   | Reduce-Scatter | $\frac{N-1}{N} \cdot x$    |
+| 第二阶段   | AllGather      | $\frac{N-1}{N} \cdot x$    |
+| **合计** |                | $\frac{2(N-1)}{N} \cdot x$ |
+
+N=4时，每块卡总发送量 = $\frac{3}{2}x$，**4块卡总通信量 = $4 \times \frac{3}{2}x = 6x$**。
+{{< /qa >}}
+
+## Infra
+
+### Q&As
+
+{{< qa q="RL rollout 中的长尾问题是什么，有哪些解决方案" >}}
+RL rollout 中的长尾问题指的是，推理时候不同样本的 response 长度可能差异很大，这会导致有些样本很早结束但由于需要等待长序列，一直输出 eos_token 空转浪费 GPU 资源。
+
+- **Async rollout**：rollout 和 training 解耦成独立的 worker，生成快的样本不用等慢的，持续填充训练队列
+- **长度惩罚/截断策略**：设置最大长度上限,超长序列强制截断或给予长度惩罚
+- **动态 batch 调度**：按预估长度把 sample 放到不同 bucket 里，把长度相近的样本分到同一 batch，减少组内方差
+- **Force-end 机制**：对多轮 agentic rollout 设置最大轮数强制结束，避免个别样本无限循环拖慢整体
+{{< /qa >}}
+
+{{< qa q="continuous batching 在 RL 训练时会有什么问题" >}}
+1. **off-policy 问题**：如果生成阶段用的策略和训练阶段实际更新的参数出现版本差异（生成时用的是几步之前的旧参数），就引入了 off-policy 偏差，需要 importance sampling ratio 做矫正。
+2. **同步开销**：例如 GRPO 需要在组内都 rollout 结束才能算 advantage，而 continuous batching 恰恰是希望不同请求独立异步完成。这两者存在天然张力，需要额外的 group-level barrier 同步。
+3. **显存管理复杂度**：continuous batching 依赖 KV cache 的动态分配，训练阶段还需要额外保存 log-prob、activation 用于反向传播，显存压力比纯推理场景更大。
 {{< /qa >}}
 
 ## 训练
 
-{{< qa q="参数量计算" >}}
-{{< /qa >}}
-
-{{< qa q="显存计算" >}}
-{{< /qa >}}
-
-{{< qa q="训练出现 NaN 的原因" >}}
-{{< /qa >}}
 
 {{< qa q="参数量计算" >}}
+1. Embedding 层：token embedding 的参数量是 `vocab_size * hidden_size`，position embedding 现在一般都是 RoPE 或者变体，非可学习位置编码参数量都是零。
+2. Transformer Block：单层 transformer block 包含一个 MHA（或者 MQA 或者 GQA），和一个 FFN 还有一个 LayerNorm。
+	- 注意力机制包括四个注意力矩阵，参数量是 `4*hidden_size^2`，如果采用 MQA 或者 GQA 它的参数量是 `2*hidden_size*^2 + 2*hidden_size * num_kv_heads*head_dim`。
+	- 前馈神经网络 SwigLU FFN 包括 gate/up/down 三个矩阵，参数量是 `3*hidden_size*ffn_dim`。中间维度一般取 `ffn_dim=8*hidden_size/3`，所以参数量约等于 `8*hidden_size^2`
+	- RMSNorm 的参数量可以忽略不计
+3. LM_Head：就是反向 token embedding，参数量也是 `vocab_size * hidden_size`
+4. 总参数量约为 `2*hidden_size*vocab_size + 12*hidden_size^2`
+{{< /qa >}}
+
+{{< qa q="推理需要的显存" >}}
+推理需要的显存包含两部分，模型权重和 KVCache 两部分：
+1. 模型权重占用的显存取决于参数量和数据类型，以 FP16 为例就是 `参数量 * 2B`
+2. KVCache 的显存量为 `2*batch_size*num_layers*seq_len*(num_kv_heads*head_dim)*2B`
+{{< /qa >}}
+
+{{< qa q="全参训练需要的显存" >}}
+训练显存大致分为以下四部分：
+1. 模型权重：取决于存储的精度，常见的 BF16 和 FP16 占用大小为 2B
+2. 梯度：反向传播计算的梯度，和权重一样常见情况下占用 2B
+3. 优化器状态：常见的 Adam 会为每个参数都保存它的 Momentum、Variance 和 Master weights，精度为 FP32 所以总计 12B
+4. 中间激活值：简单来说就是为了计算反向传播的梯度，需要把前向计算的中间值存储起来，具体计算见下文。
+
+合计起来，显存占用的经验公式为：$\text{VRAM}_{t r a i n} \approx 20 \times N \left(\right. B y t e s \left.\right)$
+{{< /qa >}}
+
+{{< qa q="lora训练需要的显存" >}}
+LoRA 和全参训练相比，它冻结原模型权重，只训练低秩矩阵A、B。
+- 模型权重：前向传播要用不能节省，还是 `总参数量 * 2B`
+- 梯度：`LoRA 参数量 * 2B`
+- 优化器状态：`LoRA 参数量 * 12B`
+- 激活值：和全参一样
+{{< /qa >}}
+
+{{< qa q="sft/ppo/dpo/grpo 需要的显存" >}}
+**SFT**：就一个 policy model，等同于普通全参/LoRA训练
+
+**PPO**：
+- actor model 需要权重、梯度、激活值、优化器状态
+- critic model 需要权重、梯度、激活值、优化器状态
+- reference model 仅仅推理得到 logprobs，所以只需要权重
+- reward model 只需要权重
+
+**DPO**：
+- actor model 需要权重、梯度、激活值、优化器状态
+- reference model 仅仅推理得到 logprobs，所以只需要权重
+
+**GRPO**：
+- actor model — 训练
+- reward model — 推理
+- reference model — 推理
+{{< /qa >}}
+
+{{< qa q="deepspeed zero/fsdp 需要的显存" >}}
+- **ZeRO-1**：把优化器状态拆分，所以单个 GPU 显存占用是 `2+2+(12/N)B * 参数量`
+- **ZeRO-2**：优化器状态和梯度拆分，显存为 `2+(2+12)/N B * 参数量`
+- **ZeRO-3**：优化器状态和梯度还有参数都拆分，显存为 `(2+2+12)/N B * 参数量`
+- **FSDP**：与 ZeRO 类似
+
+>这里不考虑激活值。
+
 {{< /qa >}}
 
 
@@ -970,3 +1206,124 @@ ZeRO-1 的运行流程是这样的：
 ### MedicalGPT
 
 ### Search-R1
+
+#### dataset
+
+{{< qa q="各阶段数据是什么格式" >}}
+第一阶段是 **在 Llama-Factory 上进行 SFT 冷启动**。Llama-Factory 支持的数据集格式为 sharegpt 或者 alpaca：
+
+```text
+# alpaca
+[
+    {
+        "instruction": "任务指令",
+        "input": "可选的输入上下文",
+        "output": "期望的输出响应"
+    }
+]
+# sharegpt
+[
+    {
+        "conversations": [
+            {
+                "from": "human",
+                "value": "用户说的话"
+            },
+            {
+                "from": "gpt",
+                "value": "助手的回复"
+            },
+            {
+                "from": "human",
+                "value": "用户下一句话"
+            }
+        ],
+        "system": "可选的系统提示词"
+    }
+]
+```
+
+然后使用这些自定义数据集需要我们重写 `dataset_info.json` 文件。
+
+第二阶段是 **在 verl 上进行 GRPO 训练**。verl 需要的数据是包含下面字段的 parquet 类型数据：
+
+```json
+{
+    "data_source": data_source,
+    "prompt": [{
+        "role": "user",
+        "content": question,
+    }],
+    "ability": "fact-reasoning",
+    "reward_model": {
+        "style": "rule",
+        "ground_truth": {
+            "target": example["golden_answers"]
+        }
+    },
+    "extra_info": {
+        "split": split,
+        "index": idx,
+    }
+}
+```
+
+我们下载 [FLASHRAG](https://huggingface.co/datasets/RUC-NLPIR/FlashRAG_datasets/) 数据集，然后用 Search-R1 提供的转换脚本 `qa_search_train_merge.py` 就好了，它会自动填充字段并且转换为 parquet 格式。
+{{< /qa >}}
+
+{{< qa q="各阶段数据是怎么构造的" >}}
+Search-R1 用的数据集是 Huggingface 上的 FlashRAG，这个数据集提供了 question 和 golden_answer，正好适用于 Search-R1 这种 ORM 的 RL 训练。FlashRAG 包含多种类型的 QA 数据：
+
+| 数据集      | 说明                                               |
+| -------- | ------------------------------------------------ |
+| hotpotqa | 多步跨文档推理数据集，需要多轮检索、多信总融合推理，适合验证模型多轮搜索决策能力。        |
+| triviaqa | 海量开放域事实问答数据集，侧重单步精准事实检索，用验证模型 query 生成质量与精准搜索能力。 |
+{{< /qa >}}
+
+#### retriever
+
+{{< qa q="检索这块用的是什么方案？" >}}
+E5-base 向量模型对 Wikipedia 语料做 dense embedding，建 FAISS 索引，本地部署成检索服务，
+封装成 VERL Tool 注册进 Tool Agent Loop，模型在 rollout 过程中自主发起 query、
+拿到 top-k 段落后拼回上下文继续推理。纯 dense retrieval，没有做 BM25 混合。
+{{< /qa >}}
+
+{{< qa q="为什么不用现成的搜索引擎 API？" >}}
+1) 复现对齐：Search-R1 原论文用的是固定的 Wikipedia dump（wiki-18），
+   用本地语料+索引能保证检索内容可控、可复现，不会随外部搜索引擎结果变化而漂移，
+   便于做消融和对比原论文指标。
+2) 训练稳定性：RL rollout 阶段检索调用量大且并发高，外部 API 有限流、延迟抖动、
+   可用性问题，会直接拖慢/打断整个 rollout pipeline；本地服务延迟低且可控，
+   可以配合 async rollout 提升吞吐。
+3) 成本：训练阶段调用次数是数量级的，外部 API 计费不现实。
+{{< /qa >}}
+
+{{< qa q="retrieval 服务挂了怎么办" >}}
+1. rollout 阶段进行检索服务时，如果遇到 retrieval 失败会进行多次重试。
+2. 在 Search-R1 基础上引入异常轨迹监控与过滤机制，检索服务不可用/超时会被监控模块捕获，对应 trajectory 直接做 loss mask，不参与 GRPO 更新，避免因基础设施问题产生的低质量/异常样本污染训练信号。
+3. 监控机制如果发现 retrieval 连续失败超过指定阈值，会直接终止训练。
+{{< /qa >}}
+
+#### training
+
+{{< qa q="项目里怎么处理模型输出格式不对的情况？" >}}
+1. SFT 冷启动阶段用教师模型蒸馏出的含 CoT + Tool Call 的轨迹数据训练， 从源头上让模型学会规范的输出格式
+2. RL 阶段用格式约束作为辅助奖励， 配合精确匹配主奖励一起引导
+3. 如果输出格式解析失败， 归为异常轨迹类型之一，做 loss mask 处理，不让这类样本产生有效梯度
+{{< /qa >}}
+
+
+{{< qa q="为什么不用 HuggingFace 直接推理而用 vLLM？" >}}
+1. 吞吐：vLLM 的 PagedAttention + continuous batching 相比 HF 原生推理 在 rollout 阶段吞吐高出一个量级，RL 训练里 rollout 生成是主要耗时瓶颈 
+2. 框架适配：VERL 的 HybridEngine 依赖 vLLM 做 rollout 引擎、FSDP 做训练引擎， 两者之间做权重 reshard/同步，这是新版 VERL 架构默认的 rollout backend
+3. async rollout：要提升异步 rollout 机制的吞吐收益，需要 vLLM 支持的 高并发生成能力配合，HF 原生推理无法支撑这个并发规模
+{{< /qa >}}
+
+{{< qa q=" 训练时怎么平衡 exploration 和 exploitation？" >}}
+1. 采样温度/top-p 控制单条轨迹的多样性
+2. group size 控制组内探索广度，group 内做相对优势计算
+3. 对比 GRPO 加 KL 正则和不加 KL 正则的效果
+{{< /qa >}}
+
+{{< qa q="评价指标" >}}
+{{< /qa >}}

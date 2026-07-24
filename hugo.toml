@@ -282,7 +282,7 @@ theme = "douchi"
     title = ""
     weight = 2
   [[menu.main]]
-    identifier = "essays"
+    identifier = "life"
     pre = ""
     post = ""
     name = "生活 | LIFE"

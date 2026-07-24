@@ -635,7 +635,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(90deg, rgba(0, 0, 0, .82) 0%, rgba(0, 0, 0, .46) 48%, rgba(0, 0, 0, .14) 100%), linear-gradient(0deg, rgba(0, 0, 0, .72) 0%, rgba(0, 0, 0, .08) 55%);
+  background: linear-gradient(90deg, rgba(0, 0, 0, .7) 0%, rgba(0, 0, 0, .4) 48%, rgba(0, 0, 0, .1) 100%), linear-gradient(0deg, rgba(0, 0, 0, .67) 0%, rgba(0, 0, 0, .08) 55%);
   content: "";
 }
 
@@ -647,7 +647,7 @@ body {
 .ukiyoe-back {
   display: inline-flex;
   margin-bottom: 1.2rem;
-  color: rgba(255, 255, 255, .82);
+  color: rgba(255, 255, 255, .82) !important;
   font-size: .88rem;
   text-decoration: none;
 }
@@ -658,7 +658,7 @@ body {
 
 .ukiyoe-hero h1 {
   margin: 0;
-  color: #fff;
+  color: #fff !important;
   font-size: clamp(2rem, 6vw, 3.8rem);
   line-height: 1.05;
   text-shadow: 0 4px 24px rgba(0, 0, 0, .36);
@@ -687,7 +687,7 @@ body {
   align-items: center;
   border-radius: 999px;
   background: #fff;
-  color: #1b231e;
+  color: #1b231e !important;
   font-weight: 800;
   padding: .62rem 1rem;
   text-decoration: none;
@@ -841,7 +841,6 @@ body {
   justify-content: space-between;
   gap: 24px;
   margin: 0 0 14px;
-  border-bottom: 1px solid rgba(0, 0, 0, .08);
   padding-bottom: 12px;
 }
 
@@ -851,7 +850,7 @@ body {
   gap: 12px;
   margin: 0;
   color: #2f3437;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -.02em;
   line-height: 1.15;
@@ -1345,7 +1344,7 @@ html:not(.dark) h2,
 html:not(.dark) h3,
 html:not(.dark) .post-card h2 a,
 html:not(.dark) .article-header h1 {
-  color: #111111 !important;
+  color: #111111;
 }
 
 html:not(.dark) .brand-subtitle,
@@ -1367,7 +1366,7 @@ html:not(.dark) .term-cloud span,
 html:not(.dark) .home-recent-title,
 html:not(.dark) .post-card h2 a:hover,
 html:not(.dark) .toc-content a.active {
-  color: #000000 !important;
+  color: #000000;
 }
 
 html:not(.dark) .nav-link.is-active {
@@ -1447,7 +1446,7 @@ html.dark .term-cloud span,
 html.dark .home-recent-title,
 html.dark .post-card h2 a:hover,
 html.dark .toc-content a.active {
-  color: #ffffff !important;
+  color: #ffffff ;
 }
 
 html.dark .theme-toggle,
@@ -1464,4 +1463,13 @@ html.dark .post-card:last-child,
 html.dark .ukiyoe-header,
 html.dark .ukiyoe-tabs {
   border-color: #303030 !important;
+}
+
+/* 长公式（$$ ... $$）超出容器时允许横向滚动，不撑破布局 */
+mjx-container[display="true"] {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
 }

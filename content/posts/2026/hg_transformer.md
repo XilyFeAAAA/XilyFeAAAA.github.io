@@ -1,7 +1,7 @@
 ---
 title: transformer库的基类
 date: 2026-01-27T19:16:19+08:00
-featuredImage: ""
+featuredImage: http://img.xilyfe.top/img/20260629104523227.png
 authors:
   - Xilyfe
 series:
