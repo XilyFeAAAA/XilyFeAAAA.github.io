@@ -5,23 +5,7 @@
 {{- $life := where $pages "Params.categories" "intersect" (slice "thoughts") -}}
 {{- $pages = complement $life $pages -}}
 {{- $paginator := .Paginate $pages 20 -}}
-<section class="home-hero home-about">
-  <h1>关于我</h1>
-  <div class="about-list">
-    <div class="about-item">
-      <span class="about-icon" aria-hidden="true">♙</span>
-      <p>你好，我是 <strong>多辣加香菜/椰果去冰七分甜</strong> <span class="leaf">☘</span></p>
-    </div>
-    <div class="about-item">
-      <span class="about-icon" aria-hidden="true">&lt;/&gt;</span>
-      <p>目前关注的方向是 <strong>LLM</strong>、<strong>强化学习</strong>与 <strong>训练框架</strong>。</p>
-    </div>
-    <div class="about-item">
-      <span class="about-icon" aria-hidden="true">✈</span>
-      <p>没有忌口老板，麻烦辣帮我多加一点。</p>
-    </div>
-  </div>
-</section>
+
 
 {{- with .Content -}}
   <section class="home-content prose">{{ . }}</section>
