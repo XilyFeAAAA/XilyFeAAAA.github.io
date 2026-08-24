@@ -1,0 +1,32 @@
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    {{- $since := .Site.Params.footer.since | default now.Year -}}
+    <span>© {{ $since }}{{ if ne $since now.Year }}-{{ now.Year }}{{ end }} {{ .Site.Title }}</span>
+    {{- with .Site.Params.footer.license }}<span class="footer-license">{{ . | safeHTML }}</span>{{ end -}}
+    {{- with .Site.Params.busuanzi -}}
+      {{- if .enable -}}
+        <span class="footer-stats" aria-label="站点访问统计">
+          {{- if .site_uv }}
+            <span class="footer-stat">
+              {{ .site_uv_pre | safeHTML }}
+              <span id="busuanzi_container_site_uv">访客 <span id="busuanzi_value_site_uv"></span>{{ .site_uv_post | safeHTML }}</span>
+            </span>
+          {{- end -}}
+          {{- if .site_pv }}
+            <span class="footer-stat">
+              {{ .site_pv_pre | safeHTML }}
+              <span id="busuanzi_container_site_pv">浏览 <span id="busuanzi_value_site_pv"></span>{{ .site_pv_post | safeHTML }}</span>
+            </span>
+          {{- end -}}
+          {{- if .page_pv }}
+            <span class="footer-stat">
+              {{ .page_pv_pre | safeHTML }}
+              <span id="busuanzi_container_page_pv">本文 <span id="busuanzi_value_page_pv"></span>{{ .page_pv_post | safeHTML }}</span>
+            </span>
+          {{- end -}}
+        </span>
+        <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+      {{- end -}}
+    {{- end -}}
+  </div>
+</footer>

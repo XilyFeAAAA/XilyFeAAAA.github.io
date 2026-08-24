@@ -354,6 +354,8 @@ html.dark .home-recent-tax.is-tag { background: #44242d; color: #ee9cad; }
 .pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 24px; color: var(--muted); font-size: 12px; }
 .site-footer { width: min(1360px, calc(100vw - 32px)); margin: 0 auto 24px; color: var(--muted); font-size: 13px; }
 .site-footer-inner { margin-left: 236px; display: flex; gap: 10px; flex-wrap: wrap; }
+.footer-stats { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+.footer-stat { display: inline-flex; align-items: center; gap: 4px; }
 
 @media (max-width: 940px) {
   .site-shell { display: block; width: min(720px, calc(100vw - 28px)); }
